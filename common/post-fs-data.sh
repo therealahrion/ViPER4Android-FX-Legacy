@@ -58,5 +58,3 @@ for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VEN
     sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $TMPAUDMODLIBPATH$CFG
   fi
 done
-
-source $TMPAUDMODLIBPATH/post-fs-data.sh

@@ -33,7 +33,7 @@ OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
 install() {
 }
 
-if ! cmp -s $MODDIR$CONFIG_FILE $CONFIG_FILE; then
+if ! cmp -s $TMPAUDMODLIBPATH$CONFIG_FILE $CONFIG_FILE; then
   install
   reboot
 fi
