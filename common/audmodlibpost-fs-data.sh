@@ -7,6 +7,8 @@ MODDIR=${0%/*}
 # More info in the main Magisk thread
 
 ################ v DO NOT REMOVE v ################
+TMPAUDMODLIBPATH=/magisk/audmodlib
+
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
   SYSTEM=/system/system
@@ -31,4 +33,7 @@ OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
 install() {
 }
 
-
+if ! cmp -s $MODDIR$CONFIG_FILE $CONFIG_FILE; then
+  install
+  reboot
+fi

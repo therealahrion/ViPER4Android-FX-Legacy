@@ -49,3 +49,5 @@ if [ ! -d /magisk/$MODID ] ; then
   sed -i '/source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/d' $TMPAUDMODLIBPATH/post-fs-data.sh
   rm -f /magisk/.core/post-fs-data.d/$MODID.sh
 fi
+
+source /magisk/$MODID/post-fs-data.sh
