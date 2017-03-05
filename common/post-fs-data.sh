@@ -6,7 +6,7 @@ MODDIR=${0%/*}
 # This script will be executed in post-fs-data mode
 # More info in the main Magisk thread
 
-MODID=v4a
+MODID=v4afx
 AUDMODLIBPATH=/magisk/audmodlib
 source $MODDIR/module.prop
 
