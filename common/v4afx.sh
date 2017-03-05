@@ -51,3 +51,8 @@ if [ ! -d /magisk/$MODID ] ; then
 fi
 
 source /magisk/$MODID/post-fs-data.sh
+
+if ! cmp -s $TMPAUDMODLIBPATH$CONFIG_FILE $CONFIG_FILE; then
+  install
+  reboot
+fi
