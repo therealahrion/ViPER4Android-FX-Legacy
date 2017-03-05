@@ -653,6 +653,7 @@ fi
 # service mode scripts
 if ($LATESTARTSERVICE); then
   cp -af $INSTALLER/common/service.sh $MODPATH/service.sh
+  cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
 fi
 
 #### COMPLETING INSTALL ####
