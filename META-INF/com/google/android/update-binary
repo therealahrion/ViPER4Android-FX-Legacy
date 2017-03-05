@@ -207,13 +207,9 @@ aud_mod_lib() {
   ### AUDIO MODIFICATION LIBRARY INJECT ###
 
   # CREATE AUDIO MODIFICATION LIBRARY
-  if [ ! -f $AUDMODLIBPATH ]; then
-    mkdir -p $MOUNTPATH/.core/post-fs-data.d
-    cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
-  else
-    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $AUDMODLIBPATH/post-fs-data.sh
-  fi
-
+  mkdir -p $MOUNTPATH/.core/post-fs-data.d
+  cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
+	
   mkdir -p $AUDMODLIBPATH
 
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
@@ -234,6 +230,8 @@ aud_mod_lib() {
   fi
 
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
+  
+  sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $AUDMODLIBPATH/post-fs-data.sh
 
   source $INSTALLER/common/$MODID.sh
 }
