@@ -212,6 +212,12 @@ aud_mod_lib() {
 	
   mkdir -p $AUDMODLIBPATH
 
+  if [ -f $AUDMODLIBPATH/post-fs-data.sh ]; then
+    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $AUDMODLIBPATH/post-fs-data.sh
+  else
+    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $INSTALLER/common/audmodlib.sh
+  fi  
+  
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
   cp -af $INSTALLER/common/audmodlib.sh $AUDMODLIBPATH/post-fs-data.sh
@@ -230,10 +236,8 @@ aud_mod_lib() {
   fi
 
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
-  
-  sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $AUDMODLIBPATH/post-fs-data.sh
 
-  source $INSTALLER/common/$MODID.sh
+  source $INSTALLER/common/post-fs-data.sh
 }
 
 sys_mod_wipe() {
