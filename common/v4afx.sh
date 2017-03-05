@@ -3,7 +3,7 @@
 # More info in the main Magisk thread
 
 MODID=v4afx
-AUDMODLIBPATH=/magisk/audmodlib
+TMPAUDMODLIBPATH=/magisk/audmodlib
 source /magisk/$MODID/module.prop
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
@@ -32,9 +32,9 @@ uninstall() {
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
       # REMOVE LIBRARIES & EFFECTS
-      sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
+      sed -i '/v4a_fx {/,/}/d' $TMPAUDMODLIBPATH$CFG
       sed -i '/v4a_fx {/,/}/d' $CFG
-      sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
+      sed -i '/v4a_standard_fx {/,/}/d' $TMPAUDMODLIBPATH$CFG
       sed -i '/v4a_standard_fx {/,/}/d' $CFG
     fi
   done
@@ -42,6 +42,6 @@ uninstall() {
 
 if [ ! -d /magisk/$MODID ] ; then
   uninstall
-  sed -i '/source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/d' $AUDMODLIBPATH/post-fs-data.sh
+  sed -i '/source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/d' $TMPAUDMODLIBPATH/post-fs-data.sh
   rm -f /magisk/.core/post-fs-data.d/$MODID.sh
 fi

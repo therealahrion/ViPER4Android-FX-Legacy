@@ -6,9 +6,7 @@ MODDIR=${0%/*}
 # This script will be executed in post-fs-data mode
 # More info in the main Magisk thread
 
-MODID=audmodlib
-AUDMODLIBPATH=/magisk/$MODID
-source /magisk/$MODID/module.prop
+source $MODDIR/module.prop
 
 /data/magisk/sepolicy-inject --live -s mediaserver -t mediaserver_tmpfs -c file -p read,write,execute
 /data/magisk/sepolicy-inject --live -s audioserver -t audioserver_tmpfs -c file -p read,write,execute
@@ -36,7 +34,7 @@ OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
 install() {
 }
 
-if ! cmp -s $AUDMODLIBPATH$SYSTEM/etc/audio_effects.conf $SYSTEM/etc/audio_effects.conf; then
+if ! cmp -s $MODDIR$SYSTEM/etc/audio_effects.conf $SYSTEM/etc/audio_effects.conf; then
   install
   reboot
 fi

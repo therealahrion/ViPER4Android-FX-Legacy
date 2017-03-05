@@ -7,7 +7,7 @@ MODDIR=${0%/*}
 # More info in the main Magisk thread
 
 MODID=v4afx
-AUDMODLIBPATH=/magisk/audmodlib
+TMPAUDMODLIBPATH=/magisk/audmodlib
 source $MODDIR/module.prop
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
@@ -39,8 +39,8 @@ ui_print "   Removing library & effect lines..."
 for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
   if [ -f $CFG ]; then
     # REMOVE LIBRARIES & EFFECTS
-    sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
-    sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
+    sed -i '/v4a_fx {/,/}/d' $TMPAUDMODLIBPATH$CFG
+    sed -i '/v4a_standard_fx {/,/}/d' $TMPAUDMODLIBPATH$CFG
   fi
 done
 
@@ -49,8 +49,8 @@ ui_print "   Patching existing audio_effects files..."
 for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
   if [ -f $CFG ]; then
     # ADD EFFECTS
-    sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $AUDMODLIBPATH$CFG
+    sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $TMPAUDMODLIBPATH$CFG
     # ADD LIBRARIES
-    sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $AUDMODLIBPATH$CFG
+    sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $TMPAUDMODLIBPATH$CFG
   fi
 done
