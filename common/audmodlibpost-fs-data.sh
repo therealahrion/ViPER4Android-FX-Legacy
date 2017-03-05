@@ -6,10 +6,10 @@ MODDIR=${0%/*}
 # This script will be executed in post-fs-data mode
 # More info in the main Magisk thread
 
-source $MODDIR/module.prop
-
 /data/magisk/sepolicy-inject --live -s mediaserver -t mediaserver_tmpfs -c file -p read,write,execute
 /data/magisk/sepolicy-inject --live -s audioserver -t audioserver_tmpfs -c file -p read,write,execute
+
+################ v DO NOT REMOVE v ################
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
@@ -30,6 +30,7 @@ VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
 HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+################ ^ DO NOT REMOVE ^ ################
 
 install() {
 }

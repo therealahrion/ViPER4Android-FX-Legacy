@@ -2,9 +2,12 @@
 # This script will be executed in post-fs-data mode
 # More info in the main Magisk thread
 
+#### v THIS SHOULD MATCH YOUR CONFIG.SH MODID v #####
 MODID=v4afx
+#### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
+
+################ v DO NOT REMOVE v ################
 TMPAUDMODLIBPATH=/magisk/audmodlib
-source /magisk/$MODID/module.prop
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
@@ -25,6 +28,7 @@ VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
 HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+################ ^ DO NOT REMOVE ^ ################
 
 uninstall() {
   # REMOVE LIBRARIES & EFFECTS
@@ -45,3 +49,5 @@ if [ ! -d /magisk/$MODID ] ; then
   sed -i '/source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/d' $TMPAUDMODLIBPATH/post-fs-data.sh
   rm -f /magisk/.core/post-fs-data.d/$MODID.sh
 fi
+
+source $TMPAUDMODLIBPATH/post-fs-data.sh

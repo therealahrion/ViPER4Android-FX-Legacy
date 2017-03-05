@@ -6,9 +6,12 @@ MODDIR=${0%/*}
 # This script will be executed in post-fs-data mode
 # More info in the main Magisk thread
 
+#### v THIS SHOULD MATCH YOUR CONFIG.SH MODID v #####
 MODID=v4afx
+#### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
+
+################ v DO NOT REMOVE v ################
 TMPAUDMODLIBPATH=/magisk/audmodlib
-source $MODDIR/module.prop
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
@@ -29,6 +32,7 @@ VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
 HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+################ ^ DO NOT REMOVE ^ ################
 
 #### PATCHING FILES ####
 ui_print " "

@@ -215,12 +215,12 @@ aud_mod_lib() {
   if [ -f $AUDMODLIBPATH/post-fs-data.sh ]; then
     sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $AUDMODLIBPATH/post-fs-data.sh
   else
-    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $INSTALLER/common/audmodlib.sh
+    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $INSTALLER/common/audmodlibpost-fs-data.sh
   fi  
   
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
-  cp -af $INSTALLER/common/audmodlib.sh $AUDMODLIBPATH/post-fs-data.sh
+  cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
 
   for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
     mkdir -p $AUDMODLIBPATH${CFG%/*}
@@ -647,7 +647,7 @@ fi
 # post-fs-data mode scripts
 if ($POSTFSDATA); then
   cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
-  cp -af $INSTALLER/common/audmodlib.sh $AUDMODLIBPATH/post-fs-data.sh
+  cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
 fi
 
 # service mode scripts
