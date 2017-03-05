@@ -618,7 +618,6 @@ aud_mod_lib
 # Handle replace folders
 for TARGET in $REPLACE; do
   mktouch $MODPATH$TARGET/.replace
-  mktouch $AUDMODLIBPATH$TARGET/.replace
 done
 
 # Auto Mount
