@@ -214,28 +214,30 @@ aud_mod_lib() {
 
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
-  #### v THIS SHOULD MATCH YOUR CONFIG.SH MODID v #####
-  if [ ! -d /magisk/$AUDMODLIBID ] || [ ! -d $AUDMODLIBPATH ]; then
-    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/dax.sh/g' $INSTALLER/common/audmodlibpost-fs-data.sh
-    cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
-  else
-    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/dax.sh/g' /magisk/$AUDMODLIBID/post-fs-data.sh
-  fi
-  #### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
+  cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
 
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    mkdir -p /cache/tmp/audmodlib{CFG%/*}
+  done
+  
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    cp -af $CFG /cache/tmp/audmodlib$CFG
+  done
+  
+  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+  if [ -f $VENDOR_CONFIG ]; then
+    cp -af /cache/tmp/audmodlib$CONFIG_FILE /cache/tmp/audmodlib$VENDOR_CONFIG
+  fi
+  
   for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
     mkdir -p $AUDMODLIBPATH${CFG%/*}
   done
   
   for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-    cp -af $CFG $AUDMODLIBPATH$CFG
+    cp -af /cache/tmp/audmodlib$CFG $AUDMODLIBPATH$CFG
   done
-  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-  if [ -f $VENDOR_CONFIG ]; then
-    cp -af $AUDMODLIBPATH$CONFIG_FILE $AUDMODLIBPATH$VENDOR_CONFIG
-  fi
-
+  
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
 
   #### PATCHING FILES ####
