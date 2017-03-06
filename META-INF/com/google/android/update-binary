@@ -219,7 +219,7 @@ aud_mod_lib() {
 
   if [ ! -d /cache/tmp/audmodlib ]; then
     for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      mkdir -p /cache/tmp/audmodlib{CFG%/*}
+      mkdir -p /cache/tmp/audmodlib${CFG%/*}
     done
     for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
       cp -af $CFG /cache/tmp/audmodlib$CFG
