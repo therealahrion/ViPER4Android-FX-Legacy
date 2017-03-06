@@ -30,9 +30,6 @@ OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
 ################ ^ DO NOT REMOVE ^ ################
 
-install() {
-}
-
 if ! cmp -s $TMPAUDMODLIBPATH$CONFIG_FILE $CONFIG_FILE; then
   install
   reboot
