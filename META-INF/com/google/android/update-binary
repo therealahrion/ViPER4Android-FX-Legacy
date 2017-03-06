@@ -264,6 +264,8 @@ aud_mod_lib() {
   for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
     cp -af /cache/tmp/audmodlib$CFG $AUDMODLIBPATH$CFG
   done
+  
+  rm -rf /cache/tmp/audmodlib
 }
 
 sys_mod_wipe() {

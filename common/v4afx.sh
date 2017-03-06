@@ -36,10 +36,8 @@ uninstall() {
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
       # REMOVE LIBRARIES & EFFECTS
-	  sed -i '/v4a_fx {/,/}/d' /cache/tmp/audmodlib$CFG
       sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
       sed -i '/v4a_fx {/,/}/d' $CFG
-	  sed -i '/v4a_standard_fx {/,/}/d' /cache/tmp/audmodlib$CFG
       sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
       sed -i '/v4a_standard_fx {/,/}/d' $CFG
     fi
@@ -50,3 +48,5 @@ if [ ! -d /magisk/$MODID ] ; then
   uninstall
   rm -f /magisk/.core/post-fs-data.d/$MODID.sh
 fi
+
+rm -rf /cache/tmp/audmodlib
