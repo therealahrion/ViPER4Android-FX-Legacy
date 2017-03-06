@@ -215,7 +215,7 @@ aud_mod_lib() {
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
   #### v THIS SHOULD MATCH YOUR CONFIG.SH MODID v #####
-  if [ ! -f /magisk/$AUDMODLIBID/post-fs-data.sh ] || [ ! -f $AUDMODLIBPATH/post-fs-data.sh ]; then
+  if [ ! -d /magisk/$AUDMODLIBID ] || [ ! -d $AUDMODLIBPATH ]; then
     sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $INSTALLER/common/audmodlibpost-fs-data.sh
     cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
   else
@@ -224,17 +224,26 @@ aud_mod_lib() {
   #### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
 
-  if [ ! -f /magisk/$AUDMODLIBID$CONFIG_FILE ] || [ ! -f $AUDMODLIBPATH$CONFIG_FILE ]; then
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      mkdir -p $AUDMODLIBPATH${CFG%/*}
-    done
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      cp -af $CFG $AUDMODLIBPATH$CFG
-    done
-    # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-    if [ -f $VENDOR_CONFIG ]; then
-      cp -af $AUDMODLIBPATH$CONFIG_FILE $AUDMODLIBPATH$VENDOR_CONFIG
-    fi
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    mkdir -p $AUDMODLIBPATH${CFG%/*}
+  done
+  
+  # MAKE BACKUPS
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    cp -af $CFG $AUDMODLIBPATH$CFG.bak
+  done
+
+  if [ -f $VENDOR_CONFIG ]; then
+    cp -af $AUDMODLIBPATH$CONFIG_FILE $AUDMODLIBPATH$VENDOR_CONFIG.bak
+  fi
+
+  # COPY BACKUPS TO MAIN
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    cp -af $AUDMODLIBPATH$CFG.bak $AUDMODLIBPATH$CFG
+  done
+  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+  if [ -f $VENDOR_CONFIG ]; then
+    cp -af $AUDMODLIBPATH$CONFIG_FILE.bak $AUDMODLIBPATH$VENDOR_CONFIG.bak
   fi
 
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
