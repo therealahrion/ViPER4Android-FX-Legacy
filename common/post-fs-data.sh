@@ -11,7 +11,11 @@ MODID=v4afx
 #### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
 
 ################ v DO NOT REMOVE v ################
-TMPAUDMODLIBPATH=/magisk/audmodlib
+if ($BOOTMODE); then
+  TMPAUDMODLIBPATH=$AUDMODLIBPATH
+  else
+  TMPAUDMODLIBPATH=/magisk/audmodlib
+fi
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
