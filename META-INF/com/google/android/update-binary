@@ -215,7 +215,7 @@ aud_mod_lib() {
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
   #### v THIS SHOULD MATCH YOUR CONFIG.SH MODID v #####
-  if [ ! -f /magisk/$AUDMODLIBID/post-fs-data.sh ]; then
+  if [ ! -f /magisk/$AUDMODLIBID/post-fs-data.sh ] || [ ! -f $AUDMODLIBPATH/post-fs-data.sh ]; then
     sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $INSTALLER/common/audmodlibpost-fs-data.sh
     cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
   else
@@ -224,7 +224,7 @@ aud_mod_lib() {
   #### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
 
-  if [ ! -f /magisk/$AUDMODLIBID$CONFIG_FILE ]; then
+  if [ ! -f /magisk/$AUDMODLIBID$CONFIG_FILE ] || [ ! -f $AUDMODLIBPATH$CONFIG_FILE ]; then
     for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
       mkdir -p $AUDMODLIBPATH${CFG%/*}
     done
@@ -239,7 +239,30 @@ aud_mod_lib() {
 
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
 
-  source $INSTALLER/common/post-fs-data.sh
+  #### PATCHING FILES ####
+  ui_print " "
+  ui_print "- Patching necessary cfg files -"
+
+  # REMOVE LIBRARIES & EFFECTS
+  ui_print "   Removing library & effect lines..."
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+    if [ -f $CFG ]; then
+      # REMOVE LIBRARIES & EFFECTS
+      sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
+      sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
+    fi
+  done
+
+  # ADD LIBRARIES & EFFECTS
+  ui_print "   Patching existing audio_effects files..."
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+    if [ -f $CFG ]; then
+      # ADD EFFECTS
+      sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $AUDMODLIBPATH$CFG
+      # ADD LIBRARIES
+      sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $AUDMODLIBPATH$CFG
+    fi
+  done
 }
 
 sys_mod_wipe() {
