@@ -237,12 +237,8 @@ aud_mod_lib() {
   fi
 
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
-  
-  if [ -f $MODPATH/post-fs-data.sh ]; then
-    source $MODPATH/post-fs-data.sh
-  else
-    source $INSTALLER/common/post-fs-data.sh
-  fi
+
+  source $INSTALLER/common/post-fs-data.sh
 }
 
 sys_mod_wipe() {
