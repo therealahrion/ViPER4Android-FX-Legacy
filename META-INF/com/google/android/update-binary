@@ -217,17 +217,17 @@ aud_mod_lib() {
   cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
 
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-    mkdir -p /cache/tmp/audmodlib{CFG%/*}
-  done
-  
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-    cp -af $CFG /cache/tmp/audmodlib$CFG
-  done
-  
-  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-  if [ -f $VENDOR_CONFIG ]; then
-    cp -af /cache/tmp/audmodlib$CONFIG_FILE /cache/tmp/audmodlib$VENDOR_CONFIG
+  if [ ! -d /cache/tmp/audmodlib ]; then
+    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+      mkdir -p /cache/tmp/audmodlib{CFG%/*}
+    done
+    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+      cp -af $CFG /cache/tmp/audmodlib$CFG
+    done
+    # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+    if [ -f $VENDOR_CONFIG ]; then
+      cp -af /cache/tmp/audmodlib$CONFIG_FILE /cache/tmp/audmodlib$VENDOR_CONFIG
+    fi
   fi
   
   for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
