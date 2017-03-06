@@ -32,21 +32,21 @@ OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
 
 uninstall() {
   # REMOVE LIBRARIES & EFFECTS
-  ui_print "   Removing library & effect lines..."
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
-      # REMOVE LIBRARIES & EFFECTS
-      sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
-      sed -i '/v4a_fx {/,/}/d' $CFG
+	  # REMOVE EFFECTS
       sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
-      sed -i '/v4a_standard_fx {/,/}/d' $CFG
+      # REMOVE LIBRARIES
+      sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
+	  # REPLACE OLD FILE WITH NEW
+	  cp -af $AUDMODLIBPATH$CFG $CFG
     fi
   done
 }
 
-if [ ! -d /magisk/$MODID ] ; then
+if [ ! -d /magisk/$MODID ]; then
   uninstall
   rm -f /magisk/.core/post-fs-data.d/$MODID.sh
 fi
 
-rm -rf /cache/tmp/audmodlib
+rm -rf /cache/magisk/audmodlib

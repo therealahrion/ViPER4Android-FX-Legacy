@@ -7,7 +7,7 @@ MODDIR=${0%/*}
 # More info in the main Magisk thread
 
 ################ v DO NOT REMOVE v ################
-TMPAUDMODLIBPATH=/magisk/audmodlib
+AUDMODLIBPATH=/magisk/audmodlib
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
@@ -29,8 +29,3 @@ HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
 ################ ^ DO NOT REMOVE ^ ################
-
-if ! cmp -s $TMPAUDMODLIBPATH$CONFIG_FILE $CONFIG_FILE; then
-  install
-  reboot
-fi
