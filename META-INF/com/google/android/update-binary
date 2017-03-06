@@ -219,7 +219,7 @@ aud_mod_lib() {
     sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $INSTALLER/common/audmodlibpost-fs-data.sh
     cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
   else
-    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' $AUDMODLIBPATH/post-fs-data.sh
+    sed -i 's/^install() {/install() {\n  source \/magisk\/.core\/post-fs-data.d\/v4afx.sh/g' /magisk/$AUDMODLIBID/post-fs-data.sh
   fi
   #### ^ THIS SHOULD MATCH YOUR CONFIG.SH MODID ^ #####
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
