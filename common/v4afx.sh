@@ -28,6 +28,11 @@ VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
 HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+
+cp_ch() {
+  cp "$1" "$2"
+  chmod "$3" "$2"
+}
 ################ ^ DO NOT REMOVE ^ ################
 
 uninstall() {
@@ -39,7 +44,7 @@ uninstall() {
       # REMOVE LIBRARIES
       sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
 	  # REPLACE OLD FILE WITH NEW
-	  cp -af $AUDMODLIBPATH$CFG $CFG
+	  cp_ch -af $AUDMODLIBPATH$CFG $CFG 0755
     fi
   done
 }
