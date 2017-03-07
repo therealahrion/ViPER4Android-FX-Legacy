@@ -210,35 +210,33 @@ aud_mod_lib() {
   mkdir -p $MOUNTPATH/.core/post-fs-data.d
   cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
 
-  if [ ! -d /cache/magisk/audmodlib ] && [ ! -d $AUDMODLIBPATH ] || [ ! -d /magisk/audmodlib ]; then
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      mkdir -p /cache/magisk/audmodlib${CFG%/*}
-    done
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      cp -af $CFG /cache/magisk/audmodlib$CFG
-    done
-    # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-    if [ -f $VENDOR_CONFIG ]; then
-      cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
-    fi
-  elif [ -d $AUDMODLIBPATH ] || [ -d /magisk/audmodlib ]; then
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      mkdir -p /cache/magisk/audmodlib${CFG%/*}
-    done
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-      cp -af /magisk/audmodlib$CFG /cache/magisk/audmodlib$CFG
-    done
-    # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-    if [ -f $VENDOR_CONFIG ]; then
-      cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
-    fi
-  fi  
+  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+    rm -rf /cache/magisk/audmodlib
+  fi
+
+  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+    TMPAUDMODLIBDIR=""
+  elif [ -d $AUDMODLIBPATH ]; then
+    TMPAUDMODLIBDIR=$AUDMODLIBPATH
+  elif [ -d /magisk/audmodlib ]; then
+    TMPAUDMODLIBDIR=/magisk/audmodlib
+  fi
+
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    mkdir -p /cache/magisk/audmodlib${CFG%/*}
+  done
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    cp -af $TMPAUDMODLIBDIR$CFG /cache/magisk/audmodlib$CFG
+  done
+  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+  if [ -f $VENDOR_CONFIG ]; then
+    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
+  fi
 
   mkdir -p $AUDMODLIBPATH
 
   cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
-  cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
   
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
@@ -684,7 +682,6 @@ fi
 # post-fs-data mode scripts
 if ($POSTFSDATA); then
   cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
-  cp -af $INSTALLER/common/audmodlibpost-fs-data.sh $AUDMODLIBPATH/post-fs-data.sh
 fi
 
 # service mode scripts
