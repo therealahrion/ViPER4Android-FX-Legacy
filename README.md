@@ -5,7 +5,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * Android Jellybean+
 * Magisk install (MagiskSU/SuperSU)
 * System install
-* Works with Dolby Atmos and AM3D Zirene
+* Works with AM3D Zirene and Dolby Atmos
 
 ### Credits
 * zhuhang @ XDA Developers (https://forum.xda-developers.com/showthread.php?t=2191223)
