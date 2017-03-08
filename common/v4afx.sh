@@ -22,17 +22,18 @@ elif [ -d "$SYSTEM/vendor" ] || [ -L "/vendor" ]; then
   VENDOR=$SYSTEM/vendor
 fi
 
-# FILE LOCATIONS
+### FILE LOCATIONS ###
+# AUDIO EFFECTS
 CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
 VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
 HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
-
-cp_ch() {
-  cp "$1" "$2"
-  chmod "$3" "$2"
-}
+# AUDIO POLICY
+AUD_POL=$SYSTEM/etc/audio_policy.conf
+AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
+AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
+V_AUD_POL=$VENDOR/etc/audio_policy.conf
 ################ ^ DO NOT REMOVE ^ ################
 
 uninstall() {
