@@ -21,12 +21,18 @@ elif [ -d "$SYSTEM/vendor" ] || [ -L "/vendor" ]; then
   VENDOR=$SYSTEM/vendor
 fi
 
-# FILE LOCATIONS
+### FILE LOCATIONS ###
+# AUDIO EFFECTS
 CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
 VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
 HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
 OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
 OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+# AUDIO POLICY
+AUD_POL=$SYSTEM/etc/audio_policy.conf
+AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
+AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
+V_AUD_POL=$VENDOR/etc/audio_policy.conf
 
 if [ -d $SYSTEM/priv-app ]; then
   APPDIR=priv-app
@@ -204,9 +210,8 @@ magisk_mod_copy() {
 }
 
 aud_mod_lib() {
-  ### AUDIO MODIFICATION LIBRARY INJECT ###
+  ### CREATE AUDIO MODIFICATION LIBRARY ###
 
-  # CREATE AUDIO MODIFICATION LIBRARY
   mkdir -p $MOUNTPATH/.core/post-fs-data.d
   cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
 
@@ -222,12 +227,20 @@ aud_mod_lib() {
     TMPAUDMODLIBDIR=/magisk/audmodlib
   fi
 
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+  if [ ! -f $AUDMODLIBPATH$AUD_POL ] || [ ! -f /magisk/audmodlib$AUD_POL ]; then
+    for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+      cp -af $CFG $AUDMODLIBPATH$CFG.bak
+    done
+  fi
+
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
     mkdir -p /cache/magisk/audmodlib${CFG%/*}
   done
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
     cp -af $TMPAUDMODLIBDIR$CFG /cache/magisk/audmodlib$CFG
   done
+
   # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
   if [ -f $VENDOR_CONFIG ]; then
     cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
@@ -239,7 +252,9 @@ aud_mod_lib() {
   cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
   
-  set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    mkdir -p $AUDMODLIBPATH${CFG%/*}
+  done
 
   #### PATCHING FILES ####
   ui_print " "
@@ -267,13 +282,11 @@ aud_mod_lib() {
     fi
   done
   
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-    mkdir -p $AUDMODLIBPATH${CFG%/*}
-  done
-  
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
     cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
   done
+  
+  set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
 }
 
 sys_mod_wipe() {
@@ -292,6 +305,10 @@ sys_mod_directory() {
     sys_mk_ch $SYSTEM/$APPDIR 0755
   fi
 
+  if [ -d $SYSTEM/addon.d ]; then
+    sys_mk_ch $SYSTEM/addon.d 0755
+  fi
+  
   sys_mk_ch $SYSTEM/etc/dolby 0755
   sys_mk_ch $SYSTEM/lib/soundfx 0755
 
@@ -394,7 +411,6 @@ sys_mod_copy() {
   # INSTALL ROM BACKUP SCRIPT
   if [ -d $SYSTEM/addon.d ]; then
     ui_print "   Installing addon.d backup script..."
-    sys_mk_ch $SYSTEM/addon.d 0755
     sys_cp_ch /tmp/$MODID/system/addon.d/99$MODID.sh $SYSTEM/addon.d/99$MODID.sh 0644
   fi
 }
