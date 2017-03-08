@@ -51,7 +51,7 @@ grep_prop() {
   shift
   FILES=$@
   if [ -z "$FILES" ]; then
-    FILES='/system/build.prop'
+    FILES="$SYSTEM/build.prop"
   fi
   cat $FILES 2>/dev/null | sed -n $REGEX | head -n 1
 }
@@ -90,10 +90,10 @@ mount_image() {
         if [ "$?" -eq "0" ]; then
           mount -t ext4 -o loop $LOOPDEVICE $2
           if (! is_mounted $2); then
-            /system/bin/toolbox mount -t ext4 -o loop $LOOPDEVICE $2
+            $SYSTEM/bin/toolbox mount -t ext4 -o loop $LOOPDEVICE $2
           fi
           if (! is_mounted $2); then
-            /system/bin/toybox mount -t ext4 -o loop $LOOPDEVICE $2
+            $SYSTEM/bin/toybox mount -t ext4 -o loop $LOOPDEVICE $2
           fi
         fi
         if (is_mounted $2); then
@@ -171,7 +171,7 @@ magisk_mod_directory() {
   rm -rf $MODPATH 2>/dev/null
   mkdir -p $MODPATH
 
-  if [ "$API" -ge 21 ]; then
+  if [ "$API" -ge "21" ]; then
     mkdir -p $MODPATH$SYSTEM/$APPDIR/$APP1
   else
     mkdir -p $MODPATH$SYSTEM/$APPDIR
@@ -186,7 +186,7 @@ magisk_mod_copy() {
   ui_print "- Installing libs, apps, & scripts -"
 
   # INSTALL APPS
-  if [ "$API" -ge 21 ]; then
+  if [ "$API" -ge "21" ]; then
     ui_print "   Installing for Lollipop and above..."
     unzip -pq $ZIP system/app/$APP1/$APP1.apk > $MODPATH$SYSTEM/$APPDIR/$APP1/$APP1.apk
   else
@@ -196,7 +196,7 @@ magisk_mod_copy() {
 
   # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
-  if [ "$API" -ge 21 ]; then
+  if [ "$API" -ge "21" ]; then
     unzip -pq $MODPATH$SYSTEM/$APPDIR/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $MODPATH$SYSTEM/lib/soundfx/libv4a_fx_ics.so
   else
     unzip -pq $MODPATH$SYSTEM/$APPDIR/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $MODPATH$SYSTEM/lib/soundfx/libv4a_fx_ics.so
@@ -285,7 +285,7 @@ sys_mod_wipe() {
 }
 
 sys_mod_directory() {
-  if [ "$API" -ge 21 ]; then
+  if [ "$API" -ge "21" ]; then
     sys_mk_ch $SYSTEM/$APPDIR/$APP1 0755
     sys_mk_ch $SYSTEM/$APPDIR/$APP2 0755
   else
@@ -353,7 +353,7 @@ sys_mod_copy() {
   fi
   
   # INSTALL APPS
-  if [ "$API" -ge 21 ]; then
+  if [ "$API" -ge "21" ]; then
     ui_print "   Installing for Lollipop and above..."
     sys_cp_ch /tmp/$MODID/system/app/$APP1/$APP1.apk $SYSTEM/$APPDIR/$APP1/$APP1.apk 0644
     sys_cp_ch /tmp/$MODID/system/app/$APP2/$APP2.apk $SYSTEM/$APPDIR/$APP2/$APP2.apk 0644
