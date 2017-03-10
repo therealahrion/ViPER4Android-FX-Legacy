@@ -55,7 +55,7 @@ print_modname() {
   ui_print "      *           ViPER4Android FX           *"
   ui_print "      ****************************************"
   ui_print "      *           Universal - Mod            *"
-  ui_print "      *             Version <version>              *"
+  ui_print "      *             Version 1.0              *"
   ui_print "      *              by ahrion               *"
   ui_print "      ****************************************"
   ui_print " "

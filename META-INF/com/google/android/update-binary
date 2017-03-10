@@ -103,7 +103,7 @@ mount_image() {
           fi
         fi
         if (is_mounted $2); then
-          ui_print "     Mounting $1 to $2"
+          ui_print "    Mounting $1 to $2..."
           break;
         fi
       fi
@@ -171,6 +171,13 @@ target_size_check() {
 ##########################################################################################
 
 magisk_mod_directory() {
+  #### PREPARE INSTALL ####
+  ui_print " "
+  ui_print "- Preparing installation -"
+
+  # CREATING DIRECTORIES
+  ui_print "   Creating directories..."
+
   rm -rf $MODPATH 2>/dev/null
   mkdir -p $MODPATH
 
@@ -188,26 +195,26 @@ magisk_mod_copy() {
   ui_print " "
   ui_print "- Installing apps, libs, & scripts -"
 
-  # INSTALL APPS
+  ui_print "   Installing apps & libraries..."
   if [ "$API" -ge "21" ]; then
-    ui_print "   Installing for Lollipop and above..."
+    ui_print "    Installing for Lollipop and above..."
+    # INSTALL APPS
     unzip -pq $ZIP system/app/$APP1/$APP1.apk > $MODPATH$SYSTEM/$APPDIR/$APP1/$APP1.apk
-  else
-    ui_print "   Installing for Lollipop and below..."
-    unzip -pq $ZIP system/app/$APP1/$APP1.apk > $MODPATH$SYSTEM/$APPDIR/$APP1.apk
-  fi
-
-  # INSTALL LIBRARIES
-  ui_print "   Installing libraries..."
-  if [ "$API" -ge "21" ]; then
+    # INSTALL LIBRARIES
     unzip -pq $MODPATH$SYSTEM/$APPDIR/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $MODPATH$SYSTEM/lib/soundfx/libv4a_fx_ics.so
   else
+    ui_print "    Installing for Lollipop and below..."
+    # INSTALL APPS
+    unzip -pq $ZIP system/app/$APP1/$APP1.apk > $MODPATH$SYSTEM/$APPDIR/$APP1.apk
+    # INSTALL LIBRARIES
     unzip -pq $MODPATH$SYSTEM/$APPDIR/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $MODPATH$SYSTEM/lib/soundfx/libv4a_fx_ics.so
   fi
 }
 
 aud_mod_lib() {
   ### CREATE AUDIO MODIFICATION LIBRARY ###
+  ui_print " "
+  ui_print "- Installing Audio Modification Library -"
 
   mkdir -p $MOUNTPATH/.core/post-fs-data.d
   cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
@@ -256,11 +263,10 @@ aud_mod_lib() {
   cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
 
   #### PATCHING FILES ####
-  ui_print " "
-  ui_print "- Patching necessary cfg files -"
+  ui_print "   Patching necessary cfg files"
 
   # REMOVE LIBRARIES & EFFECTS
-  ui_print "   Removing library & effect lines..."
+  ui_print "    Removing library & effect lines..."
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
@@ -271,7 +277,7 @@ aud_mod_lib() {
   done
 
   # ADD LIBRARIES & EFFECTS
-  ui_print "   Patching existing audio_effects files..."
+  ui_print "    Patching existing audio_effects files..."
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
       # ADD EFFECTS
@@ -346,6 +352,21 @@ sys_mod_wipe() {
 }
 
 sys_mod_directory() {
+  #### PREPARE INSTALL ####
+  ui_print " "
+  ui_print "- Preparing installation -"
+  
+  # EXTRACT FILES
+  ui_print "   Extracting installation files..."
+
+  cd /tmp
+  mkdir $MODID
+  cd $MODID
+  unzip -o "$ZIP"
+
+  # CREATING DIRECTORIES
+  ui_print "   Creating directories..."
+
   if [ "$API" -ge "21" ]; then
     sys_mk_ch $SYSTEM/$APPDIR/$APP1 0755
   else
@@ -364,32 +385,18 @@ sys_mod_directory() {
 }
 
 sys_mod_copy() {
-  #### PREPARE INSTALL ####
-  ui_print " "
-  ui_print "- Preparing installation -"
-  
-  # EXTRACT FILES
-  ui_print "   Extracting installation files..."
-
-  cd /tmp
-  mkdir $MODID
-  cd $MODID
-  unzip -o "$ZIP"
-
   #### INSTALL FILES ####
   ui_print " "
   ui_print "- Installing apps, libs, & scripts -"
 
-  # INSTALL APPS
   if [ "$API" -ge "21" ]; then
-    ui_print "   Installing for Lollipop and above..."
+    ui_print "   Installing apps for Lollipop and above..."
     sys_cp_ch /tmp/$MODID/system/app/$APP1/$APP1.apk $SYSTEM/$APPDIR/$APP1/$APP1.apk 0644
   else
-    ui_print "   Installing for Lollipop and below..."
+    ui_print "   Installing apps for Lollipop and below..."
     sys_cp_ch /tmp/$MODID/system/app/$APP1.apk $SYSTEM/$APPDIR/$APP1.apk 0644
   fi
 
-  # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
   unzip -pq /tmp/$MODID/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $SYSTEM/lib/soundfx/libv4a_fx_ics.so
 
@@ -581,7 +588,7 @@ if (is_mounted /data); then
   if [ ! -f "/data/magisk.img" ]; then
     ui_print " "
     ui_print "   ! Magisk is not installed!"
-    ui_print "     ! Installing on system!"
+    ui_print "    ! Installing on system!"
     # Wipe files
     sys_mod_wipe
     # Create mod paths
@@ -623,7 +630,7 @@ if [ -f "$IMG" ]; then
   target_size_check $IMG
   if [ "$reqSizeM" -gt "$curFreeM" ]; then
     SIZE=$((((reqSizeM + curUsedM) / 32 + 2) * 32))
-    ui_print "     Resizing $IMG to ${SIZE}M..."
+    ui_print "    Resizing $IMG to ${SIZE}M..."
     resize2fs $IMG ${SIZE}M
   fi
 else
