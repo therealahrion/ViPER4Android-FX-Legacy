@@ -56,9 +56,9 @@ if [ ! -d /magisk/$MODID ]; then
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
-	  sed -i '/v4a_standard_fx {/,/}/d' /cache/magisk/audmodlib$CFG
+	  sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
 	  # REMOVE LIBRARIES
-      sed -i '/v4a_fx {/,/}/d' /cache/magisk/audmodlib$CFG
+      sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
     fi
   done
   #### ^ INSERT YOUR FILE PATCHES ^ ####
