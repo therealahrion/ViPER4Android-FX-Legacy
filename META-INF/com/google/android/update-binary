@@ -6,6 +6,17 @@
 
 APP1="ViPER4AndroidFX"
 
+safe_mount() {
+  IS_MOUNTED=$(cat /proc/mounts | grep "$1")
+  if [ "$IS_MOUNTED" ]; then
+    mount -o rw,remount $1
+  else
+    mount $1
+  fi
+}
+
+safe_mount /system
+
 suimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
@@ -16,6 +27,7 @@ else
 fi
 
 if [ ! -d "$SYSTEM/vendor" ] || [ -L "$SYSTEM/vendor" ]; then
+  safe_mount /vendor
   VENDOR=/vendor
 elif [ -d "$SYSTEM/vendor" ] || [ -L "/vendor" ]; then
   VENDOR=$SYSTEM/vendor
@@ -39,9 +51,6 @@ if [ -d $SYSTEM/priv-app ]; then
 else
   APPDIR=app
 fi
-
-OUTFD=$2
-ZIP=$3
 
 ui_print() {
   if ($BOOTMODE); then
@@ -169,6 +178,9 @@ target_size_check() {
 ##########################################################################################
 # Flashable update-binary preparation
 ##########################################################################################
+
+OUTFD=$2
+ZIP=$3
 
 magisk_mod_directory() {
   #### PREPARE INSTALL ####
