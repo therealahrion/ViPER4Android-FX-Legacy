@@ -341,7 +341,7 @@ audmodlib() {
   
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
 
-  ui_print "   ! AudModLib framework by @ahrion !"
+  ui_print "! AudModLib framework by @ahrion !"
   ########## ^ DO NOT REMOVE ^ ##########
 }
 
