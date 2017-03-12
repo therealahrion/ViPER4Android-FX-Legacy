@@ -49,9 +49,9 @@ if [ ! -d /magisk/$MODID ]; then
   AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
   AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
   V_AUD_POL=$VENDOR/etc/audio_policy.conf
-  ########## v DO NOT REMOVE v ##########
+  ########## ^ DO NOT REMOVE ^ ##########
 
-  #### v INSERT YOUR FILE PATCHES v ####
+  #### v INSERT YOUR REMOVE PATCH OR RESTORE v ####
   # REMOVE LIBRARIES & EFFECTS
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
@@ -61,7 +61,7 @@ if [ ! -d /magisk/$MODID ]; then
       sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
     fi
   done
-  #### ^ INSERT YOUR FILE PATCHES ^ ####
+  #### ^ INSERT YOUR REMOVE PATCH OR RESTORE ^ ####
 
   rm -f /magisk/.core/post-fs-data.d/$MODID.sh
 fi
