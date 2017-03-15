@@ -469,13 +469,13 @@ sys_mod_directory() {
   fi
 
   sys_mk_ch $SYSTEM/lib/soundfx 0755
+  #### ^ INSERT YOUR DIRECTORY MAKING ^ ####
 
   for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
     if [ -f $CFG ]; then
       sys_mk_ch ${CFG%/*} 0755
 	fi
   done
-  #### ^ INSERT YOUR DIRECTORY MAKING ^ ####
 }
 
 sys_mod_copy() {
@@ -559,12 +559,12 @@ sys_mod_patch() {
       sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $CFG
     fi
   done
+  #### ^ INSERT YOUR FILE PATCHES ^ ####
 
   # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
   if [ -f $VENDOR_CONFIG ]; then
     cp -af $CONFIG_FILE $VENDOR_CONFIG
   fi
-  #### ^ INSERT YOUR FILE PATCHES ^ ####
 }
 
 readlink /proc/$$/fd/$OUTFD 2>/dev/null | grep /tmp >/dev/null
