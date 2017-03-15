@@ -415,7 +415,7 @@ sys_mod_wipe() {
   rm -f $SYSTEM/su.d/50audiotweaks.sh
   #### ^ INSERT YOUR FILE REMOVALS ^ ####
   
-  #### v INSERT YOUR REMOVE PATCH, RESTORE, & BACKU v ####
+  #### v INSERT YOUR REMOVE PATCH v ####
   # REMOVE LIBRARIES & EFFECTS
   ui_print "   Removing library & effect lines..."
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
@@ -426,6 +426,7 @@ sys_mod_wipe() {
       sed -i '/v4a_fx {/,/}/d' $CFG
     fi
   done
+  #### ^ INSERT YOUR REMOVE PATCH ^ ####
 
   # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
   if [ -f $VENDOR_CONFIG ] && [ -f $VENDOR_CONFIG.bak ]; then
@@ -440,7 +441,6 @@ sys_mod_wipe() {
       cp -f $BACKUP $BACKUP.bak
     fi
   done
-  #### ^ INSERT YOUR REMOVE PATCH, RESTORE, & BACKUP ^ ####
 }
 
 sys_mod_directory() {
@@ -490,6 +490,7 @@ sys_mod_copy() {
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR FILE INSTALL v ####
+  # INSTALL APPS
   if [ "$API" -ge "21" ]; then
     ui_print "   Installing apps for Lollipop and above..."
     sys_cp_ch $INSTALLER/system/app/$APP1/$APP1.apk $SYSTEM/$APPDIR/$APP1/$APP1.apk 0644
@@ -498,6 +499,7 @@ sys_mod_copy() {
     sys_cp_ch $INSTALLER/system/app/$APP1.apk $SYSTEM/$APPDIR/$APP1.apk 0644
   fi
 
+  # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
   unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $SYSTEM/lib/soundfx/libv4a_fx_ics.so
 
