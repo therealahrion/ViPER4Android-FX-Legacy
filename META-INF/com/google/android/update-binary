@@ -17,6 +17,7 @@ safe_mount /system
 
 SLOT=$(getprop ro.boot.slot_suffix 2>/tmp/null)
 if [ "$SLOT" ]; then
+  safe_mount /system/system
   SYSTEM=/system/system
 else
   SYSTEM=/system
@@ -26,6 +27,7 @@ if [ ! -d "$SYSTEM/vendor" ] || [ -L "$SYSTEM/vendor" ]; then
   safe_mount /vendor
   VENDOR=/vendor
 elif [ -d "$SYSTEM/vendor" ] || [ -L "/vendor" ]; then
+  safe_mount $SYSTEM/vendor
   VENDOR=$SYSTEM/vendor
 fi
 
@@ -180,22 +182,45 @@ AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
 AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
 V_AUD_POL=$VENDOR/etc/audio_policy.conf
 
+magisk_install() {
+  MAGISK=true
+  MK_PRFX="mkdir -p"
+  CP_PRFX="cp -af"
+  UNIFY="$MODPATH"
+  MK_SFFX=""
+  CP_SFFX=""
+  PATCHINSTALL="$TMPAUDMODLIBDIR"
+  PATCH="/cache/magisk/audmodlib"
+}
+
+system_install() {
+  MAGISK=false
+  MK_PRFX="sys_mk_ch"
+  CP_PRFX="sys_cp_ch"
+  UNIFY=""
+  MK_SFFX=" 0755"
+  CP_SFFX=" 0644"
+  PATCHINSTALL=""
+  PATCH=""
+}
+
 ##########################################################################################
 # 
 # Instructions:
 # 
-# 1. This is a unified installer for both Magisk and /system/ install, so be sure to
-#    follow the template provided for "magisk_", "audmodlib_patch", & "sys_"
-# 2. audmodlib and files with the prefix as such need to remain untouched unless
-#    an update has occured, however use audmodlib_patch to remove and then
-#    add the lines corresponding to your mod
+# 1. This is a Unified installer for both Magisk and /system/ install, so be sure to
+#    follow the template provided for "app_install_logic", "system_mod_wipe",
+#    & "unified_mod_<xxxx>"
+# 2. magisk_audmodlib and files with the audmodlib prefix as such need to remain
+#    untouched unless an update has occured, however use unified_mod_patch to remove
+#    and then add the lines corresponding to your mod
 # 3. If applicable, make "APP1", etc. to be the same name as your .apk/app folder
 #    in system/app/ (i.e. APP1=Ax, APP2=ViPER4Android, APP3=AM3DZirene and so on)
 # 4. common/$MODID.sh, system/addon.d/99$MODID.sh & system/su.d/50$MODID.sh app specific
 #    scripts will be named the same as your MODID in config.sh (i.e. MODID=v4afx so
 #    common/$MODID.sh=v4afx.sh)
 # 5. Edit common/$MODID.sh to remove or restore the specific audio_effects or
-#    audio_policy files that were added in the audmodlib_patch portion of the installer
+#    audio_policy files that were added in the unified_mod_patch portion of the installer
 # 6. You can obviously use your mod specific system.prop or post-fs-data.sh as part of
 #    the mod, but make sure not edit the designated audmodlib specific files
 # 7. DO NOT delete any of the credits for @ahrion or @topjohnwu mentioned in this script
@@ -204,183 +229,23 @@ V_AUD_POL=$VENDOR/etc/audio_policy.conf
 
 APP1="ViPER4AndroidFX"
 
-magisk_mod_directory() {
+app_install_logic() {
   ########################################################################################
-  # Make directories for Magisk install
+  # Logic for correct application installation
   ########################################################################################
 
-  ########## v DO NOT REMOVE v ##########
-  #### PREPARE INSTALL ####
-  ui_print " "
-  ui_print "- Preparing installation -"
-
-  # CREATING DIRECTORIES
-  ui_print "   Creating directories..."
-
-  rm -rf $MODPATH 2>/dev/null
-  mkdir -p $MODPATH
-  ########## ^ DO NOT REMOVE ^ ##########
-
-  #### v INSERT YOUR DIRECTORY MAKING v ####
+  #### v INSERT MORE APPS IF MORE EXIST v ####
   if [ "$API" -ge "21" ]; then
-    mkdir -p $MODPATH$SYSTEM/$APPDIR/$APP1
+    APPTXT="   Installing apps for Lollipop and above..."
+    APP1PATH=$APPDIR/$APP1
   else
-    mkdir -p $MODPATH$SYSTEM/$APPDIR
+    APPTXT="   Installing apps for Lollipop and below..."
+    APP1PATH=$APPDIR
   fi
-
-  mkdir -p $MODPATH$SYSTEM/lib/soundfx
-  #### ^ INSERT YOUR DIRECTORY MAKING ^ ####
+  #### ^ INSERT MORE APPS IF MORE EXIST ^ ####
 }
 
-magisk_mod_copy() {
-  ########################################################################################
-  # Copy files over for Magisk install
-  ########################################################################################
-
-  ########## v DO NOT REMOVE v ##########
-  #### INSTALL FILES ####
-  ui_print " "
-  ui_print "- Installing apps, libs, & scripts -"
-  ########## ^ DO NOT REMOVE ^ ##########
-
-  #### v INSERT YOUR FILE INSTALL v ####
-  ui_print "   Installing apps & libraries..."
-  if [ "$API" -ge "21" ]; then
-    ui_print "    Installing for Lollipop and above..."
-    # INSTALL APPS
-    unzip -pq $ZIP system/app/$APP1/$APP1.apk > $MODPATH$SYSTEM/$APPDIR/$APP1/$APP1.apk
-    # INSTALL LIBRARIES
-    unzip -pq $MODPATH$SYSTEM/$APPDIR/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $MODPATH$SYSTEM/lib/soundfx/libv4a_fx_ics.so
-  else
-    ui_print "    Installing for Lollipop and below..."
-    # INSTALL APPS
-    unzip -pq $ZIP system/app/$APP1/$APP1.apk > $MODPATH$SYSTEM/$APPDIR/$APP1.apk
-    # INSTALL LIBRARIES
-    unzip -pq $MODPATH$SYSTEM/$APPDIR/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $MODPATH$SYSTEM/lib/soundfx/libv4a_fx_ics.so
-  fi
-  #### ^ INSERT YOUR FILE INSTALL ^ ####
-}
-
-audmodlib() {
-  ########################################################################################
-  # Audio Modification Library / This is where the magick happens
-  ########################################################################################
-
-  ########## v DO NOT REMOVE v ##########
-  ### CREATE AUDIO MODIFICATION LIBRARY ###
-  ui_print " "
-  ui_print "- Installing Audio Modification Library -"
-
-  mkdir -p $MOUNTPATH/.core/post-fs-data.d
-  cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
-
-  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
-    rm -rf /cache/magisk/audmodlib
-  fi
-
-  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
-    TMPAUDMODLIBDIR=""
-  elif [ -d $AUDMODLIBPATH ]; then
-    TMPAUDMODLIBDIR=$AUDMODLIBPATH
-  elif [ -d /magisk/audmodlib ]; then
-    TMPAUDMODLIBDIR=/magisk/audmodlib
-  fi
-
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ -f $CFG ]; then
-      mkdir -p /cache/magisk/audmodlib${CFG%/*}
-	fi
-  done
-
-  for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ ! -f $CFG.bak ]; then
-      cp -af $CFG /cache/magisk/audmodlib$CFG.bak
-    else
-	  cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
-    fi
-  done
-
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ -f $CFG ]; then
-      cp -af $TMPAUDMODLIBDIR$CFG /cache/magisk/audmodlib$CFG
-	fi
-  done
-
-  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-  if [ -f $VENDOR_CONFIG ]; then
-    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
-  fi
-  
-  set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
-
-  mkdir -p $AUDMODLIBPATH
-
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ -f $CFG ]; then
-      mkdir -p $AUDMODLIBPATH${CFG%/*}
-	fi
-  done
-  
-  cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
-  cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
-  cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
-
-  audmodlib_patch
-  
-  for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ -f $CFG ]; then
-      cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
-	fi
-  done
-  
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ -f $CFG ]; then
-      cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
-	fi
-  done
-  
-  set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
-
-  ui_print "   ! AudModLib framework by @ahrion !"
-  ########## ^ DO NOT REMOVE ^ ##########
-}
-
-audmodlib_patch() {
-  ########################################################################################
-  # Audio Modification Library file patcher for Magisk install
-  ########################################################################################
-
-  ########## v DO NOT REMOVE v ##########
-  #### PATCHING FILES ####
-  ui_print "   Patching necessary cfg files"
-  ########## ^ DO NOT REMOVE ^ ##########
-
-  #### v INSERT YOUR FILE PATCHES v ####
-  # REMOVE LIBRARIES & EFFECTS
-  ui_print "    Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
-    if [ -f $CFG ]; then
-      # REMOVE EFFECTS
-	  sed -i '/v4a_standard_fx {/,/}/d' /cache/magisk/audmodlib$CFG
-	  # REMOVE LIBRARIES
-      sed -i '/v4a_fx {/,/}/d' /cache/magisk/audmodlib$CFG
-    fi
-  done
-
-  # ADD LIBRARIES & EFFECTS
-  ui_print "    Patching existing audio_effects files..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
-    if [ -f $CFG ]; then
-      # ADD EFFECTS
-      sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' /cache/magisk/audmodlib$CFG
-      # ADD LIBRARIES
-      sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' /cache/magisk/audmodlib$CFG
-    fi
-  done
-  #### ^ INSERT YOUR FILE PATCHES ^ ####
-}
-
-sys_mod_wipe() {
+system_mod_wipe() {
   ########################################################################################
   # Wipe before System install
   ########################################################################################
@@ -428,6 +293,7 @@ sys_mod_wipe() {
   done
   #### ^ INSERT YOUR REMOVE PATCH ^ ####
 
+  #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
   # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
   if [ -f $VENDOR_CONFIG ] && [ -f $VENDOR_CONFIG.bak ]; then
     # RESTORE BACKED UP CONFIGS
@@ -441,11 +307,12 @@ sys_mod_wipe() {
       cp -f $BACKUP $BACKUP.bak
     fi
   done
+  #### ^ INSERT YOUR RESTORE AND BACKUP FUNCTIONS ^ ####
 }
 
-sys_mod_directory() {
+unified_mod_directory() {
   ########################################################################################
-  # Make directories for System install
+  # Make directories for Unified install
   ########################################################################################
 
   ########## v DO NOT REMOVE v ##########
@@ -455,32 +322,36 @@ sys_mod_directory() {
 
   # CREATING DIRECTORIES
   ui_print "   Creating directories..."
+
+  if [ "$MAGISK" = true ]; then
+    rm -rf $MODPATH 2>/dev/null
+    mkdir -p $MODPATH
+  fi
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR DIRECTORY MAKING v ####
-  if [ "$API" -ge "21" ]; then
-    sys_mk_ch $SYSTEM/$APPDIR/$APP1 0755
-  else
-    sys_mk_ch $SYSTEM/$APPDIR 0755
-  fi
+  app_install_logic
+  $MK_PRFX $UNIFY$SYSTEM/$APP1PATH$MK_SFFX
 
-  if [ -d $SYSTEM/addon.d ]; then
-    sys_mk_ch $SYSTEM/addon.d 0755
-  fi
+  $MK_PRFX $UNIFY$SYSTEM/lib/soundfx$MK_SFFX
+  
+  if [ "$MAGISK" = false ]; then
+    if [ -d $SYSTEM/addon.d ]; then
+      sys_mk_ch $SYSTEM/addon.d 0755
+    fi
 
-  sys_mk_ch $SYSTEM/lib/soundfx 0755
+    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+      if [ -f $CFG ]; then
+        sys_mk_ch ${CFG%/*} 0755
+      fi
+    done
+  fi
   #### ^ INSERT YOUR DIRECTORY MAKING ^ ####
-
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
-    if [ -f $CFG ]; then
-      sys_mk_ch ${CFG%/*} 0755
-	fi
-  done
 }
 
-sys_mod_copy() {
+unified_mod_copy() {
   ########################################################################################
-  # Copy files over for System install
+  # Copy files over for Unified install
   ########################################################################################
 
   ########## v DO NOT REMOVE v ##########
@@ -491,82 +362,174 @@ sys_mod_copy() {
 
   #### v INSERT YOUR FILE INSTALL v ####
   # INSTALL APPS
-  if [ "$API" -ge "21" ]; then
-    ui_print "   Installing apps for Lollipop and above..."
-    sys_cp_ch $INSTALLER/system/app/$APP1/$APP1.apk $SYSTEM/$APPDIR/$APP1/$APP1.apk 0644
-  else
-    ui_print "   Installing apps for Lollipop and below..."
-    sys_cp_ch $INSTALLER/system/app/$APP1.apk $SYSTEM/$APPDIR/$APP1.apk 0644
-  fi
+  ui_print "$APPTXT"
+  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNIFY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
 
   # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
-  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $SYSTEM/lib/soundfx/libv4a_fx_ics.so
+  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
 
-  #INSTALL SCRIPTS
-  if [ "$suimg" ] || [ -d /su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ] || [ -d $SYSTEM/etc/init.d ]; then
-    if [ "$suimg" ] || [ -d /su ]; then
-      ui_print "   Installing scripts for systemless SuperSU..."
-      EXT=".sh"
-      EXTRDIR=/su/su.d
-      NEW=/su/bin/supolicy
-    elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
-      ui_print "   Installing scripts for system SuperSu..."
-      EXTRDIR=$SYSTEM/su.d
-      EXT=".sh"
-      NEW=$SYSTEM/xbin/supolicy
-    elif [ -d $SYSTEM/etc/init.d ]; then
-      ui_print "   Installing scripts for non root..."
-      EXT=""
-      EXTRDIR=$SYSTEM/etc/init.d
-      NEW=$SYSTEM/xbin/supolicy
+  if [ "$MAGISK" = false ]; then
+    #INSTALL SCRIPTS
+    if [ "$suimg" ] || [ -d /su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ] || [ -d $SYSTEM/etc/init.d ]; then
+      if [ "$suimg" ] || [ -d /su ]; then
+        ui_print "   Installing scripts for systemless SuperSU..."
+        EXT=".sh"
+        EXTRDIR=/su/su.d
+        NEW=/su/bin/supolicy
+      elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
+        ui_print "   Installing scripts for system SuperSU..."
+        EXTRDIR=$SYSTEM/su.d
+        EXT=".sh"
+        NEW=$SYSTEM/xbin/supolicy
+      elif [ -d $SYSTEM/etc/init.d ]; then
+        ui_print "   Installing scripts for non root..."
+        EXT=""
+        EXTRDIR=$SYSTEM/etc/init.d
+        NEW=$SYSTEM/xbin/supolicy
+      fi
+    ui_print "    Installing universal audio tweaks script..."
+    ui_print "    Installing $MODID specific script..."
+    sed -i "s%/system/xbin/supolicy%$NEW%g" $SYSTEM/su.d/50audiotweaks.sh
+    sys_mk_ch $EXTRDIR 0755
+    sys_cp_ch $INSTALLER/system/su.d/50audiotweaks.sh $EXTRDIR/50audiotweaks$EXT 0644
+    sys_cp_ch $INSTALLER/system/su.d/50$MODID.sh $EXTRDIR/50$MODID$EXT 0644
+    else
+      ui_print "   No script support detected..."
     fi
-  ui_print "    Installing universal audio tweaks script..."
-  ui_print "    Installing $MODID specific script..."
-  sed -i "s%/system/xbin/supolicy%$NEW%g" $INSTALLER/su.d/50audiotweaks.sh
-  sys_mk_ch $EXTRDIR 0755
-  sys_cp_ch $INSTALLER/system/su.d/50audiotweaks.sh $EXTRDIR/50audiotweaks$EXT 0644
-  sys_cp_ch $INSTALLER/system/su.d/50$MODID.sh $EXTRDIR/50$MODID$EXT 0644
-  else
-    ui_print "   No script support detected..."
-  fi
 
-  # INSTALL ROM BACKUP SCRIPT
-  if [ -d $SYSTEM/addon.d ]; then
-    ui_print "   Installing addon.d backup script..."
-    sys_cp_ch $INSTALLER/system/addon.d/99$MODID.sh $SYSTEM/addon.d/99$MODID.sh 0644
+    # INSTALL ROM BACKUP SCRIPT
+    if [ -d $SYSTEM/addon.d ]; then
+      ui_print "   Installing addon.d backup script..."
+      sys_cp_ch $INSTALLER/system/addon.d/99$MODID.sh $SYSTEM/addon.d/99$MODID.sh 0644
+    fi
   fi
   #### ^ INSERT YOUR FILE INSTALL ^ ####
 }
 
-sys_mod_patch() {
+magisk_audmodlib() {
   ########################################################################################
-  # Patch files for System install
+  # Audio Modification Library / This is where the magick happens for Magisk
+  ########################################################################################
+
+  ########## v DO NOT REMOVE v ##########
+  ### CREATE AUDIO MODIFICATION LIBRARY ###
+  ui_print " "
+  ui_print "- Installing Audio Modification Library -"
+
+  mkdir -p $MOUNTPATH/.core/post-fs-data.d
+  cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/post-fs-data.d/$MODID.sh
+
+  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+    rm -rf /cache/magisk/audmodlib
+  fi
+
+  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+    TMPAUDMODLIBDIR=""
+  elif [ -d $AUDMODLIBPATH ]; then
+    TMPAUDMODLIBDIR=$AUDMODLIBPATH
+  elif [ -d /magisk/audmodlib ]; then
+    TMPAUDMODLIBDIR=/magisk/audmodlib
+  fi
+
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    if [ -f $CFG ]; then
+      mkdir -p /cache/magisk/audmodlib${CFG%/*}
+	fi
+  done
+
+  for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    if [ ! -f $CFG.bak ]; then
+      cp -af $CFG /cache/magisk/audmodlib$CFG.bak
+    else
+	  cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
+    fi
+  done
+
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    if [ -f $CFG ]; then
+      cp -af $TMPAUDMODLIBDIR$CFG /cache/magisk/audmodlib$CFG
+	fi
+  done
+
+  if [ -f $VENDOR_CONFIG ]; then
+    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
+  fi
+  
+  set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
+
+  mkdir -p $AUDMODLIBPATH
+
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    if [ -f $CFG ]; then
+      mkdir -p $AUDMODLIBPATH${CFG%/*}
+	fi
+  done
+  
+  cp -af $INSTALLER/common/audmodlibsystem.prop $AUDMODLIBPATH/system.prop
+  cp -af $INSTALLER/common/audmodlib.prop $AUDMODLIBPATH/module.prop
+  cp -af $INSTALLER/common/audmodlibservice.sh $AUDMODLIBPATH/service.sh
+
+  unified_mod_patch
+  
+  for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    if [ -f $CFG ]; then
+      cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
+	fi
+  done
+  
+  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+    if [ -f $CFG ]; then
+      cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
+	fi
+  done
+  
+  set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
+
+  ui_print "   ! AudModLib framework by ahrion @ XDA !"
+  ########## ^ DO NOT REMOVE ^ ##########
+}
+
+unified_mod_patch() {
+  ########################################################################################
+  # Audio Modification Library file patcher for Unified install
   ########################################################################################
 
   ########## v DO NOT REMOVE v ##########
   #### PATCHING FILES ####
-  ui_print " "
-  ui_print "- Patching necessary cfg files -"
+  ui_print "   Patching necessary cfg files"
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR FILE PATCHES v ####
+  # REMOVE LIBRARIES & EFFECTS
+  ui_print "    Removing library & effect lines..."
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+    if [ -f $CFG ]; then
+      # REMOVE EFFECTS
+	  sed -i '/v4a_standard_fx {/,/}/d' $PATCH$CFG
+	  # REMOVE LIBRARIES
+      sed -i '/v4a_fx {/,/}/d' $PATCH$CFG
+    fi
+  done
+
   # ADD LIBRARIES & EFFECTS
-  ui_print "   Patching existing audio_effects files..."
+  ui_print "    Patching existing audio_effects files..."
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
     if [ -f $CFG ]; then
       # ADD EFFECTS
-      sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $CFG
+      sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $PATCH$CFG
       # ADD LIBRARIES
-      sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $CFG
+      sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $PATCH$CFG
     fi
   done
-  #### ^ INSERT YOUR FILE PATCHES ^ ####
 
-  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-  if [ -f $VENDOR_CONFIG ]; then
-    cp -af $CONFIG_FILE $VENDOR_CONFIG
+  if [ "$MAGISK" = false ]; then
+    # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+    if [ -f $VENDOR_CONFIG ]; then
+      cp -af $CONFIG_FILE $VENDOR_CONFIG
+    fi
   fi
+  #### ^ INSERT YOUR FILE PATCHES ^ ####
 }
 
 readlink /proc/$$/fd/$OUTFD 2>/dev/null | grep /tmp >/dev/null
@@ -627,6 +590,7 @@ AUDMODLIBPATH=$MOUNTPATH/$AUDMODLIBID
 mkdir -p $INSTALLER
 cd $INSTALLER
 unzip -o "$ZIP" "common/*" module.prop
+unzip -o "$ZIP" "system/*"
 
 ##########################################################################################
 # Main
@@ -702,13 +666,15 @@ if (is_mounted /data); then
     ui_print "   ! Magisk is not installed!"
     ui_print "    ! Installing on system!"
     # Wipe files
-    sys_mod_wipe
+    system_mod_wipe
+    # Install
+	system_install
     # Create mod paths
-    sys_mod_directory
+    unified_mod_directory
     # Copy files
-    sys_mod_copy
+    unified_mod_copy
     # Patch files
-    sys_mod_patch
+    unified_mod_patch
     #### COMPLETING INSTALL ####
     umount /data
     umount /su
@@ -758,14 +724,17 @@ if (! is_mounted $MOUNTPATH); then
   exit 1
 fi
 
+# Prepare install
+magisk_install
+
 # Create mod paths
-magisk_mod_directory
+unified_mod_directory
 
 # Copy files
-magisk_mod_copy
+unified_mod_copy
 
 # Patch files
-audmodlib
+magisk_audmodlib
 
 # Handle replace folders
 for TARGET in $REPLACE; do
