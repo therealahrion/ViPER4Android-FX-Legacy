@@ -329,7 +329,7 @@ unified_mod_directory() {
   # CREATING DIRECTORIES
   ui_print "   Creating directories..."
 
-  if [ "$MAGISK" = true ]; then
+  if [ "$MAGISK" == true ]; then
     rm -rf $MODPATH 2>/dev/null
     mkdir -p $MODPATH
   fi
@@ -341,7 +341,7 @@ unified_mod_directory() {
 
   $MK_PRFX $UNIFY$SYSTEM/lib/soundfx$MK_SFFX
   
-  if [ "$MAGISK" = false ]; then
+  if [ "$MAGISK" == false ]; then
     if [ -d $SYSTEM/addon.d ]; then
       sys_mk_ch $SYSTEM/addon.d 0755
     fi
@@ -375,7 +375,7 @@ unified_mod_copy() {
   ui_print "   Installing libraries..."
   unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
 
-  if [ "$MAGISK" = false ]; then
+  if [ "$MAGISK" == false ]; then
     #INSTALL SCRIPTS
     if [ "$suimg" ] || [ -d /su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ] || [ -d $SYSTEM/etc/init.d ]; then
       if [ "$suimg" ] || [ -d /su ]; then
@@ -531,7 +531,7 @@ unified_mod_patch() {
     fi
   done
 
-  if [ "$MAGISK" = false ]; then
+  if [ "$MAGISK" == false ]; then
     # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
     if [ -f $VENDOR_CONFIG ]; then
       cp -af $CONFIG_FILE $VENDOR_CONFIG
