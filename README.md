@@ -12,5 +12,8 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * ViPER520 @ XDA Developers (http://vipersaudio.com/blog/)
 
 ## Change Log
-1.0
+r1.1
+    - AudModLib v1.1 hotfix for bootloops issues on some devices
+
+r1.0
     - Initial Magisk release
