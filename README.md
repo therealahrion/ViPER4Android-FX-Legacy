@@ -1,5 +1,5 @@
 # ViPER4Android FX
-This module enables ViPER4Android FX. [More details in support thread](https://forum.xda-developers.com/android/software/soundmod-axon-7-dolby-atmos-t3412342).
+This module enables ViPER4Android FX. [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
 
 ## Compatibility
 * Android Jellybean+
