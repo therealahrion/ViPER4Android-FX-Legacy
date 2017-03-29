@@ -1,9 +1,18 @@
 #!/system/bin/sh
 
 LOG_FILE=/data/local/audiotweaks_run.log;
-/system/xbin/supolicy --live "allow mediaserver mediaserver_tmpfs:file { read write execute };"
-/system/xbin/supolicy --live "allow audioserver audioserver_tmpfs:file { read write execute };"
-
+/system/xbin/supolicy --live "permissive priv_app audioserver" \
+"permissive system_app audioserver" \
+"permissive priv_app mediaserver" \
+"permissive system_app mediaserver" \
+"permissive priv_app property_socket" \
+"permissive system_app property_socket" \
+"allow audioserver audioserver_tmpfs file { open read write execute }" \
+"allow mediaserver mediaserver_tmpfs file { open read write execute }" \
+"allow priv_app init unix_stream_socket { connectto }" \
+"allow system_app init unix_stream_socket { connectto }" \
+"allow priv_app property_socket sock_file { getattr open read write execute }" \
+"allow system_app property_socket sock_file { getattr open read write execute }"
 
 # LOW POWER AUDIO TWEAKS
 setprop lpa.decode false
@@ -23,7 +32,3 @@ if [ -e /data/local/audiotweaks_run.log ]; then
 fi
 
 echo "Universal audio tweaks script has run successfully $(date +"%m-%d-%Y %H:%M:%S")" | tee -a $LOG_FILE;
-
-
-# SCRIPT BY ahrion@XDA
-# DO NOT STEAL

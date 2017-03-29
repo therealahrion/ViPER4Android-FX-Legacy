@@ -12,6 +12,11 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * Works with [AM3D Zirene Sound](https://forum.xda-developers.com/android/apps-games/mod-zirene-sound-am3d-t3396698/post71580634#post71580634}, [Dolby Atmos](https://github.com/therealahrion/Dolby-Atmos-ZTE-Axon-7), & ViPER4Android XHiFi
 
 ## Change Log
+v1.3
+	- AudModLib v1.3 update push which includes the script addition to allow various audio mods working with SELinux Enforcing
+	- Remove (audmodlib)service.sh and replace with pos-fs-data(.d) audmodlib.sh, which should fix when root may be lost upon installing certain mods
+	- System install will now have the same script updates as the AudModLib v1.3 to allow to work in SELinux Enforcing
+
 v1.2
 	- Added audmodlib.sh post-fs-data.d script
 	- Install script fixes

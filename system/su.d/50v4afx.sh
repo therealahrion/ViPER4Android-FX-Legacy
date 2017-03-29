@@ -13,6 +13,3 @@ setprop sys.keep_app_1 com.vipercn.viper4android_v2
 PPID=$(pidof com.vipercn.viper4android_v2)
 echo "-17" > /proc/$PPID/oom_adj
 renice -18 $PPID
-
-# SCRIPT BY ahrion@XDA
-# DO NOT STEAL
