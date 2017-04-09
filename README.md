@@ -14,9 +14,10 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 ## Change Log
 v1.4
 	- AudModLib v1.4 update which changes SELinux live patching to allow better compatibility between different devices, kernels, and roms; while also keeping the amount of "allowances" to a minumum
-	- Changed post-fs-data(.d)/service(.d) shell script names for cosmetic recognition
-	- Merge SuperSU shell script with MagiskSU post-fs-data(.d) script for less fragmentation
-	- Install script changes that include: major update to Pixel (A/B OTA) support, mounting changes, fixes & consolidation
+	- AudModLib v1.4: changed post-fs-data(.d)/service(.d) shell script names for cosmetic recognition
+	- AudModLib v1.4: merge SuperSU shell script with MagiskSU post-fs-data(.d) script for less fragmentation
+	- AudModLib v1.4: added /cache/audmodlib.log to determine if script has run successfully
+	- Install script changes that include: major update to Pixel (A/B OTA) support, mounting changes, improved script efficiency, fixes & consolidation
 	- App smali hacks
 
 v1.3
