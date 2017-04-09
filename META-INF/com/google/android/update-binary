@@ -156,16 +156,16 @@ ZIP=$3
 
 ### FILE LOCATIONS ###
 # AUDIO EFFECTS
-CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
-VENDOR_CONFIG=$VENDOR/etc/audio_effects.conf
-HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
-OTHER_VENDOR_FILE=$SYSTEM/etc/audio_effects_vendor.conf
-OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+CONFIG_FILE=/system/etc/audio_effects.conf
+VENDOR_CONFIG=/vendor/etc/audio_effects.conf
+HTC_CONFIG_FILE=/system/etc/htc_audio_effects.conf
+OTHER_VENDOR_FILE=/system/etc/audio_effects_vendor.conf
+OFFLOAD_CONFIG=/system/etc/audio_effects_offload.conf
 # AUDIO POLICY
-AUD_POL=$SYSTEM/etc/audio_policy.conf
-AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
-AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
-V_AUD_POL=$VENDOR/etc/audio_policy.conf
+AUD_POL=/system/etc/audio_policy.conf
+AUD_POL_CONF=/system/etc/audio_policy_configuration.xml
+AUD_OUT_POL=/vendor/etc/audio_output_policy.conf
+V_AUD_POL=/vendor/etc/audio_policy.conf
 
 magisk_install() {
   MAGISK=true
@@ -251,12 +251,12 @@ script_install_logic() {
   if [ "$supersuimg" ] || [ -d /su ]; then
     SH=/su/su.d
   elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
-    SH=$SYSTEM/su.d
+    SH=/system/su.d
   elif [ -d $SYSTEM/etc/init.d ]; then
-    SH=$SYSTEM/etc/init.d
+    SH=/system/etc/init.d
     EXT=""
   fi
-  #### ^ INSERT MORE APPS IF MORE EXIST ^ ####
+  ########## ^ DO NOT REMOVE ^ ##########
 }
 
 system_mod_wipe() {
@@ -278,20 +278,20 @@ system_mod_wipe() {
   rm -rf /data/app/com.vipercn.viper4android_v2-3
   rm -rf /data/dalvik-cache/profiles/com.vipercn.viper4android_v2
   rm -rf /data/data/com.vipercn.viper4android_v2
-  rm -rf $SYSTEM/app/$APP1
-  rm -rf $SYSTEM/priv-app/$APP1
-  rm -f $SYSTEM/addon.d/$MODID.sh
-  rm -f $SYSTEM/app/$APP1.apk
-  rm -f $SYSTEM/app/$APP1/$APP1.apk
-  rm -f $SYSTEM/etc/init.d/$MODID
-  rm -f $SYSTEM/etc/init.d/$AUDMODLIBID
-  rm -f $SYSTEM/lib/soundfx/libv4a_fx_jb_$DRVARCH.so
-  rm -f $SYSTEM/priv-app/$APP1.apk
-  rm -f $SYSTEM/priv-app/$APP1/$APP1.apk
+  rm -rf /system/app/$APP1
+  rm -rf /system/priv-app/$APP1
+  rm -f /system/addon.d/$MODID.sh
+  rm -f /system/app/$APP1.apk
+  rm -f /system/app/$APP1/$APP1.apk
+  rm -f /system/etc/init.d/$MODID
+  rm -f /system/etc/init.d/$AUDMODLIBID
+  rm -f /system/lib/soundfx/libv4a_fx_jb_$DRVARCH.so
+  rm -f /system/priv-app/$APP1.apk
+  rm -f /system/priv-app/$APP1/$APP1.apk
   rm -f /su/su.d/$MODID.sh
   rm -f /su/su.d/$AUDMODLIBID.sh
-  rm -f $SYSTEM/su.d/$MODID.sh
-  rm -f $SYSTEM/su.d/$AUDMODLIBID.sh
+  rm -f /system/su.d/$MODID.sh
+  rm -f /system/su.d/$AUDMODLIBID.sh
   #### ^ INSERT YOUR FILE REMOVALS ^ ####
 
   #### v INSERT YOUR REMOVE PATCH v ####
@@ -345,15 +345,15 @@ unified_mod_directory() {
 
   #### v INSERT YOUR DIRECTORY MAKING v ####
   app_install_logic
-  $MK_PRFX $UNIFY$SYSTEM/$APP1PATH$MK_SFFX
+  $MK_PRFX $UNIFY/system/$APP1PATH$MK_SFFX
 
-  $MK_PRFX $UNIFY$SYSTEM/lib/soundfx$MK_SFFX
+  $MK_PRFX $UNIFY/system/lib/soundfx$MK_SFFX
   
   if [ "$MAGISK" == false ]; then
   script_install_logic
   sys_mk_ch $SH 0755
     if [ -d $SYSTEM/addon.d ]; then
-      sys_mk_ch $SYSTEM/addon.d 0755
+      sys_mk_ch /system/addon.d 0755
     fi
     for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
       if [ -f $CFG ]; then
@@ -378,11 +378,11 @@ unified_mod_copy() {
   #### v INSERT YOUR FILE INSTALL v ####
   # INSTALL APPS
   ui_print "$APPTXT"
-  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNIFY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
+  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNIFY/system/$APP1PATH/$APP1.apk$CP_SFFX
 
   # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
-  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
+  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY/system/lib/soundfx/libv4a_fx_ics.so
 
   # INSTALL SCRIPTS
   if [ "$MAGISK" == false ]; then
@@ -398,7 +398,7 @@ unified_mod_copy() {
     # INSTALL ROM BACKUP SCRIPT
     if [ -d $SYSTEM/addon.d ]; then
       ui_print "   Installing addon.d backup script..."
-      sys_cp_ch $INSTALLER/system/addon.d/$MODID.sh $SYSTEM/addon.d/$MODID.sh 0644
+      sys_cp_ch $INSTALLER/system/addon.d/$MODID.sh /system/addon.d/$MODID.sh 0644
     fi
   fi
   #### ^ INSERT YOUR FILE INSTALL ^ ####
