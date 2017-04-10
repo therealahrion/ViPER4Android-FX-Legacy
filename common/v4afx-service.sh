@@ -26,21 +26,31 @@ if [ ! -d /magisk/$MODID ]; then
 
   ### FILE LOCATIONS ###
   # AUDIO EFFECTS
-  CONFIG_FILE=/system/etc/audio_effects.conf
-  VENDOR_CONFIG=/vendor/etc/audio_effects.conf
-  HTC_CONFIG_FILE=/system/etc/htc_audio_effects.conf
-  OTHER_VENDOR_FILE=/system/etc/audio_effects_vendor.conf
-  OFFLOAD_CONFIG=/system/etc/audio_effects_offload.conf
+  CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
+  HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
+  OTHER_V_FILE=$SYSTEM/etc/audio_effects_vendor.conf
+  OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+  V_CONFIG_FILE=$VENDOR/etc/audio_effects.conf
   # AUDIO POLICY
-  AUD_POL=/system/etc/audio_policy.conf
-  AUD_POL_CONF=/system/etc/audio_policy_configuration.xml
-  AUD_OUT_POL=/vendor/etc/audio_output_policy.conf
-  V_AUD_POL=/vendor/etc/audio_policy.conf
+  A2DP_AUD_POL=$SYSTEM/etc/a2dp_audio_policy_configuration.xml
+  AUD_POL=$SYSTEM/etc/audio_policy.conf
+  AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
+  AUD_POL_VOL=$SYSTEM/etc/audio_policy_volumes.xml
+  SUB_AUD_POL=$SYSTEM/etc/r_submix_audio_policy_configuration.xml
+  USB_AUD_POL=$SYSTEM/etc/usb_audio_policy_configuration.xml
+  V_AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
+  V_AUD_POL=$VENDOR/etc/audio_policy.conf
+  # MIXER PATHS
+  MIX_PATH=$SYSTEM/etc/mixer_paths.xml
+  MIX_PATH_TASH=$SYSTEM/etc/mixer_paths_tasha.xml
+  STRIGG_MIX_PATH=$SYSTEM/sound_trigger_mixer_paths.xml
+  STRIGG_MIX_PATH_9330=$SYSTEM/sound_trigger_mixer_paths_wcd9330.xml
+  V_MIX_PATH=$VENDOR/etc/mixer_paths.xml
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR REMOVE PATCH OR RESTORE v ####
   # REMOVE LIBRARIES & EFFECTS
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
 	  sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG

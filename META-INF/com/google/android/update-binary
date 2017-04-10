@@ -156,16 +156,26 @@ ZIP=$3
 
 ### FILE LOCATIONS ###
 # AUDIO EFFECTS
-CONFIG_FILE=/system/etc/audio_effects.conf
-VENDOR_CONFIG=/vendor/etc/audio_effects.conf
-HTC_CONFIG_FILE=/system/etc/htc_audio_effects.conf
-OTHER_VENDOR_FILE=/system/etc/audio_effects_vendor.conf
-OFFLOAD_CONFIG=/system/etc/audio_effects_offload.conf
+CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
+HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
+OTHER_V_FILE=$SYSTEM/etc/audio_effects_vendor.conf
+OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+V_CONFIG_FILE=$VENDOR/etc/audio_effects.conf
 # AUDIO POLICY
-AUD_POL=/system/etc/audio_policy.conf
-AUD_POL_CONF=/system/etc/audio_policy_configuration.xml
-AUD_OUT_POL=/vendor/etc/audio_output_policy.conf
-V_AUD_POL=/vendor/etc/audio_policy.conf
+A2DP_AUD_POL=$SYSTEM/etc/a2dp_audio_policy_configuration.xml
+AUD_POL=$SYSTEM/etc/audio_policy.conf
+AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
+AUD_POL_VOL=$SYSTEM/etc/audio_policy_volumes.xml
+SUB_AUD_POL=$SYSTEM/etc/r_submix_audio_policy_configuration.xml
+USB_AUD_POL=$SYSTEM/etc/usb_audio_policy_configuration.xml
+V_AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
+V_AUD_POL=$VENDOR/etc/audio_policy.conf
+# MIXER PATHS
+MIX_PATH=$SYSTEM/etc/mixer_paths.xml
+MIX_PATH_TASH=$SYSTEM/etc/mixer_paths_tasha.xml
+STRIGG_MIX_PATH=$SYSTEM/sound_trigger_mixer_paths.xml
+STRIGG_MIX_PATH_9330=$SYSTEM/sound_trigger_mixer_paths_wcd9330.xml
+V_MIX_PATH=$VENDOR/etc/mixer_paths.xml
 
 magisk_install() {
   MAGISK=true
@@ -174,7 +184,7 @@ magisk_install() {
   UNIFY="$MODPATH"
   MK_SFFX=""
   CP_SFFX=""
-  PATCHINSTALL="$TMPAUDMODLIBDIR"
+  PATCHINSTALL=""
   PATCH="/cache/magisk/audmodlib"
 }
 
@@ -251,9 +261,9 @@ script_install_logic() {
   if [ "$supersuimg" ] || [ -d /su ]; then
     SH=/su/su.d
   elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
-    SH=/system/su.d
+    SH=$SYSTEM/su.d
   elif [ -d $SYSTEM/etc/init.d ]; then
-    SH=/system/etc/init.d
+    SH=$SYSTEM/etc/init.d
     EXT=""
   fi
   ########## ^ DO NOT REMOVE ^ ##########
@@ -279,26 +289,26 @@ unified_mod_wipe() {
   rm -rf /data/app/com.audlabs.viperfx-1
   rm -rf /data/app/com.audlabs.viperfx-2
   rm -rf /data/app/com.audlabs.viperfx-3
-  rm -rf /system/app/$APP1
-  rm -rf /system/priv-app/$APP1
-  rm -f /system/addon.d/$MODID.sh
-  rm -f /system/app/$APP1.apk
-  rm -f /system/app/$APP1/$APP1.apk
-  rm -f /system/etc/init.d/$MODID
-  rm -f /system/etc/init.d/$AUDMODLIBID
-  rm -f /system/lib/soundfx/libv4a_fx_jb_$DRVARCH.so
-  rm -f /system/priv-app/$APP1.apk
-  rm -f /system/priv-app/$APP1/$APP1.apk
+  rm -rf $SYSTEM/app/$APP1
+  rm -rf $SYSTEM/priv-app/$APP1
+  rm -f $SYSTEM/addon.d/$MODID.sh
+  rm -f $SYSTEM/app/$APP1.apk
+  rm -f $SYSTEM/app/$APP1/$APP1.apk
+  rm -f $SYSTEM/etc/init.d/$MODID
+  rm -f $SYSTEM/etc/init.d/$AUDMODLIBID
+  rm -f $SYSTEM/lib/soundfx/libv4a_fx_jb_$DRVARCH.so
+  rm -f $SYSTEM/priv-app/$APP1.apk
+  rm -f $SYSTEM/priv-app/$APP1/$APP1.apk
   rm -f /su/su.d/$MODID.sh
   rm -f /su/su.d/$AUDMODLIBID.sh
-  rm -f /system/su.d/$MODID.sh
-  rm -f /system/su.d/$AUDMODLIBID.sh
+  rm -f $SYSTEM/su.d/$MODID.sh
+  rm -f $SYSTEM/su.d/$AUDMODLIBID.sh
   #### ^ INSERT YOUR FILE REMOVALS ^ ####
 
   #### v INSERT YOUR REMOVE PATCH v ####
   # REMOVE LIBRARIES & EFFECTS
   ui_print "   Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
 	  sed -i '/v4a_standard_fx {/,/}/d' $CFG
@@ -310,14 +320,14 @@ unified_mod_wipe() {
 
   #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
   # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
-  if [ -f $VENDOR_CONFIG ] && [ -f $VENDOR_CONFIG.bak ]; then
+  if [ -f $V_CONFIG_FILE ] && [ -f $V_CONFIG_FILE.bak ]; then
     # RESTORE BACKED UP CONFIGS
-    cp -af $VENDOR_CONFIG.bak $VENDOR_CONFIG
+    cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
   fi
   
   # BACKUP CONFIGS
   ui_print "   Backing up existing audio_effects cfg files..."
-  for BACKUP in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+  for BACKUP in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $BACKUP ]; then
       cp -f $BACKUP $BACKUP.bak
     fi
@@ -346,17 +356,17 @@ unified_mod_directory() {
 
   #### v INSERT YOUR DIRECTORY MAKING v ####
   app_install_logic
-  $MK_PRFX $UNIFY/system/$APP1PATH$MK_SFFX
+  $MK_PRFX $UNIFY$SYSTEM/$APP1PATH$MK_SFFX
 
-  $MK_PRFX $UNIFY/system/lib/soundfx$MK_SFFX
+  $MK_PRFX $UNIFY$SYSTEM/lib/soundfx$MK_SFFX
   
   if [ "$MAGISK" == false ]; then
   script_install_logic
   sys_mk_ch $SH 0755
     if [ -d $SYSTEM/addon.d ]; then
-      sys_mk_ch /system/addon.d 0755
+      sys_mk_ch $SYSTEM/addon.d 0755
     fi
-    for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG; do
+    for CFG in $CONFIG_FILE $V_CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG; do
       if [ -f $CFG ]; then
         sys_mk_ch ${CFG%/*} 0755
       fi
@@ -379,11 +389,11 @@ unified_mod_copy() {
   #### v INSERT YOUR FILE INSTALL v ####
   # INSTALL APPS
   ui_print "$APPTXT"
-  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNIFY/system/$APP1PATH/$APP1.apk$CP_SFFX
+  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNIFY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
 
   # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
-  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY/system/lib/soundfx/libv4a_fx_ics.so
+  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
 
   # INSTALL SCRIPTS
   if [ "$MAGISK" == false ]; then
@@ -399,7 +409,7 @@ unified_mod_copy() {
     # INSTALL ROM BACKUP SCRIPT
     if [ -d $SYSTEM/addon.d ]; then
       ui_print "   Installing addon.d backup script..."
-      sys_cp_ch $INSTALLER/system/addon.d/$MODID.sh /system/addon.d/$MODID.sh 0644
+      sys_cp_ch $INSTALLER/system/addon.d/$MODID.sh $SYSTEM/addon.d/$MODID.sh 0644
     fi
   fi
   #### ^ INSERT YOUR FILE INSTALL ^ ####
@@ -425,24 +435,16 @@ magisk_audmodlib() {
   if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     rm -rf /cache/magisk/audmodlib
   fi
-
-  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
-    TMPAUDMODLIBDIR=""
-  elif [ -d $AUDMODLIBPATH ]; then
-    TMPAUDMODLIBDIR=$AUDMODLIBPATH
-  elif [ -d /magisk/audmodlib ]; then
-    TMPAUDMODLIBDIR=/magisk/audmodlib
-  fi
   
   magisk_install
 
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       mkdir -p /cache/magisk/audmodlib${CFG%/*}
-	fi
+    fi
   done
 
-  for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+  for CFG in $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ ! -f $CFG.bak ]; then
       cp -af $CFG /cache/magisk/audmodlib$CFG.bak
     else
@@ -450,21 +452,28 @@ magisk_audmodlib() {
     fi
   done
 
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
-    if [ -f $CFG ]; then
-      cp -af $TMPAUDMODLIBDIR$CFG /cache/magisk/audmodlib$CFG
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
+    if [ -f $CFG ] && [ -d $AUDMODLIBPATH$CFG ]; then
+	  PATCHINSTALL=$AUDMODLIBPATH
+      cp -af $AUDMODLIBPATH$CFG /cache/magisk/audmodlib$CFG
+    elif [ -f $CFG ] && [ -d /magisk/audmodlib$CFG ]; then
+	  PATCHINSTALL=/magisk/audmodlib
+      cp -af /cache/magisk/audmodlib$CFG /cache/magisk/audmodlib$CFG
+    elif [ -f $CFG ] && [[ ! -d $AUDMODLIBPATH$CFG || ! -d /magisk/audmodlib$CFG ]]; then
+	  PATCHINSTALL=""
+      cp -af $CFG /cache/magisk/audmodlib$CFG
 	fi
   done
 
-  if [ -f $VENDOR_CONFIG ]; then
-    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$VENDOR_CONFIG
+  if [ -f $V_CONFIG_FILE ]; then
+    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
   fi
   
   set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
 
   mkdir -p $AUDMODLIBPATH
 
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       mkdir -p $AUDMODLIBPATH${CFG%/*}
 	fi
@@ -474,13 +483,13 @@ magisk_audmodlib() {
 
   unified_mod_patch
   
-  for CFG in $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+  for CFG in $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
 	fi
   done
   
-  for CFG in $CONFIG_FILE $VENDOR_CONFIG $HTC_CONFIG_FILE $OTHER_VENDOR_FILE $OFFLOAD_CONFIG $AUD_POL $AUD_POL_CONF $AUD_OUT_POL $V_AUD_POL; do
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
     fi
@@ -505,7 +514,7 @@ unified_mod_patch() {
   #### v INSERT YOUR FILE PATCHES v ####
   # REMOVE LIBRARIES & EFFECTS
   ui_print "    Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
 	  sed -i '/v4a_standard_fx {/,/}/d' $PATCH$CFG
@@ -516,7 +525,7 @@ unified_mod_patch() {
 
   # ADD LIBRARIES & EFFECTS
   ui_print "    Patching existing audio_effects files..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_VENDOR_FILE $HTC_CONFIG_FILE $VENDOR_CONFIG; do
+  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # ADD EFFECTS
       sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $PATCH$CFG
@@ -527,8 +536,8 @@ unified_mod_patch() {
 
   if [ "$MAGISK" == false ]; then
     # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-    if [ -f $VENDOR_CONFIG ]; then
-      cp -af $CONFIG_FILE $VENDOR_CONFIG
+    if [ -f $V_CONFIG_FILE ]; then
+      cp -af $CONFIG_FILE $V_CONFIG_FILE
     fi
   fi
   #### ^ INSERT YOUR FILE PATCHES ^ ####
