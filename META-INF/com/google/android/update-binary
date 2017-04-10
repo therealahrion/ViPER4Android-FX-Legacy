@@ -184,7 +184,7 @@ magisk_install() {
   UNIFY="$MODPATH"
   MK_SFFX=""
   CP_SFFX=""
-  PATCHINSTALL=""
+  SOURCEDIR="$SOURCEDIR"
   PATCH="/cache/magisk/audmodlib"
 }
 
@@ -195,7 +195,7 @@ system_install() {
   UNIFY=""
   MK_SFFX=" 0755"
   CP_SFFX=" 0644"
-  PATCHINSTALL=""
+  SOURCEDIR=""
   PATCH=""
 }
 
