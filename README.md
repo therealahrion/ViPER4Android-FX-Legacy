@@ -30,13 +30,13 @@ v1.2
 	- Added audmodlib.sh post-fs-data.d script
 	- Install script fixes
 	- post-fs-data.d script fixes
-    - Push AudModLib v1.2 hotfixes
+	- Push AudModLib v1.2 hotfixes
 
 v1.1
-    - AudModLib v1.1 hotfix for bootloops issues on some devices
+	- AudModLib v1.1 hotfix for bootloops issues on some devices
 
 v1.0
-    - Initial Magisk release
+	- Initial Magisk release
 
 ## Credits
 * [ViPER's Audio](http://vipersaudio.com/blog/)

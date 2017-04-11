@@ -241,11 +241,11 @@ app_install_logic() {
   if [ "$API" -ge "21" ]; then
     APPTXT="   Installing apps for Lollipop and above..."
     APP1PATH=$APPDIR/$APP1
-	APP2PATH=$APPDIR/$APP2
+    APP2PATH=$APPDIR/$APP2
   else
     APPTXT="   Installing apps for Lollipop and below..."
     APP1PATH=$APPDIR
-	APP2PATH=$APPDIR
+    APP2PATH=$APPDIR
   fi
   #### ^ INSERT MORE APPS IF MORE EXIST ^ ####
 }
@@ -311,8 +311,8 @@ unified_mod_wipe() {
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
-	  sed -i '/v4a_standard_fx {/,/}/d' $CFG
-	  # REMOVE LIBRARIES
+      sed -i '/v4a_standard_fx {/,/}/d' $CFG
+      # REMOVE LIBRARIES
       sed -i '/v4a_fx {/,/}/d' $CFG
     fi
   done
@@ -456,14 +456,14 @@ magisk_audmodlib() {
     if [ ! -f $CFG.bak ]; then
       cp -af $CFG /cache/magisk/audmodlib$CFG.bak
     else
-	  cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
+      cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
     fi
   done
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af $SOURCEDIR$CFG /cache/magisk/audmodlib$CFG
-	fi
+    fi
   done
 
   if [ -f $V_CONFIG_FILE ]; then
@@ -477,7 +477,7 @@ magisk_audmodlib() {
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       mkdir -p $AUDMODLIBPATH${CFG%/*}
-	fi
+    fi
   done
 
   cp -af $INSTALLER/common/audmodlibmodule.prop $AUDMODLIBPATH/module.prop
@@ -487,7 +487,7 @@ magisk_audmodlib() {
   for CFG in $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
-	fi
+    fi
   done
   
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
@@ -518,8 +518,8 @@ unified_mod_patch() {
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
-	  sed -i '/v4a_standard_fx {/,/}/d' $PATCH$CFG
-	  # REMOVE LIBRARIES
+      sed -i '/v4a_standard_fx {/,/}/d' $PATCH$CFG
+      # REMOVE LIBRARIES
       sed -i '/v4a_fx {/,/}/d' $PATCH$CFG
     fi
   done
@@ -622,9 +622,9 @@ if [ "$supersuimg" ]; then
     for i in 0 1 2 3 4 5 6 7; do
       test "$(supersu_is_mounted /su)" == 1 && break;
       loop=/dev/block/loop$i;
-	  mknod $loop b 7 $i;
-	  losetup $loop $supersuimg;
-	  mount -t ext4 -o loop $loop /su; 2>/dev/null
+      mknod $loop b 7 $i;
+      losetup $loop $supersuimg;
+      mount -t ext4 -o loop $loop /su; 2>/dev/null
     done;
   fi;
 fi;
@@ -676,7 +676,7 @@ if is_mounted /data; then
     # Wipe files
     unified_mod_wipe
     # Install
-	system_install
+    system_install
     # Create mod paths
     unified_mod_directory
     # Copy files
@@ -688,8 +688,8 @@ if is_mounted /data; then
     ui_print "    --------- INSTALLATION SUCCESSFUL ---------"
     ui_print " "
     ui_print "Installer brought to you by ahrion @ XDA"
-	ui_print " "
-	exit 0;
+    ui_print " "
+    exit 0;
   fi
 else
   IMG=/cache/magisk.img

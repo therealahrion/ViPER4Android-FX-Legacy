@@ -53,8 +53,8 @@ if [ ! -d /magisk/$MODID ]; then
   for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
-	  sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
-	  # REMOVE LIBRARIES
+      sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
+      # REMOVE LIBRARIES
       sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
     fi
   done
