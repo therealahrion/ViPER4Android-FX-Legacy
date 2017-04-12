@@ -181,22 +181,22 @@ magisk_install() {
   MAGISK=true
   MK_PRFX="mkdir -p"
   CP_PRFX="cp -af"
-  UNIFY="$MODPATH"
+  UNITY="$MODPATH"
   MK_SFFX=""
   CP_SFFX=""
   SOURCEDIR="$SOURCEDIR"
-  PATCH="/cache/magisk/audmodlib"
+  UNITYPATCH="/cache/magisk/audmodlib"
 }
 
 system_install() {
   MAGISK=false
   MK_PRFX="sys_mk_ch"
   CP_PRFX="sys_cp_ch"
-  UNIFY=""
+  UNITY=""
   MK_SFFX=" 0755"
   CP_SFFX=" 0644"
   SOURCEDIR=""
-  PATCH=""
+  UNITYPATCH=""
 }
 
 ##########################################################################################
@@ -241,11 +241,9 @@ app_install_logic() {
   if [ "$API" -ge "21" ]; then
     APPTXT="   Installing apps for Lollipop and above..."
     APP1PATH=$APPDIR/$APP1
-    APP2PATH=$APPDIR/$APP2
   else
     APPTXT="   Installing apps for Lollipop and below..."
     APP1PATH=$APPDIR
-    APP2PATH=$APPDIR
   fi
   #### ^ INSERT MORE APPS IF MORE EXIST ^ ####
 }
@@ -308,7 +306,7 @@ unified_mod_wipe() {
   #### v INSERT YOUR REMOVE PATCH v ####
   # REMOVE LIBRARIES & EFFECTS
   ui_print "   Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
       sed -i '/v4a_standard_fx {/,/}/d' $CFG
@@ -327,7 +325,7 @@ unified_mod_wipe() {
   
   # BACKUP CONFIGS
   ui_print "   Backing up existing audio_effects cfg files..."
-  for BACKUP in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
+  for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
     if [ -f $BACKUP ]; then
       cp -f $BACKUP $BACKUP.bak
     fi
@@ -356,13 +354,13 @@ unified_mod_directory() {
 
   #### v INSERT YOUR DIRECTORY MAKING v ####
   app_install_logic
-  $MK_PRFX $UNIFY$SYSTEM/$APP1PATH$MK_SFFX
+  $MK_PRFX $UNITY$SYSTEM/$APP1PATH$MK_SFFX
 
-  $MK_PRFX $UNIFY$SYSTEM/lib/soundfx$MK_SFFX
+  $MK_PRFX $UNITY$SYSTEM/lib/soundfx$MK_SFFX
   
   if [ "$MAGISK" == false ]; then
-  script_install_logic
-  sys_mk_ch $SH 0755
+    script_install_logic
+    sys_mk_ch $SH 0755
     if [ -d $SYSTEM/addon.d ]; then
       sys_mk_ch $SYSTEM/addon.d 0755
     fi
@@ -389,11 +387,11 @@ unified_mod_copy() {
   #### v INSERT YOUR FILE INSTALL v ####
   # INSTALL APPS
   ui_print "$APPTXT"
-  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNIFY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
+  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNITY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
 
   # INSTALL LIBRARIES
   ui_print "   Installing libraries..."
-  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNIFY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
+  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNITY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
 
   # INSTALL SCRIPTS
   if [ "$MAGISK" == false ]; then
@@ -515,23 +513,23 @@ unified_mod_patch() {
   #### v INSERT YOUR FILE PATCHES v ####
   # REMOVE LIBRARIES & EFFECTS
   ui_print "    Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
-      sed -i '/v4a_standard_fx {/,/}/d' $PATCH$CFG
+      sed -i '/v4a_standard_fx {/,/}/d' $UNITYPATCH$CFG
       # REMOVE LIBRARIES
-      sed -i '/v4a_fx {/,/}/d' $PATCH$CFG
+      sed -i '/v4a_fx {/,/}/d' $UNITYPATCH$CFG
     fi
   done
 
   # ADD LIBRARIES & EFFECTS
   ui_print "    Patching existing audio_effects files..."
-  for CFG in $CONFIG_FILE $OFFLOAD_CONFIG $OTHER_V_FILE $HTC_CONFIG_FILE $V_CONFIG_FILE; do
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # ADD EFFECTS
-      sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $PATCH$CFG
+      sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $UNITYPATCH$CFG
       # ADD LIBRARIES
-      sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $PATCH$CFG
+      sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $UNITYPATCH$CFG
     fi
   done
 
