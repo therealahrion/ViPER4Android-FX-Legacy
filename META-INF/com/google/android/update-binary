@@ -279,6 +279,8 @@ unified_mod_wipe() {
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR FILE REMOVALS v ####
+  app_install_logic
+
   # REMOVE FILES
   ui_print "   Removing files..."
   rm -rf /data/app/com.vipercn.viper4android_v2-1
@@ -353,7 +355,6 @@ unified_mod_directory() {
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR DIRECTORY MAKING v ####
-  app_install_logic
   $MK_PRFX $UNITY$SYSTEM/$APP1PATH$MK_SFFX
 
   $MK_PRFX $UNITY$SYSTEM/lib/soundfx$MK_SFFX
