@@ -319,19 +319,21 @@ unified_mod_wipe() {
   #### ^ INSERT YOUR REMOVE PATCH ^ ####
 
   #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
-  # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
-  if [ -f $V_CONFIG_FILE ] && [ -f $V_CONFIG_FILE.bak ]; then
-    # RESTORE BACKED UP CONFIGS
-    cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
-  fi
-  
-  # BACKUP CONFIGS
-  ui_print "   Backing up existing audio_effects cfg files..."
-  for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $BACKUP ]; then
-      cp -f $BACKUP $BACKUP.bak
+  if [ "$MAGISK" == false ]; then
+    # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
+    if [ -f $V_CONFIG_FILE ] && [ -f $V_CONFIG_FILE.bak ]; then
+      # RESTORE BACKED UP CONFIGS
+      cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
     fi
-  done
+  
+    # BACKUP CONFIGS
+    ui_print "   Backing up existing audio_effects cfg files..."
+    for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+      if [ -f $BACKUP ]; then
+        cp -f $BACKUP $BACKUP.bak
+      fi
+    done
+  fi
   #### ^ INSERT YOUR RESTORE AND BACKUP FUNCTIONS ^ ####
 }
 
@@ -454,7 +456,7 @@ magisk_audmodlib() {
   done
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
-    if [ ! -f $CFG.bak ]; then
+    if [ ! -f $CFG.bak ] && [ -f $CFG ]; then
       cp -af $CFG /cache/magisk/audmodlib$CFG.bak
     else
       cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
