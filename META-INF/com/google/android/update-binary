@@ -427,7 +427,7 @@ magisk_audmodlib() {
   ui_print "- Installing Audio Modification Library -"
 
   ui_print "   Installing scripts for MagiskSU..."
-  mkdir -p $MOUNTPATH/.core/post-fs-data.d																   
+  mkdir -p $MOUNTPATH/.core/post-fs-data.d
   cp -af $INSTALLER/common/$AUDMODLIBID-post-fs-data.sh $MOUNTPATH/.core/post-fs-data.d/$AUDMODLIBID.sh
   mkdir -p $MOUNTPATH/.core/service.d
   cp -af $INSTALLER/common/$AUDMODLIBID-service.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID.sh
