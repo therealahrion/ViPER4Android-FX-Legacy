@@ -433,15 +433,15 @@ magisk_audmodlib() {
   cp -af $INSTALLER/common/$AUDMODLIBID-service.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID.sh
   cp -af $INSTALLER/common/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh
 
-  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH$SYSTEM/etc || ! -d /magisk/audmodlib ]]; then
+  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     rm -rf /cache/magisk/audmodlib
   fi
 
-  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH$SYSTEM/etc || ! -d /magisk/audmodlib ]]; then
+  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     SOURCEDIR=""
   elif [ -d /cache/magisk/audmodlib ]; then
     SOURCEDIR=/cache/magisk/audmodlib
-  elif [ -d $AUDMODLIBPATH$SYSTEM/etc ]; then
+  elif [ -d $AUDMODLIBPATH ]; then
     SOURCEDIR=$AUDMODLIBPATH
   elif [ -d /magisk/audmodlib ]; then
     SOURCEDIR=/magisk/audmodlib
