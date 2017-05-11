@@ -427,21 +427,21 @@ magisk_audmodlib() {
   ui_print "- Installing Audio Modification Library -"
 
   ui_print "   Installing scripts for MagiskSU..."
-  mkdir -p $MOUNTPATH/.core/post-fs-data.d
+  mkdir -p $MOUNTPATH/.core/post-fs-data.d																   
   cp -af $INSTALLER/common/$AUDMODLIBID-post-fs-data.sh $MOUNTPATH/.core/post-fs-data.d/$AUDMODLIBID.sh
   mkdir -p $MOUNTPATH/.core/service.d
   cp -af $INSTALLER/common/$AUDMODLIBID-service.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID.sh
   cp -af $INSTALLER/common/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh
 
-  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+  if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH$SYSTEM/etc || ! -d /magisk/audmodlib ]]; then
     rm -rf /cache/magisk/audmodlib
   fi
-  
-  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+
+  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH$SYSTEM/etc || ! -d /magisk/audmodlib ]]; then
     SOURCEDIR=""
   elif [ -d /cache/magisk/audmodlib ]; then
     SOURCEDIR=/cache/magisk/audmodlib
-  elif [ -d $AUDMODLIBPATH ]; then
+  elif [ -d $AUDMODLIBPATH$SYSTEM/etc ]; then
     SOURCEDIR=$AUDMODLIBPATH
   elif [ -d /magisk/audmodlib ]; then
     SOURCEDIR=/magisk/audmodlib
@@ -457,19 +457,23 @@ magisk_audmodlib() {
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
-	    if [ ! -f $CFG.bak ]; then
+	  if [ ! -f $CFG.bak ]; then
         cp -af $CFG /cache/magisk/audmodlib$CFG.bak
       else
         cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
       fi
-  	fi
+	fi
   done
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
-      cp -af $SOURCEDIR$CFG /cache/magisk/audmodlib$CFG
+	  cp -af $SOURCEDIR$CFG /cache/magisk/audmodlib$CFG
     fi
   done
+
+  if [ -f $V_CONFIG_FILE ]; then
+    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
+  fi
   
   set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
 
@@ -482,13 +486,13 @@ magisk_audmodlib() {
   done
 
   unified_mod_patch
-  
+ 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
     fi
   done
-  
+
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
