@@ -305,21 +305,21 @@ unified_mod_wipe() {
   rm -f $SYSTEM/su.d/$AUDMODLIBID.sh
   #### ^ INSERT YOUR FILE REMOVALS ^ ####
 
-  #### v INSERT YOUR REMOVE PATCH v ####
-  # REMOVE LIBRARIES & EFFECTS
-  ui_print "   Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ]; then
-      # REMOVE EFFECTS
-      sed -i '/v4a_standard_fx {/,/}/d' $CFG
-      # REMOVE LIBRARIES
-      sed -i '/v4a_fx {/,/}/d' $CFG
-    fi
-  done
-  #### ^ INSERT YOUR REMOVE PATCH ^ ####
-
-  #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
   if [ "$MAGISK" == false ]; then
+    #### v INSERT YOUR REMOVE PATCH v ####
+    # REMOVE LIBRARIES & EFFECTS
+    ui_print "   Removing library & effect lines..."
+    for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+      if [ -f $CFG ]; then
+        # REMOVE EFFECTS
+        sed -i '/v4a_standard_fx {/,/}/d' $CFG
+        # REMOVE LIBRARIES
+        sed -i '/v4a_fx {/,/}/d' $CFG
+      fi
+    done
+    #### ^ INSERT YOUR REMOVE PATCH ^ ####
+
+    #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
     # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
     if [ -f $V_CONFIG_FILE ] && [ -f $V_CONFIG_FILE.bak ]; then
       # RESTORE BACKED UP CONFIGS
