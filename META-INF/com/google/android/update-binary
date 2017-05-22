@@ -27,7 +27,7 @@ supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
 ui_print() {
   if $BOOTMODE; then
     echo "$1"
-  else 
+  else
     echo -n -e "ui_print $1\n" >> /proc/self/fd/$OUTFD
     echo -n -e "ui_print\n" >> /proc/self/fd/$OUTFD
   fi
@@ -112,7 +112,7 @@ set_perm_recursive() {
   done
 }
 
-sys_mk_ch() { 
+sys_mk_ch() {
   mkdir -p "$1"
   chmod "$2" "$1"
 }
@@ -200,9 +200,9 @@ system_install() {
 }
 
 ##########################################################################################
-# 
+#
 # Instructions:
-# 
+#
 # 1. This is a Unified installer for both Magisk and System install, so be sure to
 #    follow the template provided for "app_install_logic", "unified_mod_wipe",
 #    & "unified_mod_<xxxx>"
@@ -219,7 +219,7 @@ system_install() {
 # 6. You can obviously use your mod specific system.prop or post-fs-data.sh as part of
 #    the mod, but make sure not edit the designated audmodlib specific files
 # 7. DO NOT delete any of the credits for @ahrion or @topjohnwu mentioned in this script
-# 
+#
 ##########################################################################################
 
 APP1="ViPER4AndroidFX"
@@ -289,23 +289,24 @@ unified_mod_wipe() {
   rm -rf /data/app/com.audlabs.viperfx-1
   rm -rf /data/app/com.audlabs.viperfx-2
   rm -rf /data/app/com.audlabs.viperfx-3
-  rm -rf $SYSTEM/app/$APP1
-  rm -rf $SYSTEM/priv-app/$APP1
-  rm -f $SYSTEM/addon.d/$MODID.sh
-  rm -f $SYSTEM/app/$APP1.apk
-  rm -f $SYSTEM/app/$APP1/$APP1.apk
-  rm -f $SYSTEM/etc/init.d/$MODID
-  rm -f $SYSTEM/etc/init.d/$AUDMODLIBID
-  rm -f $SYSTEM/lib/soundfx/libv4a_fx_jb_$DRVARCH.so
-  rm -f $SYSTEM/priv-app/$APP1.apk
-  rm -f $SYSTEM/priv-app/$APP1/$APP1.apk
-  rm -f /su/su.d/$MODID.sh
-  rm -f /su/su.d/$AUDMODLIBID.sh
-  rm -f $SYSTEM/su.d/$MODID.sh
-  rm -f $SYSTEM/su.d/$AUDMODLIBID.sh
-  #### ^ INSERT YOUR FILE REMOVALS ^ ####
 
   if [ "$MAGISK" == false ]; then
+    rm -rf $SYSTEM/app/$APP1
+    rm -rf $SYSTEM/priv-app/$APP1
+    rm -f $SYSTEM/addon.d/$MODID.sh
+    rm -f $SYSTEM/app/$APP1.apk
+    rm -f $SYSTEM/app/$APP1/$APP1.apk
+    rm -f $SYSTEM/etc/init.d/$MODID
+    rm -f $SYSTEM/etc/init.d/$AUDMODLIBID
+    rm -f $SYSTEM/lib/soundfx/libv4a_fx_jb_$DRVARCH.so
+    rm -f $SYSTEM/priv-app/$APP1.apk
+    rm -f $SYSTEM/priv-app/$APP1/$APP1.apk
+    rm -f /su/su.d/$MODID.sh
+    rm -f /su/su.d/$AUDMODLIBID.sh
+    rm -f $SYSTEM/su.d/$MODID.sh
+    rm -f $SYSTEM/su.d/$AUDMODLIBID.sh
+    #### ^ INSERT YOUR FILE REMOVALS ^ ####
+
     #### v INSERT YOUR REMOVE PATCH v ####
     # REMOVE LIBRARIES & EFFECTS
     ui_print "   Removing library & effect lines..."
@@ -325,7 +326,7 @@ unified_mod_wipe() {
       # RESTORE BACKED UP CONFIGS
       cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
     fi
-  
+
     # BACKUP CONFIGS
     ui_print "   Backing up existing audio_effects cfg files..."
     for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
@@ -360,7 +361,7 @@ unified_mod_directory() {
   $MK_PRFX $UNITY$SYSTEM/$APP1PATH$MK_SFFX
 
   $MK_PRFX $UNITY$SYSTEM/lib/soundfx$MK_SFFX
-  
+
   if [ "$MAGISK" == false ]; then
     script_install_logic
     sys_mk_ch $SH 0755
@@ -474,7 +475,7 @@ magisk_audmodlib() {
   if [ -f $V_CONFIG_FILE ]; then
     cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
   fi
-  
+
   set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
 
   mkdir -p $AUDMODLIBPATH
@@ -486,7 +487,7 @@ magisk_audmodlib() {
   done
 
   unified_mod_patch
- 
+
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
@@ -498,7 +499,7 @@ magisk_audmodlib() {
       cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
     fi
   done
-  
+
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
 
   ui_print "   ! AudModLib framework by ahrion @ XDA !"
