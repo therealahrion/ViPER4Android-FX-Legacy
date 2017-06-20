@@ -22,10 +22,14 @@ else
   if [ "$ABDeviceCheck" -gt 0 ]; then
     isABDevice=true
     SYSTEM=/system/system
-    VENDOR=/vendor
   else
     isABDevice=false
     SYSTEM=/system
+  fi
+
+  if [ $isABDevice == true ] || [ ! -d $SYSTEM/vendor ]; then
+    VENDOR=/vendor
+  else
     VENDOR=/system/vendor
   fi
 
@@ -59,11 +63,25 @@ else
     SEINJECT=/data/magisk/sepolicy-inject
     SH=/magisk/.core/service.d
   elif [ "$supersuimg" ] || [ -d /su ]; then
-    SEINJECT=/su/bin/supolicy
-    SH=/su/su.d
-  elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
+    if [ "$(cat /su/bin/su | grep SuperSU)" ]; then
+	  SEINJECT=/su/bin/supolicy
+	  SH=/su/su.d
+	else
+	  SEINJECT=/su/bin/sepolicy-inject
+	  SH=$SYSTEM/etc/init.d
+	  EXT=""
+	fi
+  elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
     SEINJECT=$SYSTEM/xbin/supolicy
     SH=$SYSTEM/su.d
+  elif [ -f $SYSTEM/xbin/su ]; then
+	SEINJECT=$SYSTEM/xbin/supolicy
+	if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
+	  SH=$SYSTEM/su.d
+	else
+	  SH=$SYSTEM/etc/init.d
+      EXT=""
+	fi
   elif [ -d $SYSTEM/etc/init.d ]; then
     SEINJECT=$SYSTEM/xbin/supolicy
     SH=$SYSTEM/etc/init.d
@@ -75,6 +93,10 @@ else
   else
     SOURCE=system_app
   fi
+  
+  if [ -f /magisk/$MODID$SYSTEM/etc/$MODID-props ];then 
+    /system/bin/sh /magisk/$MODID$SYSTEM/etc/$MODID-props 
+  fi 
 
   $SEINJECT --live "permissive $SOURCE audio_prop"
 

@@ -17,10 +17,14 @@ if [ ! -d /magisk/$MODID ]; then
   if [ "$ABDeviceCheck" -gt 0 ]; then
     isABDevice=true
     SYSTEM=/system/system
-    VENDOR=/vendor
   else
     isABDevice=false
     SYSTEM=/system
+  fi
+
+  if [ $isABDevice == true ] || [ ! -d $SYSTEM/vendor ]; then
+    VENDOR=/vendor
+  else
     VENDOR=/system/vendor
   fi
 

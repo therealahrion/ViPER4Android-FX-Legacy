@@ -15,11 +15,9 @@ ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
 if [ "$ABDeviceCheck" -gt 0 ]; then
   isABDevice=true
   SYSTEM=/system/system
-  VENDOR=/vendor
 else
   isABDevice=false
   SYSTEM=/system
-  VENDOR=/system/vendor
 fi
 
 supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
@@ -27,7 +25,7 @@ supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
 ui_print() {
   if $BOOTMODE; then
     echo "$1"
-  else 
+  else
     echo -n -e "ui_print $1\n" >> /proc/self/fd/$OUTFD
     echo -n -e "ui_print\n" >> /proc/self/fd/$OUTFD
   fi
@@ -112,12 +110,23 @@ set_perm_recursive() {
   done
 }
 
-sys_mk_ch() { 
+sys_mk_ch() {
   mkdir -p "$1"
   chmod "$2" "$1"
 }
 
 sys_cp_ch() {
+  cp -f "$1" "$2"
+  chmod "$3" "$2"
+  restorecon "$2"
+}
+
+sys_cpbak_ch() {
+  if [ -f "$2" ]; then
+	mv -f "$2" "$2.bak"
+	echo "$2.bak" >> $INFO
+  fi
+  echo "$2" >> $INFO
   cp "$1" "$2"
   chmod "$3" "$2"
 }
@@ -154,29 +163,6 @@ image_size_check() {
 OUTFD=$2
 ZIP=$3
 
-### FILE LOCATIONS ###
-# AUDIO EFFECTS
-CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
-HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
-OTHER_V_FILE=$SYSTEM/etc/audio_effects_vendor.conf
-OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
-V_CONFIG_FILE=$VENDOR/etc/audio_effects.conf
-# AUDIO POLICY
-A2DP_AUD_POL=$SYSTEM/etc/a2dp_audio_policy_configuration.xml
-AUD_POL=$SYSTEM/etc/audio_policy.conf
-AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
-AUD_POL_VOL=$SYSTEM/etc/audio_policy_volumes.xml
-SUB_AUD_POL=$SYSTEM/etc/r_submix_audio_policy_configuration.xml
-USB_AUD_POL=$SYSTEM/etc/usb_audio_policy_configuration.xml
-V_AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
-V_AUD_POL=$VENDOR/etc/audio_policy.conf
-# MIXER PATHS
-MIX_PATH=$SYSTEM/etc/mixer_paths.xml
-MIX_PATH_TASH=$SYSTEM/etc/mixer_paths_tasha.xml
-STRIGG_MIX_PATH=$SYSTEM/sound_trigger_mixer_paths.xml
-STRIGG_MIX_PATH_9330=$SYSTEM/sound_trigger_mixer_paths_wcd9330.xml
-V_MIX_PATH=$VENDOR/etc/mixer_paths.xml
-
 magisk_install() {
   MAGISK=true
   MK_PRFX="mkdir -p"
@@ -191,7 +177,7 @@ magisk_install() {
 system_install() {
   MAGISK=false
   MK_PRFX="sys_mk_ch"
-  CP_PRFX="sys_cp_ch"
+  CP_PRFX="sys_cpbak_ch"
   UNITY=""
   MK_SFFX=" 0755"
   CP_SFFX=" 0644"
@@ -200,9 +186,9 @@ system_install() {
 }
 
 ##########################################################################################
-# 
+#
 # Instructions:
-# 
+#
 # 1. This is a Unified installer for both Magisk and System install, so be sure to
 #    follow the template provided for "app_install_logic", "unified_mod_wipe",
 #    & "unified_mod_<xxxx>"
@@ -219,7 +205,7 @@ system_install() {
 # 6. You can obviously use your mod specific system.prop or post-fs-data.sh as part of
 #    the mod, but make sure not edit the designated audmodlib specific files
 # 7. DO NOT delete any of the credits for @ahrion or @topjohnwu mentioned in this script
-# 
+#
 ##########################################################################################
 
 APP1="ViPER4AndroidFX"
@@ -248,6 +234,40 @@ app_install_logic() {
   #### ^ INSERT MORE APPS IF MORE EXIST ^ ####
 }
 
+detect_initd() {
+	ui_print " "
+	ui_print "- Detecting Init.d Support -"
+	if [ ! -d $SYSTEM/etc/init.d ]; then
+		sys_mk_ch $SYSTEM/etc/init.d 0755
+	fi
+	if [ -e $SYSTEM/bin/sysinit ]; then
+		if [ -z "`cat $SYSTEM/bin/sysinit | grep "init.d"`" ]; then
+			ui_print "   Init.d Support Not Detected. Adding it now..."
+			echo "/system/xbin/run-parts /system/etc/init.d" >> $SYSTEM/bin/sysinit
+			echo "" >> $SYSTEM/bin/sysinit
+			chmod 755 $SYSTEM/bin/sysinit
+			chown 0.2000 $SYSTEM/bin/sysinit
+			if [ -d $SYSTEM/addon.d ]; then
+			  ui_print "   Addon.d detected. Installing backup script for init.d support..."
+			  sys_cp_ch $INSTALLER/system/addon.d/$AUDMODLIBID-initd.sh $SYSTEM/addon.d/$AUDMODLIBID-initd.sh 0644
+			else
+			  ui_print "   ! Addon.d not detected. Backup script for init.d support not installed..."
+			fi
+		else
+			ui_print "   Init.d Support Detected. No modifications needed..."
+		fi
+	else
+		ui_print "   Init.d Support Not Detected. Adding it now..."
+		echo "#!/system/bin/sh" > $SYSTEM/bin/sysinit
+		echo "" >> $SYSTEM/bin/sysinit
+		echo "export PATH=/sbin:/system/sbin:/system/bin:/system/xbin" >> $SYSTEM/bin/sysinit
+		echo "/system/xbin/run-parts /system/etc/init.d" >> $SYSTEM/bin/sysinit
+		echo "" >> $SYSTEM/bin/sysinit
+		chmod 755 $SYSTEM/bin/sysinit
+		chown 0.2000 $SYSTEM/bin/sysinit
+	fi
+}
+
 script_install_logic() {
   ########################################################################################
   # Logic for correct system script installation
@@ -257,14 +277,111 @@ script_install_logic() {
   # DETERMINE ROOT BOOT SCRIPT TYPE
   EXT=".sh"
   if [ "$supersuimg" ] || [ -d /su ]; then
-    SH=/su/su.d
-  elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
-    SH=$SYSTEM/su.d
-  elif [ -d $SYSTEM/etc/init.d ]; then
+  	if [ "$(cat /su/bin/su | grep SuperSU)" ]; then
+  	  SH=/su/su.d
+  	else
+  	  SH=$SYSTEM/etc/init.d
+  	  EXT=""
+      detect_initd
+  	fi
+  elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
+	   SH=$SYSTEM/su.d
+  elif [ -f $SYSTEM/xbin/su ]; then
+  	if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
+  	  SH=$SYSTEM/su.d
+  	else
+  	  SH=$SYSTEM/etc/init.d
+      EXT=""
+      detect_initd
+  	fi
+  else
     SH=$SYSTEM/etc/init.d
     EXT=""
+    detect_initd
   fi
   ########## ^ DO NOT REMOVE ^ ##########
+}
+
+unified_prop_removal() {
+  ui_print " "
+  ui_print "- Checking for obsolete props to remove-"
+  if [ "$MAGISK" == true ]; then
+		rm -f $SYSTEM/etc/init.d/$AUDMODLIBID-props
+		rm -f /su/su.d/$AUDMODLIBID-props.sh
+		rm -f $SYSTEM/su.d/$AUDMODLIBID-props.sh
+		if [ "$PROPCOMP" == true ]; then
+			AMLPROP="$AUDMODLIBPATH$SYSTEM/etc/$AUDMODLIBID-props"
+		else
+			AMLPROP="$AUDMODLIBPATH/system.prop"
+			sed -i "s/setprop //g" $1
+			sed -i "s/ /=/g" $1
+		fi
+	else
+    	AMLPROP="$SH/$AUDMODLIBID-props$EXT"
+		for AMLSCRIPT in $SYSTEM/etc/init.d/$AUDMODLIBID-props /su/su.d/$AUDMODLIBID-props.sh $SYSTEM/su.d/$AUDMODLIBID-props.sh; do
+		  if [ "$AMLPROP" != "$AMLSCRIPT" ]; then
+				rm -f $AMLSCRIPT
+		  fi
+		done
+	  fi
+  if [ -f $AMLPROP ]; then
+    if [ "$(sed -n '4,$p' $1)" ]; then
+  	  ui_print "   Removing obsolete props..."
+  	  NEWPROPS="$(sed -n '4,$ p' $1)"
+  	  printf '%s\n' "$NEWPROPS" | while IFS= read -r linenew
+  	  do
+  	    if [ "$(cat $AMLPROP | grep "$linenew")" ]; then
+  	  	    sed -i "/$linenew/d" $AMLPROP
+        fi
+  	  done
+    fi
+  else
+    ui_print "   No obsolete build props to remove!..."
+  fi
+}
+
+unified_prop_copy() {
+  if [ "$MAGISK" == true ]; then
+  	if [ "$PROPCOMP" == true ]; then
+  		AMLPROP="$AUDMODLIBPATH$SYSTEM/etc/$AUDMODLIBID-props"
+  		NEWDIR="$AUDMODLIBPATH$SYSTEM/etc"
+  	else
+  		AMLPROP="$AUDMODLIBPATH/system.prop"
+  		NEWDIR="$AUDMODLIBPATH"
+  		sed -i "s/setprop //g" $1
+  		sed -i "s/ /=/g" $1
+  	fi
+  else
+    AMLPROP="$SH/$AUDMODLIBID-props$EXT"
+    NEWDIR="$SH"
+  fi
+  if [ "$(sed -n '4,$p' $1)" ]; then
+  	if [ ! -f $AMLPROP ]; then
+  		mkdir -p $NEWDIR
+  		echo "#!/system/bin/sh" > $AMLPROP
+  	fi
+    OLDPROPS="$(sed -n '2,$ p' $AMLPROP)"
+    NEWPROPS="$(sed -n '4,$ p' $1)"
+    printf '%s\n' "$NEWPROPS" | while IFS= read -r linenew
+    do
+  	  PRESENT="false"
+  	  printf '%s\n' "$OLDPROPS" | {
+    	  while IFS= read -r lineold
+    	  do
+    	    if [ "$linenew" == "$lineold" ]; then
+    		  PRESENT="true"
+    	    fi
+    	  done
+    	  if [ $PRESENT == "false" ]; then
+    	    sed -i -e "\$a$linenew" $AMLPROP
+    	  fi
+       }
+    done
+  	if [ "$MAGISK" == false ]; then
+  	  chmod 0700 $AMLPROP
+  	  restorecon $AMLPROP
+  	fi
+  fi
 }
 
 unified_mod_wipe() {
@@ -279,8 +396,6 @@ unified_mod_wipe() {
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR FILE REMOVALS v ####
-  app_install_logic
-
   # REMOVE FILES
   ui_print "   Removing files..."
   rm -rf /data/app/com.vipercn.viper4android_v2-1
@@ -324,7 +439,7 @@ unified_mod_wipe() {
     # RESTORE BACKED UP CONFIGS
     cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
   fi
-  
+
   # BACKUP CONFIGS
   ui_print "   Backing up existing audio_effects cfg files..."
   for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
@@ -358,9 +473,8 @@ unified_mod_directory() {
   $MK_PRFX $UNITY$SYSTEM/$APP1PATH$MK_SFFX
 
   $MK_PRFX $UNITY$SYSTEM/lib/soundfx$MK_SFFX
-  
+
   if [ "$MAGISK" == false ]; then
-    script_install_logic
     sys_mk_ch $SH 0755
     if [ -d $SYSTEM/addon.d ]; then
       sys_mk_ch $SYSTEM/addon.d 0755
@@ -386,20 +500,22 @@ unified_mod_copy() {
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR FILE INSTALL v ####
-  # INSTALL APPS
-  ui_print "$APPTXT"
-  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNITY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
-
-  # INSTALL LIBRARIES
-  ui_print "   Installing libraries..."
-  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNITY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
-
   # INSTALL SCRIPTS
   if [ "$MAGISK" == false ]; then
     if [ "$supersuimg" ] || [ -d /su ]; then
-      ui_print "   Installing scripts for systemless SuperSU..."
-    elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
-      ui_print "   Installing scripts for system SuperSU..."
+      if [ "$(cat /su/bin/su | grep SuperSU)" ]; then
+	      ui_print "   Installing scripts for systemless SuperSU..."
+  	  else
+  	    ui_print "   Installing scripts for phh SuperUser..."
+  	  fi
+  	elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
+  	  ui_print "   Installing scripts for system SuperSU..."
+  	elif [ -f $SYSTEM/xbin/su ]; then
+  	  if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
+  	    ui_print "   Installing scripts for system SuperSU..."
+  	  else
+  	    ui_print "   Installing scripts for LineageOS SU..."
+  	  fi
     elif [ -d $SYSTEM/etc/init.d ]; then
       ui_print "   Installing scripts for non root..."
     fi
@@ -407,9 +523,31 @@ unified_mod_copy() {
 
     # INSTALL ROM BACKUP SCRIPT
     if [ -d $SYSTEM/addon.d ]; then
-      ui_print "   Installing addon.d backup script..."
+      ui_print "   Addon.d detected. Installing backup script..."
       sys_cp_ch $INSTALLER/system/addon.d/$MODID.sh $SYSTEM/addon.d/$MODID.sh 0644
+    else
+      ui_print "   ! Addon.d not detected. Backup script not installed..."
     fi
+    touch $INFO
+    echo "$SH/$AUDMODLIBID$EXT" > $INFO
+  	echo "$SH/$AUDMODLIBID-props$EXT" >> $INFO
+  fi
+
+  # INSTALL APPS
+  ui_print "$APPTXT"
+  $CP_PRFX $INSTALLER/system/app/$APP1/$APP1.apk $UNITY$SYSTEM/$APP1PATH/$APP1.apk$CP_SFFX
+
+  # ADD BUILDPROPS
+  ui_print "   Adding build props..."
+  unified_prop_copy $INSTALLER/common/audmodlib-props.prop
+
+  # INSTALL LIBRARIES
+  ui_print "   Installing libraries..."
+  unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNITY$SYSTEM/lib/soundfx/libv4a_fx_ics.so
+  echo "$UNITY$SYSTEM/lib/soundfx/libv4a_fx_ics.so" >> $INFO
+
+  if [ "$MAGISK" == false ]; then
+    sed -i 's/\/system\///g' $INFO
   fi
   #### ^ INSERT YOUR FILE INSTALL ^ ####
 }
@@ -434,7 +572,7 @@ magisk_audmodlib() {
   if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     rm -rf /cache/magisk/audmodlib
   fi
-  
+
   if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     SOURCEDIR=""
   elif [ -d /cache/magisk/audmodlib ]; then
@@ -454,10 +592,12 @@ magisk_audmodlib() {
   done
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
-    if [ ! -f $CFG.bak ]; then
-      cp -af $CFG /cache/magisk/audmodlib$CFG.bak
-    else
-      cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
+    if [ -f $CFG ]; then
+      if [ ! -f $CFG.bak ]; then
+        cp -af $CFG /cache/magisk/audmodlib$CFG.bak
+      else
+        cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
+      fi
     fi
   done
 
@@ -466,7 +606,7 @@ magisk_audmodlib() {
       cp -af $SOURCEDIR$CFG /cache/magisk/audmodlib$CFG
     fi
   done
-  
+
   set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
 
   mkdir -p $AUDMODLIBPATH
@@ -478,19 +618,19 @@ magisk_audmodlib() {
   done
 
   unified_mod_patch
-  
+
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG.bak $AUDMODLIBPATH$CFG.bak
     fi
   done
-  
+
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       cp -af /cache/magisk/audmodlib$CFG $AUDMODLIBPATH$CFG
     fi
   done
-  
+
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
 
   ui_print "   ! AudModLib framework by ahrion @ XDA !"
@@ -633,6 +773,12 @@ mount -o $WRITE /system 2>/dev/null
 ui_print "$SPACE  Mounting /vendor($WRITE)..."
 mount -o $WRITE /vendor 2>/dev/null
 
+if [ $isABDevice == true ] || [ ! -d $SYSTEM/vendor ]; then
+  VENDOR=/vendor
+else
+  VENDOR=/system/vendor
+fi
+
 if [ ! -f "$SYSTEM/build.prop" ]; then
   ui_print "   ! Failed: /system could not be mounted!"
   exit 1
@@ -655,16 +801,49 @@ if [ "$ABILONG" = "x86_64" ]; then ARCH=x64; IS64BIT=true; DRVARCH=X86; fi;
 # You can get the Android API version from $API, the CPU architecture from $ARCH
 # Useful if you are creating Android version / platform dependent mods
 
+### FILE LOCATIONS ###
+# AUDIO EFFECTS
+CONFIG_FILE=$SYSTEM/etc/audio_effects.conf
+HTC_CONFIG_FILE=$SYSTEM/etc/htc_audio_effects.conf
+OTHER_V_FILE=$SYSTEM/etc/audio_effects_vendor.conf
+OFFLOAD_CONFIG=$SYSTEM/etc/audio_effects_offload.conf
+V_CONFIG_FILE=$VENDOR/etc/audio_effects.conf
+# AUDIO POLICY
+A2DP_AUD_POL=$SYSTEM/etc/a2dp_audio_policy_configuration.xml
+AUD_POL=$SYSTEM/etc/audio_policy.conf
+AUD_POL_CONF=$SYSTEM/etc/audio_policy_configuration.xml
+AUD_POL_VOL=$SYSTEM/etc/audio_policy_volumes.xml
+SUB_AUD_POL=$SYSTEM/etc/r_submix_audio_policy_configuration.xml
+USB_AUD_POL=$SYSTEM/etc/usb_audio_policy_configuration.xml
+V_AUD_OUT_POL=$VENDOR/etc/audio_output_policy.conf
+V_AUD_POL=$VENDOR/etc/audio_policy.conf
+# MIXER PATHS
+MIX_PATH=$SYSTEM/etc/mixer_paths.xml
+MIX_PATH_TASH=$SYSTEM/etc/mixer_paths_tasha.xml
+STRIGG_MIX_PATH=$SYSTEM/sound_trigger_mixer_paths.xml
+STRIGG_MIX_PATH_9330=$SYSTEM/sound_trigger_mixer_paths_wcd9330.xml
+V_MIX_PATH=$VENDOR/etc/mixer_paths.xml
+# INFO FILE
+if [ -d $SYSTEM/addon.d ]; then
+  INFO=$SYSTEM/addon.d/$MODID-files
+else
+  INFO=$SYSTEM/etc/$MODID-files
+fi
+
 if is_mounted /data; then
   IMG=/data/$IMGNAME
   if [ ! -f "/data/magisk.img" ]; then
     ui_print " "
     ui_print "   ! Magisk is not installed!"
     ui_print "    ! Installing on system!"
+    # Prepare Install
+    system_install
+    script_install_logic
+    app_install_logic
+    # Remove props
+    unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props-remove.prop
     # Wipe files
     unified_mod_wipe
-    # Install
-    system_install
     # Create mod paths
     unified_mod_directory
     # Copy files
@@ -714,11 +893,19 @@ if ! is_mounted $MOUNTPATH; then
   exit 1
 fi
 
+# Prepare install
+if [ ! -f /data/magisk/magisk ]; then
+  ui_print "   ! Magisk version < 13 detected. Using prop workaround"
+  PROPCOMP=true
+fi
+magisk_install
+app_install_logic
+
+# Remove props
+unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props-remove.prop
+
 # Wipe files
 unified_mod_wipe
-
-# Prepare install
-magisk_install
 
 # Create mod paths
 unified_mod_directory

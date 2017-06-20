@@ -15,10 +15,14 @@ ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
 if [ "$ABDeviceCheck" -gt 0 ]; then
   isABDevice=true
   SYSTEM=/system/system
-  VENDOR=/vendor
 else
   isABDevice=false
   SYSTEM=/system
+fi
+
+if [ $isABDevice == true ] || [ ! -d $SYSTEM/vendor ]; then
+  VENDOR=/vendor
+else
   VENDOR=/system/vendor
 fi
 
@@ -53,26 +57,9 @@ else
 fi
 ########## ^ DO NOT REMOVE ^ ##########
 
-#### v INSERT MORE APPS IF MORE EXIST v ####
-APP1="ViPER4AndroidFX"
-
-if [ "$API" -ge "21" ]; then
-  APPTXT="   Installing apps for Lollipop and above..."
-  APP1PATH=$APPDIR/$APP1
-else
-  APPTXT="   Installing apps for Lollipop and below..."
-  APP1PATH=$APPDIR
-fi
-#### ^ INSERT MORE APPS IF MORE EXIST ^ ####
-
 list_files() {
 cat <<EOF
-addon.d/$AUDMODLIBID.sh
-$APP1PATH/$APP1.apk
-etc/init.d/$AUDMODLIBID
-lib/soundfx/libv4a_fx_ics.so
-su.d/$AUDMODLIBID.sh
-su/su.d/$AUDMODLIBID.sh
+$(cat /tmp/addon.d/$MODID-files)
 EOF
 }
 
