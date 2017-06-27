@@ -234,40 +234,6 @@ app_install_logic() {
   #### ^ INSERT MORE APPS IF MORE EXIST ^ ####
 }
 
-detect_initd() {
-	ui_print " "
-	ui_print "- Detecting Init.d Support -"
-	if [ ! -d $SYSTEM/etc/init.d ]; then
-		sys_mk_ch $SYSTEM/etc/init.d 0755
-	fi
-	if [ -e $SYSTEM/bin/sysinit ]; then
-		if [ -z "`cat $SYSTEM/bin/sysinit | grep "init.d"`" ]; then
-			ui_print "   Init.d Support Not Detected. Adding it now..."
-			echo "/system/xbin/run-parts /system/etc/init.d" >> $SYSTEM/bin/sysinit
-			echo "" >> $SYSTEM/bin/sysinit
-			chmod 755 $SYSTEM/bin/sysinit
-			chown 0.2000 $SYSTEM/bin/sysinit
-			if [ -d $SYSTEM/addon.d ]; then
-			  ui_print "   Addon.d detected. Installing backup script for init.d support..."
-			  sys_cp_ch $INSTALLER/system/addon.d/$AUDMODLIBID-initd.sh $SYSTEM/addon.d/$AUDMODLIBID-initd.sh 0644
-			else
-			  ui_print "   ! Addon.d not detected. Backup script for init.d support not installed..."
-			fi
-		else
-			ui_print "   Init.d Support Detected. No modifications needed..."
-		fi
-	else
-		ui_print "   Init.d Support Not Detected. Adding it now..."
-		echo "#!/system/bin/sh" > $SYSTEM/bin/sysinit
-		echo "" >> $SYSTEM/bin/sysinit
-		echo "export PATH=/sbin:/system/sbin:/system/bin:/system/xbin" >> $SYSTEM/bin/sysinit
-		echo "/system/xbin/run-parts /system/etc/init.d" >> $SYSTEM/bin/sysinit
-		echo "" >> $SYSTEM/bin/sysinit
-		chmod 755 $SYSTEM/bin/sysinit
-		chown 0.2000 $SYSTEM/bin/sysinit
-	fi
-}
-
 script_install_logic() {
   ########################################################################################
   # Logic for correct system script installation
@@ -282,7 +248,6 @@ script_install_logic() {
   	else
   	  SH=$SYSTEM/etc/init.d
   	  EXT=""
-      detect_initd
   	fi
   elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
 	   SH=$SYSTEM/su.d
@@ -292,12 +257,10 @@ script_install_logic() {
   	else
   	  SH=$SYSTEM/etc/init.d
       EXT=""
-      detect_initd
   	fi
   else
     SH=$SYSTEM/etc/init.d
     EXT=""
-    detect_initd
   fi
   ########## ^ DO NOT REMOVE ^ ##########
 }
