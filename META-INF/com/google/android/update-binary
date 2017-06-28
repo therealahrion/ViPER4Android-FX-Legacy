@@ -243,14 +243,9 @@ script_install_logic() {
   # DETERMINE ROOT BOOT SCRIPT TYPE
   EXT=".sh"
   if [ "$supersuimg" ] || [ -d /su ]; then
-  	if [ "$(cat /su/bin/su | grep SuperSU)" ]; then
-  	  SH=/su/su.d
-  	else
-  	  SH=$SYSTEM/etc/init.d
-  	  EXT=""
-  	fi
+	  SH=/su/su.d
   elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
-	   SH=$SYSTEM/su.d
+    SH=$SYSTEM/su.d
   elif [ -f $SYSTEM/xbin/su ]; then
   	if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
   	  SH=$SYSTEM/su.d
@@ -465,12 +460,8 @@ unified_mod_copy() {
   #### v INSERT YOUR FILE INSTALL v ####
   # INSTALL SCRIPTS
   if [ "$MAGISK" == false ]; then
-    if [ "$supersuimg" ] || [ -d /su ]; then
-      if [ "$(cat /su/bin/su | grep SuperSU)" ]; then
-	      ui_print "   Installing scripts for systemless SuperSU..."
-  	  else
-  	    ui_print "   Installing scripts for phh SuperUser..."
-  	  fi
+  	if [ "$supersuimg" ] || [ -d /su ]; then
+	    ui_print "   Installing scripts for systemless SuperSU..."
   	elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
   	  ui_print "   Installing scripts for system SuperSU..."
   	elif [ -f $SYSTEM/xbin/su ]; then
@@ -479,8 +470,8 @@ unified_mod_copy() {
   	  else
   	    ui_print "   Installing scripts for LineageOS SU..."
   	  fi
-    elif [ -d $SYSTEM/etc/init.d ]; then
-      ui_print "   Installing scripts for non root..."
+    else
+      ui_print "   Installing scripts for phh's su or non root..."
     fi
     sys_cp_ch $INSTALLER/common/$AUDMODLIBID-post-fs-data.sh $SH/$AUDMODLIBID$EXT 0644
 

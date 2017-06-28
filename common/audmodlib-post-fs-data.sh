@@ -32,7 +32,7 @@ else
   else
     VENDOR=/system/vendor
   fi
-  
+
   supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
 
   supersu_is_mounted() {
@@ -63,30 +63,29 @@ else
     SEINJECT=/data/magisk/sepolicy-inject
     SH=/magisk/.core/post-fs-data.d
   elif [ "$supersuimg" ] || [ -d /su ]; then
-    if [ "$(cat /su/bin/su | grep SuperSU)" ]; then
 	  SEINJECT=/su/bin/supolicy
 	  SH=/su/su.d
-	else
-	  SEINJECT=/su/bin/sepolicy-inject
-	  SH=$SYSTEM/etc/init.d/
-	fi
+  elif [ -f "/sbin/su" ]; then
+    SEINJECT=/sepolicy
+    SH=$SYSTEM/etc/init.d/
+    EXT=""
   elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
     SEINJECT=$SYSTEM/xbin/supolicy
     SH=$SYSTEM/su.d
   elif [ -f $SYSTEM/xbin/su ]; then
-	SEINJECT=$SYSTEM/xbin/supolicy
-	if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
-	  SH=$SYSTEM/su.d
-	else
-	  SH=$SYSTEM/etc/init.d
+  	SEINJECT=$SYSTEM/xbin/supolicy
+  	if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
+  	  SH=$SYSTEM/su.d
+  	else
+  	  SH=$SYSTEM/etc/init.d
       EXT=""
-	fi
-  elif [ -d $SYSTEM/etc/init.d ]; then
-    SEINJECT=$SYSTEM/xbin/supolicy
+  	fi
+  else
+    SEINJECT=/sepolicy
     SH=$SYSTEM/etc/init.d
     EXT=""
   fi
-  
+
   if [ -d $SYSTEM/priv-app ]; then
     SOURCE=priv_app
   else
