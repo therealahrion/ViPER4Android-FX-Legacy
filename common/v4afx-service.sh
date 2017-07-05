@@ -16,16 +16,23 @@ if [ ! -d /magisk/$MODID ]; then
   ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
   if [ "$ABDeviceCheck" -gt 0 ]; then
     isABDevice=true
-    SYSTEM=/system/system
+    if [ -d "/system_root" ]; then
+        ROOT=/system_root
+        SYSTEM=$ROOT/system
+    else
+        ROOT=""
+        SYSTEM=$ROOT/system/system
+    fi
   else
     isABDevice=false
-    SYSTEM=/system
+    ROOT=""
+    SYSTEM=$ROOT/system
   fi
 
   if [ $isABDevice == true ] || [ ! -d $SYSTEM/vendor ]; then
     VENDOR=/vendor
   else
-    VENDOR=/system/vendor
+    VENDOR=$SYSTEM/vendor
   fi
 
   ### FILE LOCATIONS ###
