@@ -138,6 +138,14 @@ sys_cpbak_ch() {
   chmod "$3" "$2"
 }
 
+sys_rm_ch() {
+  if [ -e "$1.bak" ]; then
+	mv -f "$1.bak" "$1"
+  else
+    rm -f "$1"
+  fi
+}
+
 mktouch() {
   mkdir -p ${1%/*}
   if [ -z "$2" ]; then
@@ -254,7 +262,7 @@ script_install_logic() {
   elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
     SH=$SYSTEM/su.d
   elif [ -f $SYSTEM/xbin/su ]; then
-  	if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
+  	if [ "$(cat $SYSTEM/xbin/su | grep SuperSU)" ]; then
   	  SH=$SYSTEM/su.d
   	else
   	  SH=$SYSTEM/etc/init.d
@@ -268,8 +276,6 @@ script_install_logic() {
 }
 
 unified_prop_removal() {
-  ui_print " "
-  ui_print "- Checking for obsolete props to remove-"
   if [ "$MAGISK" == true ]; then
 		rm -f $SYSTEM/etc/init.d/$AUDMODLIBID-props
 		rm -f /su/su.d/$AUDMODLIBID-props.sh
@@ -291,7 +297,6 @@ unified_prop_removal() {
 	  fi
   if [ -f $AMLPROP ]; then
     if [ "$(sed -n '4,$p' $1)" ]; then
-  	  ui_print "   Removing obsolete props..."
   	  NEWPROPS="$(sed -n '4,$ p' $1)"
   	  printf '%s\n' "$NEWPROPS" | while IFS= read -r linenew
   	  do
@@ -300,8 +305,6 @@ unified_prop_removal() {
         fi
   	  done
     fi
-  else
-    ui_print "   No obsolete build props to remove!..."
   fi
 }
 
@@ -385,34 +388,36 @@ unified_mod_wipe() {
   rm -f $SYSTEM/su.d/$AUDMODLIBID.sh
   #### ^ INSERT YOUR FILE REMOVALS ^ ####
 
-  #### v INSERT YOUR REMOVE PATCH v ####
-  # REMOVE LIBRARIES & EFFECTS
-  ui_print "   Removing library & effect lines..."
-  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ]; then
-      # REMOVE EFFECTS
-      sed -i '/v4a_standard_fx {/,/}/d' $CFG
-      # REMOVE LIBRARIES
-      sed -i '/v4a_fx {/,/}/d' $CFG
-    fi
-  done
-  #### ^ INSERT YOUR REMOVE PATCH ^ ####
+  if [ "$MAGISK" == false ]; then
+    #### v INSERT YOUR REMOVE PATCH v ####
+    # REMOVE LIBRARIES & EFFECTS
+    ui_print "   Removing library & effect lines..."
+    for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+      if [ -f $CFG ]; then
+        # REMOVE EFFECTS
+        sed -i '/v4a_standard_fx {/,/}/d' $CFG
+        # REMOVE LIBRARIES
+        sed -i '/v4a_fx {/,/}/d' $CFG
+      fi
+    done
+    #### ^ INSERT YOUR REMOVE PATCH ^ ####
 
-  #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
-  # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
-  if [ -f $V_CONFIG_FILE ] && [ -f $V_CONFIG_FILE.bak ]; then
-    # RESTORE BACKED UP CONFIGS
-    cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
+    #### v INSERT YOUR RESTORE AND BACKUP FUNCTIONS v ####
+    # REPLACE VENDOR FILE WITH PREVIOUS BACKUP
+    if [ -f $V_CONFIG_FILE ] && [ -f $V_CONFIG_FILE.bak ]; then
+      # RESTORE BACKED UP CONFIGS
+      cp -af $V_CONFIG_FILE.bak $V_CONFIG_FILE
+    fi
+
+    # BACKUP CONFIGS
+    ui_print "   Backing up existing audio_effects cfg files..."
+    for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+      if [ -f $BACKUP ]; then
+        cp -f $BACKUP $BACKUP.bak
+      fi
+    done
+    #### ^ INSERT YOUR RESTORE AND BACKUP FUNCTIONS ^ ####
   fi
-
-  # BACKUP CONFIGS
-  ui_print "   Backing up existing audio_effects cfg files..."
-  for BACKUP in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $BACKUP ]; then
-      cp -f $BACKUP $BACKUP.bak
-    fi
-  done
-  #### ^ INSERT YOUR RESTORE AND BACKUP FUNCTIONS ^ ####
 }
 
 unified_mod_directory() {
@@ -472,7 +477,7 @@ unified_mod_copy() {
   	elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
   	  ui_print "   Installing scripts for system SuperSU..."
   	elif [ -f $SYSTEM/xbin/su ]; then
-  	  if [ "$(cat /system/xbin/su | grep SuperSU)" ]; then
+  	  if [ "$(cat $SYSTEM/xbin/su | grep SuperSU)" ]; then
   	    ui_print "   Installing scripts for system SuperSU..."
   	  else
   	    ui_print "   Installing scripts for LineageOS SU..."
@@ -528,6 +533,9 @@ magisk_audmodlib() {
   cp -af $INSTALLER/common/$AUDMODLIBID-post-fs-data.sh $MOUNTPATH/.core/post-fs-data.d/$AUDMODLIBID.sh
   mkdir -p $MOUNTPATH/.core/service.d
   cp -af $INSTALLER/common/$AUDMODLIBID-service.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID.sh
+  if [ "$PROPCOMP" == true ]; then
+  	cp -af $INSTALLER/common/$AUDMODLIBID-service-props.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID-props.sh
+  fi
   cp -af $INSTALLER/common/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh
 
   if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
@@ -633,6 +641,100 @@ unified_mod_patch() {
   #### ^ INSERT YOUR FILE PATCHES ^ ####
 }
 
+unified_uninstall() {
+  ########################################################################################
+  # Uninstall for Magisk install
+  ########################################################################################
+
+  ########## v DO NOT REMOVE v ##########
+  #### CLEANING UP ####
+  ui_print " "
+  ui_print "- Cleaning up previous installations -"
+
+  # REMOVE PROPS
+  ui_print "   Removing build props..."
+  unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props.prop
+
+  # REMOVE FILES
+  ui_print "   Removing files..."
+  if [ "$MAGISK" == true ]; then
+    ui_print "   Magisk install detected, removing files..."
+    rm -rf $MODPATH
+    rm -rf /magisk/$MODID
+  fi
+  ########## ^ DO NOT REMOVE ^ ##########
+
+  #### v INSERT YOUR FILE REMOVALS v ####
+  if [ "$MAGISK" == true ]; then
+    rm -f /magisk/.core/service.d/$MODID.sh
+  elif [ "$MAGISK" == false ]; then
+    if [ -f $INFO ]; then
+      ui_print "   System install detected, removing files..."
+      sed -i '1,2d' $INFO
+    	cat $INFO | while read LINE; do
+        if [ "$(dirname $LINE)" == "/su/su.d" ]; then
+         	sys_rm_ch $LINE
+        else
+    		  sys_rm_ch $SYSTEM/$LINE
+        fi
+    	done
+    	rm -f $INFO
+      for DIR in $SYSTEM/app/$APP1 $SYSTEM/priv-app/$APP1; do
+    	  if [ -d "$DIR" ]; then
+      		if [ "$(ls -A "$DIR")" == "" ]; then
+      		  rm -rf $DIR
+      		fi
+    	  fi
+    	done
+    else
+      ui_print "   ! Mod not detected. Removing scripts..."
+    fi
+  fi
+
+  rm -f $SYSTEM/addon.d/$MODID.sh
+  rm -f $SYSTEM/etc/init.d/$MODID
+  rm -f /su/su.d/$MODID.sh
+  rm -f $SYSTEM/su.d/$MODID.sh
+  #### ^ INSERT YOUR FILE REMOVALS ^ ####
+
+  ########## v DO NOT REMOVE v ##########
+  # INSTALL UPDATE UNINSTALL SCRIPT
+  if [ "$MAGISK" == true ]; then
+    mkdir -p $MOUNTPATH/.core/service.d
+    cp -af $INSTALLER/common/$MODID.sh $MOUNTPATH/.core/service.d/$MODID.sh
+  fi
+  ########## ^ DO NOT REMOVE ^ ##########
+
+  #### v INSERT YOUR REMOVE PATCH OR RESTORE v ####
+  # RESTORE CONFIGS
+  ui_print "   Restoring necessary cfg files"
+
+  # REMOVE LIBRARIES & EFFECTS
+  ui_print "    Removing library & effect lines..."
+  if [ "$MAGISK" == true ]; then
+    if [ -d $AUDMODLIBPATH ] || [ -d /magisk/audmodlib ]; then
+      for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+        if [ -f $CFG ]; then
+          # REMOVE EFFECTS
+          sed -i '/v4a_standard_fx {/,/}/d' $UNITYPATCH$CFG
+          # REMOVE LIBRARIES
+          sed -i '/v4a_fx {/,/}/d' $UNITYPATCH$CFG
+        fi
+      done
+    fi
+  elif [ "$MAGISK" == false ]; then
+    for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+      if [ -f $CFG ]; then
+        # REMOVE EFFECTS
+        sed -i '/v4a_standard_fx {/,/}/d' $UNITYPATCH$CFG
+        # REMOVE LIBRARIES
+        sed -i '/v4a_fx {/,/}/d' $UNITYPATCH$CFG
+      fi
+    done
+  fi
+  #### ^ INSERT YOUR REMOVE PATCH OR RESTORE ^ ####
+}
+
 readlink /proc/$$/fd/$OUTFD 2>/dev/null | grep /tmp >/dev/null
 if [ "$?" -eq "0" ]; then
   OUTFD=0
@@ -696,6 +798,12 @@ unzip -o "$ZIP" "system/*"
 print_modname
 
 #### MOUNT FILESYSTEMS ####
+
+case $(basename $ZIP) in
+  *uninstall*|*Uninstall*) ACTION=Uninstall;;
+  *) ACTION=Install;;
+esac;
+
 ui_print "- Mounting filesystems -"
 
 ui_print "   Mounting /cache..."
@@ -794,30 +902,50 @@ fi
 if is_mounted /data; then
   IMG=/data/$IMGNAME
   if [ ! -f "/data/magisk.img" ]; then
-    ui_print " "
-    ui_print "   ! Magisk is not installed!"
-    ui_print "    ! Installing on system!"
-    # Prepare Install
-    system_install
-    script_install_logic
-    app_install_logic
-    # Remove props
-    unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props-remove.prop
-    # Wipe files
-    unified_mod_wipe
-    # Create mod paths
-    unified_mod_directory
-    # Copy files
-    unified_mod_copy
-    # Patch files
-    unified_mod_patch
-    #### COMPLETING INSTALL ####
-    ui_print " "
-    ui_print "    --------- INSTALLATION SUCCESSFUL ---------"
-    ui_print " "
-    ui_print "Installer brought to you by ahrion @ XDA"
-    ui_print " "
-    exit 0;
+    if [ "$ACTION" == "Install" ]; then
+      ui_print " "
+      ui_print "   ! Magisk is not installed!"
+      ui_print "    ! Installing on system!"
+      # Prepare Install
+      system_install
+      script_install_logic
+      app_install_logic
+      # Remove props
+      ui_print " "
+      ui_print "- Removing obsolete props-"
+      unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props-remove.prop
+      # Wipe files
+      unified_mod_wipe
+      # Create mod paths
+      unified_mod_directory
+      # Copy files
+      unified_mod_copy
+      # Patch files
+      unified_mod_patch
+      #### COMPLETING INSTALL ####
+      ui_print " "
+      ui_print "    --------- INSTALLATION SUCCESSFUL ---------"
+      ui_print " "
+      ui_print "Installer brought to you by ahrion @ XDA"
+      ui_print " "
+      exit 0;
+    else
+      ui_print " "
+      ui_print "   ! Magisk is not installed!"
+      ui_print "    ! Uninstalling on system!"
+      # Prepare uninstall
+      system_install
+      script_install_logic
+      # Uninstall
+      unified_uninstall
+      #### COMPLETING UNINSTALL ####
+      ui_print " "
+      ui_print "    --------- RESTORATION SUCCESSFUL ---------"
+      ui_print " "
+      ui_print "Uninstaller brought to you by ahrion @ XDA"
+      ui_print " "
+      exit 0;
+    fi
   fi
 else
   IMG=/cache/magisk.img
@@ -862,62 +990,74 @@ fi
 magisk_install
 app_install_logic
 
-# Remove props
-unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props-remove.prop
+if [ "$ACTION" == "Install" ]; then
+  # Remove props
+  unified_prop_removal $INSTALLER/common/$AUDMODLIBID-props-remove.prop
 
-# Wipe files
-unified_mod_wipe
+  # Wipe files
+  unified_mod_wipe
 
-# Create mod paths
-unified_mod_directory
+  # Create mod paths
+  unified_mod_directory
 
-# Copy files
-unified_mod_copy
+  # Copy files
+  unified_mod_copy
 
-# Patch files
-magisk_audmodlib
+  # Patch files
+  magisk_audmodlib
 
-# Handle replace folders
-for TARGET in $REPLACE; do
-  mktouch $MODPATH$TARGET/.replace
-  mktouch $AUDMODLIBPATH$TARGET/.replace
-done
+  # Handle replace folders
+  for TARGET in $REPLACE; do
+    mktouch $MODPATH$TARGET/.replace
+    mktouch $AUDMODLIBPATH$TARGET/.replace
+  done
 
-# Auto Mount
-if $AUTOMOUNT; then
-  mktouch $MODPATH/auto_mount
-  mktouch $AUDMODLIBPATH/auto_mount
+  # Auto Mount
+  if $AUTOMOUNT; then
+    mktouch $MODPATH/auto_mount
+    mktouch $AUDMODLIBPATH/auto_mount
+  fi
+
+  # prop files
+  if $PROPFILE; then
+    cp -af $INSTALLER/common/system.prop $MODPATH/system.prop
+  fi
+
+  # Module info
+  cp -af $INSTALLER/module.prop $MODPATH/module.prop
+  cp -af $INSTALLER/common/audmodlibmodule.prop $AUDMODLIBPATH/module.prop
+  if $BOOTMODE; then
+    # Update info for Magisk Manager
+    mktouch /magisk/$MODID/update
+    mktouch /magisk/$AUDMODLIBID/update
+    cp -af $INSTALLER/module.prop /magisk/$MODID/module.prop
+    cp -af $INSTALLER/common/audmodlibmodule.prop /magisk/$AUDMODLIBID/module.prop
+  fi
+
+  # post-fs-data mode scripts
+  if $POSTFSDATA; then
+    cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
+  fi
+
+  # service mode scripts
+  if $LATESTARTSERVICE; then
+    cp -af $INSTALLER/common/service.sh $MODPATH/service.sh
+  fi
+
+  #### COMPLETING INSTALL ####
+  ui_print " "
+  ui_print "- Completing install -"
+else
+  # Prepare uninstall
+  magisk_install
+
+  # Uninstall
+  unified_uninstall
+
+  #### COMPLETING UNINSTALL ####
+  ui_print " "
+  ui_print "- Completing uninstall -"
 fi
-
-# prop files
-if $PROPFILE; then
-  cp -af $INSTALLER/common/system.prop $MODPATH/system.prop
-fi
-
-# Module info
-cp -af $INSTALLER/module.prop $MODPATH/module.prop
-cp -af $INSTALLER/common/audmodlibmodule.prop $AUDMODLIBPATH/module.prop
-if $BOOTMODE; then
-  # Update info for Magisk Manager
-  mktouch /magisk/$MODID/update
-  mktouch /magisk/$AUDMODLIBID/update
-  cp -af $INSTALLER/module.prop /magisk/$MODID/module.prop
-  cp -af $INSTALLER/common/audmodlibmodule.prop /magisk/$AUDMODLIBID/module.prop
-fi
-
-# post-fs-data mode scripts
-if $POSTFSDATA; then
-  cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
-fi
-
-# service mode scripts
-if $LATESTARTSERVICE; then
-  cp -af $INSTALLER/common/service.sh $MODPATH/service.sh
-fi
-
-#### COMPLETING INSTALL ####
-ui_print " "
-ui_print "- Completing install -"
 
 ui_print "   Setting permissions..."
 set_permissions
