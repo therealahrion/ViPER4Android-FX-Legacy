@@ -67,7 +67,7 @@ else
   EXT=".sh"
   if [ -f /data/magisk.img ] || [ -d /magisk ]; then
     MAGISK=true
-    SEINJECT=/sepolicy-inject
+    SEINJECT=magiskpolicy
     SH=/magisk/.core/post-fs-data.d
   elif [ "$supersuimg" ] || [ -d /su ]; then
 	  SEINJECT=/su/bin/supolicy
