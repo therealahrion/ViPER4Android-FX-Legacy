@@ -283,7 +283,6 @@ unified_prop_removal() {
 		AMLPROP="$AUDMODLIBPATH/system.prop"
 		sed -i "s/setprop //g" $1
 		sed -i "s/ /=/g" $1
-		fi
 	else
     	AMLPROP="$SH/$AUDMODLIBID-props$EXT"
 		for AMLSCRIPT in $SYSTEM/etc/init.d/$AUDMODLIBID-props /su/su.d/$AUDMODLIBID-props.sh $SYSTEM/su.d/$AUDMODLIBID-props.sh; do
@@ -311,7 +310,6 @@ unified_prop_copy() {
   	NEWDIR="$AUDMODLIBPATH"
   	sed -i "s/setprop //g" $1
   	sed -i "s/ /=/g" $1
-  	fi
   else
     AMLPROP="$SH/$AUDMODLIBID-props$EXT"
     NEWDIR="$SH"
