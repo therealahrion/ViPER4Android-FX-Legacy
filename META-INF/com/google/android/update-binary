@@ -280,12 +280,9 @@ unified_prop_removal() {
 		rm -f $SYSTEM/etc/init.d/$AUDMODLIBID-props
 		rm -f /su/su.d/$AUDMODLIBID-props.sh
 		rm -f $SYSTEM/su.d/$AUDMODLIBID-props.sh
-		if [ "$PROPCOMP" == true ]; then
-			AMLPROP="$AUDMODLIBPATH$SYSTEM/etc/$AUDMODLIBID-props"
-		else
-			AMLPROP="$AUDMODLIBPATH/system.prop"
-			sed -i "s/setprop //g" $1
-			sed -i "s/ /=/g" $1
+		AMLPROP="$AUDMODLIBPATH/system.prop"
+		sed -i "s/setprop //g" $1
+		sed -i "s/ /=/g" $1
 		fi
 	else
     	AMLPROP="$SH/$AUDMODLIBID-props$EXT"
@@ -310,14 +307,10 @@ unified_prop_removal() {
 
 unified_prop_copy() {
   if [ "$MAGISK" == true ]; then
-  	if [ "$PROPCOMP" == true ]; then
-  		AMLPROP="$AUDMODLIBPATH$SYSTEM/etc/$AUDMODLIBID-props"
-  		NEWDIR="$AUDMODLIBPATH$SYSTEM/etc"
-  	else
-  		AMLPROP="$AUDMODLIBPATH/system.prop"
-  		NEWDIR="$AUDMODLIBPATH"
-  		sed -i "s/setprop //g" $1
-  		sed -i "s/ /=/g" $1
+  	AMLPROP="$AUDMODLIBPATH/system.prop"
+  	NEWDIR="$AUDMODLIBPATH"
+  	sed -i "s/setprop //g" $1
+  	sed -i "s/ /=/g" $1
   	fi
   else
     AMLPROP="$SH/$AUDMODLIBID-props$EXT"
@@ -533,9 +526,6 @@ magisk_audmodlib() {
   cp -af $INSTALLER/common/$AUDMODLIBID-post-fs-data.sh $MOUNTPATH/.core/post-fs-data.d/$AUDMODLIBID.sh
   mkdir -p $MOUNTPATH/.core/service.d
   cp -af $INSTALLER/common/$AUDMODLIBID-service.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID.sh
-  if [ "$PROPCOMP" == true ]; then
-  	cp -af $INSTALLER/common/$AUDMODLIBID-service-props.sh $MOUNTPATH/.core/service.d/$AUDMODLIBID-props.sh
-  fi
   cp -af $INSTALLER/common/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh
 
   if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
@@ -983,10 +973,6 @@ if ! is_mounted $MOUNTPATH; then
 fi
 
 # Prepare install
-if [ ! -f /data/magisk/magisk ]; then
-  ui_print "   ! Magisk version < 13 detected. Using prop workaround"
-  PROPCOMP=true
-fi
 magisk_install
 app_install_logic
 

@@ -67,11 +67,7 @@ else
   EXT=".sh"
   if [ -f /data/magisk.img ] || [ -d /magisk ]; then
     MAGISK=true
-    if [ -f /data/magisk/magisk ]; then ]; then
-        SEINJECT=/sepolicy-inject
-    else
-        SEINJECT=/data/magisk/sepolicy-inject
-    fi
+    SEINJECT=/sepolicy-inject
     SH=/magisk/.core/post-fs-data.d
   elif [ "$supersuimg" ] || [ -d /su ]; then
 	  SEINJECT=/su/bin/supolicy
@@ -98,10 +94,6 @@ else
     SOURCE=priv_app
   else
     SOURCE=system_app
-  fi
-  
-  if [ -f /magisk/$MODID$SYSTEM/etc/$MODID-props ];then
-    $SYSTEM/bin/sh /magisk/$MODID$SYSTEM/etc/$MODID-props
   fi
 
   $SEINJECT --live "permissive $SOURCE audio_prop"
