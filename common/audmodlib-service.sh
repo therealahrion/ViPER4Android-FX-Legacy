@@ -21,12 +21,23 @@ else
   ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
   if [ "$ABDeviceCheck" -gt 0 ]; then
     isABDevice=true
-    SYSTEM=/system/system
-    VENDOR=/vendor
+    if [ -d "/system_root" ]; then
+        ROOT=/system_root
+        SYSTEM=$ROOT/system
+    else
+        ROOT=""
+        SYSTEM=$ROOT/system/system
+    fi
   else
     isABDevice=false
-    SYSTEM=/system
-    VENDOR=/system/vendor
+    ROOT=""
+    SYSTEM=$ROOT/system
+  fi
+
+  if [ $isABDevice == true ] || [ ! -d $SYSTEM/vendor ]; then
+    VENDOR=/vendor
+  else
+    VENDOR=$SYSTEM/vendor
   fi
 
   supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
@@ -56,20 +67,29 @@ else
   EXT=".sh"
   if [ -f /data/magisk.img ] || [ -d /magisk ]; then
     MAGISK=true
-    SEINJECT=/data/magisk/sepolicy-inject
-    SH=/magisk/.core/service.d
+    SEINJECT=magiskpolicy
+    SH=/magisk/.core/post-fs-data.d
   elif [ "$supersuimg" ] || [ -d /su ]; then
-    SEINJECT=/su/bin/supolicy
-    SH=/su/su.d
-  elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/su ] || [ -f $SYSTEM/xbin/sugote ]; then
+	  SEINJECT=/su/bin/supolicy
+	  SH=/su/su.d
+  elif [ -d $SYSTEM/su ] || [ -f $SYSTEM/xbin/daemonsu ] || [ -f $SYSTEM/xbin/sugote ]; then
     SEINJECT=$SYSTEM/xbin/supolicy
     SH=$SYSTEM/su.d
-  elif [ -d $SYSTEM/etc/init.d ]; then
-    SEINJECT=$SYSTEM/xbin/supolicy
+  elif [ -f $SYSTEM/xbin/su ]; then
+  	if [ "$(cat $SYSTEM/xbin/su | grep SuperSU)" ]; then
+      SEINJECT=$SYSTEM/xbin/supolicy
+  	  SH=$SYSTEM/su.d
+  	else
+      SEINJECT=/sepolicy
+  	  SH=$SYSTEM/etc/init.d
+      EXT=""
+  	fi
+  else
+    SEINJECT=/sepolicy
     SH=$SYSTEM/etc/init.d
     EXT=""
   fi
-  
+
   if [ -d $SYSTEM/priv-app ]; then
     SOURCE=priv_app
   else
