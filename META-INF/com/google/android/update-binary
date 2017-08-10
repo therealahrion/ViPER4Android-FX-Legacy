@@ -819,9 +819,9 @@ if [ $isABDevice == true ]; then
   ui_print "   ! A/B OTA device detected!"
   WRITE=rw
   SPACE="  "
-elif [ -f /data/magisk.img ] || [ -d /magisk ]; then
+elif [ -f /data/magisk.img ] || [ -f /cache/magisk.img ] || [ -d /magisk ]; then
   WRITE=ro
-elif [ ! -f /data/magisk.img ] || [ ! -d /magisk ]; then
+elif [ ! -f /data/magisk.img ] || [ ! -f /cache/magisk.img ] || [ ! -d /magisk ]; then
   WRITE=rw
 fi
 
