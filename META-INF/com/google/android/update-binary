@@ -621,7 +621,7 @@ magisk_audmodlib() {
   unity_mod_patch
   
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ] && [ ! "$(cat $CFG | grep ' proxy {')" ]; then
+    if [ -f $CFG ] && [ ! "$(cat /cache/magisk/audmodlib$CFG | grep ' proxy {')" ]; then
       sed -i 's/^libraries {/libraries {\n  proxy {\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' /cache/magisk/audmodlib$CFG
     fi
   done
