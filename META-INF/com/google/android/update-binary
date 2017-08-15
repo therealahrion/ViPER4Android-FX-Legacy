@@ -568,11 +568,15 @@ magisk_audmodlib() {
 
   if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     rm -rf /cache/magisk/audmodlib
-  elif [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
+  fi
+  
+  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AUDMODLIBPATH || ! -d /magisk/audmodlib ]]; then
     SOURCEDIR=""
   elif [ -d /cache/magisk/audmodlib ]; then
     SOURCEDIR=/cache/magisk/audmodlib
-  elif [ -d $AUDMODLIBPATH ] || [ -d /magisk/audmodlib ]; then
+  elif [ -d $AUDMODLIBPATH ]; then
+    SOURCEDIR=$AUDMODLIBPATH
+  elif [ -d /magisk/audmodlib ]; then
     SOURCEDIR=/magisk/audmodlib
   fi
 
