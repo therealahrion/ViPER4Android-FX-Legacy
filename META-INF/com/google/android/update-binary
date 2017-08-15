@@ -636,7 +636,7 @@ magisk_audmodlib() {
   
   # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
   if [ -f $V_CONFIG_FILE ]; then
-    cp -af $AUDMODLIBPATH$CONFIG_FILE $AUDMODLIBPATH$V_CONFIG_FILE
+    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
   fi
   
   set_perm_recursive  $AUDMODLIBPATH  0  0  0755  0644
@@ -687,8 +687,8 @@ unity_mod_patch() {
 
     # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
     if [ -f $V_CONFIG_FILE ]; then
-	   cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
-	fi
+      cp -af $CONFIG_FILE $V_CONFIG_FILE
+    fi
   fi
   #### ^ INSERT YOUR FILE PATCHES ^ ####
 }
@@ -860,8 +860,6 @@ fi
 
 # MAGISKBIN must exist, binaries and utility functions are placed there
 [ -f $MAGISKBIN/magisk -a -f $MAGISKBIN/busybox -a -f $MAGISKBIN/util_functions.sh ] || require_new_magisk
-# Check that user is on latest magisk version
-[ ! "$(grep "1350" $MAGISKBIN/magisk)" ] && require_new_magisk
 
 # We need busybox/binaries to be setup
 $BOOTMODE && boot_actions || recovery_actions
