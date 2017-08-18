@@ -418,6 +418,7 @@ unity_mod_wipe() {
   ########## ^ DO NOT REMOVE ^ ##########
 
   #### v INSERT YOUR FILE REMOVALS v ####
+  
   # REMOVE FILES
   ui_print "   Removing files..."
   rm -rf /data/app/com.vipercn.viper4android_v2-1
@@ -948,7 +949,7 @@ else
 fi
 app_install_logic
 
-# Determine if mod is already installed. If same version is installed, Uninstall
+# Determine if mod is already installed. If same version is installed, uninstall
 mod_exist
 
 if [ "$ACTION" == "Install" ]; then
