@@ -1,3 +1,4 @@
 # This file will be read by resetprop
 # Example: Change dpi
 # ro.sf.lcd_density=320
+# DO NOT USE THIS. USE unity-props.prop INSTEAD
