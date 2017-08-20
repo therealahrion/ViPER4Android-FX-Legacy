@@ -695,7 +695,7 @@ unity_mod_patch() {
 
   # ADD LIBRARIES & EFFECTS
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ] && [ ! "$(cat $UNTYPATCH$CFG | grep ' proxy {')" ]; then
+    if [ -f $CFG ] && [ ! "$(cat $CFG | grep ' proxy {')" ]; then
 	  # ADD LIBRARIES
       sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $UNTYPATCH$CFG
     fi
