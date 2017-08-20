@@ -670,6 +670,8 @@ magisk_audmodlib() {
 
   unity_mod_patch
 
+  set_perm_recursive  $UNTYPATCH  0  0  0755  0644
+
   ui_print "   ! AudModLib framework by ahrion @ XDA !"
 }
 
@@ -693,7 +695,7 @@ unity_mod_patch() {
 
   # ADD LIBRARIES & EFFECTS
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ] && [ ! "$(cat $UNTYPATCH$CFG | grep ' proxy {')" ]; then.
+    if [ -f $CFG ] && [ ! "$(cat $UNTYPATCH$CFG | grep ' proxy {')" ]; then;
 	  # ADD LIBRARIES
       sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $UNTYPATCH$CFG
     fi
@@ -703,8 +705,6 @@ unity_mod_patch() {
   if [ -f $V_CONFIG_FILE ]; then
     cp -af $UNTYPATCH$CONFIG_FILE $UNTYPATCH$V_CONFIG_FILE
   fi
-  
-  set_perm_recursive  $UNTYPATCH  0  0  0755  0644
   
   NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
     if [ "$(grep "TIMEOFEXEC=4" $INPUT_RULES$NUM.sh)" ]; then
