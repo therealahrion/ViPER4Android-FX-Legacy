@@ -685,21 +685,21 @@ unity_mod_patch() {
   # REMOVE LIBRARIES & EFFECTS
   ui_print "    Removing library & effect lines..."
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ] && [ "$(cat $CFG | grep ' proxy {#')" ]; then
+    if [ -f $CFG ] && [ "$(cat $UNITYPATCH$CFG | grep ' proxy {#')" ]; then
       # REMOVE LIBRARIES
       sed -i '/proxy {/,/}/d' $UNITYPATCH$CFG
     fi
   done
-  
-  source $INPUT_PATCHES
 
   # ADD LIBRARIES & EFFECTS
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-    if [ -f $CFG ] && [ ! "$(cat $CFG | grep ' proxy {')" ]; then
+    if [ -f $CFG ] && [ ! "$(cat $UNITYPATCH$CFG | grep ' proxy {')" ]; then
 	  # ADD LIBRARIES
       sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $UNTYPATCH$CFG
     fi
   done
+
+  source $INPUT_PATCHES
 
   # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
   if [ -f $V_CONFIG_FILE ]; then
