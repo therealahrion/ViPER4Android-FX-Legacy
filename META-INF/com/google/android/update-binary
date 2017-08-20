@@ -726,9 +726,7 @@ unity_uninstall() {
     rm -rf /magisk/$MODID
   fi
 
-  if [ "$MAGISK" == true ]; then
-    rm -f /magisk/.core/service.d/$MODID.sh
-  elif [ "$MAGISK" == false ]; then
+  if [ "$MAGISK" == false ]; then
     if [ -f $INFO ]; then
       ui_print "   System install detected, removing files..."
       if [ "$SYSOVER" == false ]; then
