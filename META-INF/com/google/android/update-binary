@@ -298,10 +298,11 @@ magisk_install() {
   MK_SFFX=""
   CP_SFFX=""
   SOURCEDIR="$SOURCEDIR"
-  UNITYPATCH="/cache/magisk/audmodlib"
   if $BOOTMODE; then
+    UNITYPATCH="/magisk/audmodlib"
     MOD_VER="/magisk/$MODID/module.prop"
   else
+    UNITYPATCH="$AMLPATH"
     MOD_VER="$MODPATH/module.prop"
   fi
 }
@@ -641,80 +642,33 @@ magisk_audmodlib() {
   sys_cp_ch $INSTALLER/common/$AMLID/$AMLID-service.sh $MOUNTPATH/.core/service.d/$AMLID.sh 0755
   test "$MODID" != "audmodlib" && sys_cp_ch $INSTALLER/common/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh 0755
 
-  if [ "$MODID" != "audmodlib" ]; then
-    if [ -d /cache/magisk/audmodlib ] && [[ ! -d $AMLPATH || ! -d /magisk/audmodlib ]]; then
-      rm -rf /cache/magisk/audmodlib
-    fi
-  fi
-
-  if [ ! -d /cache/magisk/audmodlib ] && [[ ! -d $AMLPATH || ! -d /magisk/audmodlib ]]; then
-    SOURCEDIR=""
-  elif [ -d /cache/magisk/audmodlib ]; then
-    SOURCEDIR=/cache/magisk/audmodlib
-  elif [ -d $AMLPATH ] || [ -d /magisk/audmodlib ]; then
-    SOURCEDIR=$AMLPATH
-  fi
-
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
-      mkdir -p /cache/magisk/audmodlib${CFG%/*}
+      mkdir -p $UNTYPATCH${CFG%/*}
     fi
   done
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       if [ ! -f $CFG.bak ]; then
-        cp -af $CFG /cache/magisk/audmodlib$CFG.bak
+        cp -af $CFG $UNTYPATCH$CFG.bak
       else
-        cp -af $CFG.bak /cache/magisk/audmodlib$CFG.bak
+        cp -af $CFG.bak $UNTYPATCH$CFG.bak
       fi
     fi
   done
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
-      cp -af $SOURCEDIR$CFG /cache/magisk/audmodlib$CFG
-    fi
-  done
-
-  set_perm_recursive  /cache/magisk/audmodlib  0  0  0755  0644
-  
-  mkdir -p $AMLPATH
-
-  if [ -f $V_CONFIG_FILE ]; then
-    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
-  fi
-
-  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
-    if [ -f $CFG ]; then
-      mkdir -p $AMLPATH${CFG%/*}
-    fi
-  done
-
-  if [ "$MODID" != "audmodlib" ]; then
-    unity_mod_patch
-    for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-      if [ -f $CFG ] && [ ! "$(cat /cache/magisk/audmodlib$CFG | grep ' proxy {')" ]; then
-        sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' /cache/magisk/audmodlib$CFG
+      if [ ! -f $UNITYPATCH$CFG ]; then
+        cp -af $CFG $UNTYPATCH$CFG
+      else
+        cp -af $UNTYPATCH$CFG $UNTYPATCH$CFG
       fi
-    done
-  fi
-
-  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
-    if [ -f $CFG.bak ]; then
-      cp -af /cache/magisk/audmodlib$CFG.bak $AMLPATH$CFG.bak
-    fi
-    if [ -f $CFG ]; then
-      cp -af /cache/magisk/audmodlib$CFG $AMLPATH$CFG
     fi
   done
 
-  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-  if [ -f $V_CONFIG_FILE ]; then
-    cp -af /cache/magisk/audmodlib$CONFIG_FILE /cache/magisk/audmodlib$V_CONFIG_FILE
-  fi
-
-  set_perm_recursive  $AMLPATH  0  0  0755  0644
+  unity_mod_patch
 
   ui_print "   ! AudModLib framework by ahrion @ XDA !"
 }
@@ -737,18 +691,20 @@ unity_mod_patch() {
   
   source $INPUT_PATCHES
 
-  if [ "$MAGISK" == false ]; then
-    for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-      if [ -f $CFG ] && [ ! "$(cat $CFG | grep ' proxy {')" ]; then
-        sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $CFG
-      fi
-    done
-
-    # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-    if [ -f $V_CONFIG_FILE ]; then
-      cp -af $CONFIG_FILE $V_CONFIG_FILE
+  # ADD LIBRARIES & EFFECTS
+  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
+    if [ -f $CFG ] && [ ! "$(cat $UNTYPATCH$CFG | grep ' proxy {')" ]; then.
+	  # ADD LIBRARIES
+      sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $UNTYPATCH$CFG
     fi
+  done
+
+  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+  if [ -f $V_CONFIG_FILE ]; then
+    cp -af $UNTYPATCH$CONFIG_FILE $UNTYPATCH$V_CONFIG_FILE
   fi
+  
+  set_perm_recursive  $UNTYPATCH  0  0  0755  0644
   
   NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
     if [ "$(grep "TIMEOFEXEC=4" $INPUT_RULES$NUM.sh)" ]; then
@@ -834,13 +790,6 @@ unity_uninstall() {
     else
       source $INPUT_PATCHES_REM
     fi
-
-    for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-      if [ -f $CFG ] && [ "$(cat $CFG | grep ' proxy {#')" ]; then
-        # REMOVE LIBRARIES
-        sed -i '/proxy {/,/}/d' $UNITYPATCH$CFG
-      fi
-    done
   fi
   
   NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
