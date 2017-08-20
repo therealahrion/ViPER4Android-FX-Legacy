@@ -10,7 +10,7 @@ MODID=v4afx
 rm -rf /cache/magisk/audmodlib
 
 if [ ! -d /magisk/$MODID ]; then
-  AUDMODLIBPATH=/magisk/audmodlib
+  AMLPATH=/magisk/audmodlib
 
   # DETERMINE IF PIXEL (A/B OTA) DEVICE
   ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
@@ -66,9 +66,9 @@ if [ ! -d /magisk/$MODID ]; then
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
       # REMOVE EFFECTS
-      sed -i '/v4a_standard_fx {/,/}/d' $AUDMODLIBPATH$CFG
+      sed -i '/v4a_standard_fx {/,/}/d' $AMLPATH$CFG
       # REMOVE LIBRARIES
-      sed -i '/v4a_fx {/,/}/d' $AUDMODLIBPATH$CFG
+      sed -i '/v4a_fx {/,/}/d' $AMLPATH$CFG
     fi
   done
   #### ^ INSERT YOUR REMOVE PATCH OR RESTORE ^ ####
