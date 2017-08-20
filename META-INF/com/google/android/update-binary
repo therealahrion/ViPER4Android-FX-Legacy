@@ -251,17 +251,16 @@ else
 fi
 # USER INPUT FILES
 INPUT_FILE=$INSTALLER/common/unity-files.sh
-INPUT_FILE_WIPE=$INSTALLER/common/unity-files-wipe.sh
+INPUT_FILE_REMOVE=$INSTALLER/common/unity-files-remove.sh
 INPUT_PATCHES=$INSTALLER/common/unity-patches.sh
 INPUT_PATCHES_REM=$INSTALLER/common/unity-patches-remove.sh
-INPUT_PATCHES_WIPE=$INSTALLER/common/unity-patches-wipe.sh
 INPUT_PROPS=$INSTALLER/common/unity-props.prop
 INPUT_PROPS_REM=$INSTALLER/common/unity-props-remove.prop
 INPUT_VAR=$INSTALLER/common/unity-uservariables.sh
 INPUT_RULES=$INSTALLER/common/unity-customrules
 
 # REMOVE COMMENTS FROM USER INPUT FILES AND ADD PROPER VARIABLES
-for FIL in $INPUT_FILE $INPUT_FILE_WIPE $INPUT_PATCHES $INPUT_PATCHES_REM $INPUT_PATCHES_WIPE $INPUT_PROPS $INPUT_PROPS_REM $INPUT_VAR; do
+for FIL in $INPUT_FILE $INPUT_FILE_REMOVE $INPUT_PATCHES $INPUT_PATCHES_REM $INPUT_PROPS $INPUT_PROPS_REM $INPUT_VAR; do
   if [ -f $FIL ]; then
     sed -i '1,8d' $FIL
     sed -i 's/$SYS\/$VEN/$VEN/g' $FIL
@@ -460,9 +459,9 @@ unity_mod_wipe() {
     rm -f /su/su.d/$AMLID.sh
     rm -f $SYS/su.d/$MODID.sh
     rm -f $SYS/su.d/$AMLID.sh
-    source $INPUT_PATCHES_WIPE
+    source $INPUT_PATCHES_REMOVE
   fi
-  cat $INPUT_FILE_WIPE | while read LINE; do
+  cat $INPUT_FILE_REMOVE | while read LINE; do
     if [ "$(echo "$LINE" | cut -c-3)" == "FOL" ] && [ -d "$(echo "$LINE" | cut -c-3)" ]; then
       $RMFOL_PRFX $(eval "echo $LINE" | cut -c4-)$RMFOL_SFFX
     else
@@ -629,7 +628,7 @@ unity_mod_copy() {
 
 magisk_audmodlib() {
   ########################################################################################
-  # Audio Modification Library / This is where the magick happens for Magisk
+  # Audio Modification Library / This is where the magic happens for Magisk
   ########################################################################################
   ### CREATE AUDIO MODIFICATION LIBRARY ###
   ui_print " "
@@ -638,9 +637,11 @@ magisk_audmodlib() {
   ui_print "   Installing scripts for MagiskSU..."
   mkdir -p $MOUNTPATH/.core/service.d
   sys_cp_ch $INSTALLER/common/$AMLID/$AMLID-service.sh $MOUNTPATH/.core/service.d/$AMLID.sh 0755
-  test "$MODID" != "audmodlib" && sys_cp_ch $INSTALLER/common/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh 0755
+  if [ "$MODID" != "audmodlib" ]; then
+    sys_cp_ch $INSTALLER/common/audmodlib/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh 0755
+  fi
 
-  if $BOOTMODE; then
+  if [ $BOOTMODE ] && [ -d /magisk/$AMLID ]; then
     cp -f /magisk/$AMLID $AMLPATH
   fi
 
@@ -751,8 +752,9 @@ unity_uninstall() {
     else
       ui_print "   ! Mod not detected. Removing scripts..."
     fi
+	
     # RESTORE WIPED FILES/FOLDERS
-    cat $INPUT_FILE_WIPE | while read LINE; do
+    cat $INPUT_FILE_REMOVE | while read LINE; do
       if [ "$(echo "$LINE" | cut -c-3)" == "FOL" ]; then
         if [ -e "$(eval "echo $LINE" | cut -c4-).tar" ]; then
           tar -xf "$(eval "echo $LINE" | cut -c4-).tar" -C "$(dirname "$(eval "echo $LINE" | cut -c4-)")"
@@ -769,13 +771,14 @@ unity_uninstall() {
   rm -f $SYS/etc/init.d/$MODID
   rm -f /su/su.d/$MODID.sh
   rm -f $SYS/su.d/$MODID.sh
-
+	
   if [ "$MODID" != "audmodlib" ]; then
     # RESTORE CONFIGS, LIBRARIES, & EFFECTS
     ui_print "   Restoring necessary cfg files"
     if [ "$MAGISK" == true ]; then
       if [ -d $AMLPATH ] || [ -d /magisk/audmodlib ]; then
-        source $INPUT_PATCHES_REM
+        $BOOTMODE && AMLPATH=/magisk/audmodlib
+		source $INPUT_PATCHES_REM
       fi
     else
       source $INPUT_PATCHES_REM
@@ -970,6 +973,13 @@ else
 
   # Uninstall
   unity_uninstall
+  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+  if [ "$MODID" != "audmodlib" ]; then
+    if [ -f $V_CONFIG_FILE ]; then
+      cp -af $AMLPATH$CONFIG_FILE $AMLPATH$V_CONFIG_FILE
+    fi
+	set_perm_recursive  $AMLPATH  0  0  0755  0644
+  fi
 
   #### COMPLETING UNINSTALL ####
   ui_print " "
