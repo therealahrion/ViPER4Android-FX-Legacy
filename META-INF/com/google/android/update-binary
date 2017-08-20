@@ -647,25 +647,13 @@ magisk_audmodlib() {
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
       mkdir -p $AMLPATH${CFG%/*}
-    fi
-  done
-
-  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
-    if [ -f $CFG ]; then
-      if [ ! -f $CFG.bak ]; then
+      if [ ! -f $AMLPATH$CFG.bak ]; then
         cp -af $CFG $AMLPATH$CFG.bak
       else
         cp -af $CFG.bak $AMLPATH$CFG.bak
       fi
-    fi
-  done
-
-  for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
-    if [ -f $CFG ]; then
       if [ ! -f $AMLPATH$CFG ]; then
         cp -af $CFG $AMLPATH$CFG
-      else
-        cp -af $AMLPATH$CFG $AMLPATH$CFG
       fi
     fi
   done
@@ -703,11 +691,6 @@ unity_mod_patch() {
 
   source $INPUT_PATCHES
 
-  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
-  if [ -f $V_CONFIG_FILE ]; then
-    cp -af $AMLPATH$CONFIG_FILE $AMLPATH$V_CONFIG_FILE
-  fi
-
   NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
     if [ "$(grep "TIMEOFEXEC=4" $INPUT_RULES$NUM.sh)" ]; then
       ui_print "   Running custom rules..."
@@ -715,6 +698,11 @@ unity_mod_patch() {
     fi
     NUM=$((NUM+1))
   done
+
+  # COPY OVER MAIN AUDIO_EFFECTS CFG FILE TO VENDOR FILE
+  if [ -f $V_CONFIG_FILE ]; then
+    cp -af $AMLPATH$CONFIG_FILE $AMLPATH$V_CONFIG_FILE
+  fi
 }
 
 unity_uninstall() {
