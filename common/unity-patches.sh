@@ -6,8 +6,6 @@
 #
 #
 # ^ DO NOT MODIFY ^
-unity_patches_remove
-unity_patches() {
 ui_print "    Patching existing audio_effects files..."
 for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
   if [ -f $CFG ]; then
@@ -15,4 +13,3 @@ for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG
     sed -i 's/^libraries {/libraries {\n  v4a_fx {\n    path \/system\/lib\/soundfx\/libv4a_fx_ics.so\n  }/g' $AMLPATH$CFG
   fi
 done
-}

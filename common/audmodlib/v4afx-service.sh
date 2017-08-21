@@ -3,7 +3,7 @@
 # More info in the main Magisk thread
 
 #### v INSERT YOUR CONFIG.SH MODID v ####
-MODID=v4afx
+MODID=<MODID>
 #### ^ INSERT YOUR CONFIG.SH MODID ^ ####
 
 ########## v DO NOT REMOVE v ##########

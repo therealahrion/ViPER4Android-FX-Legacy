@@ -270,8 +270,10 @@ for FIL in $INPUT_FILE $INPUT_FILE_REMOVE $INPUT_PATCHES $INPUT_PATCHES_REM $INP
     exit 1
   fi
 done
+
 # IMPORT USER VARIABLES
 source $INPUT_VAR
+
 # REMOVE COMMENTS FOR USER CUSTOM RULES AND ADD PROPER VARIABLES
 NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
   if [ -f $INPUT_RULES$NUM.sh ]; then
@@ -286,10 +288,13 @@ NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
   NUM=$((NUM+1))
 done
 
-# INSERT UNITY REMOVE PATCHES INTO MOD SERVICE SCRIPT
-sed 's/^/  /' /dev/tmp/install/common/unity-patches-remove.sh > /dev/tmp/install/common/unity-patches-remove-insert.sh
-sed -i '/<PATCHES>/ r /dev/tmp/install/common/unity-patches-remove-insert.sh' $INSTALLER/common/audmodlib/$MODID-service.sh
-sed -i '/<PATCHES>/d' $INSTALLER/common/audmodlib/$MODID-service.sh
+# INSERT MODID INTO MOD SCRIPT
+sed -i "s/<MODID>/$MODID/" $INSTALLER/common/$AMLID/$MODID-service.sh
+
+# INSERT UNITY REMOVE PATCHES INTO MOD SCRIPT
+sed -i 's/^/  /' $INPUT_PATCHES_REM
+sed -i "/<PATCHES>/ r $INPUT_PATCHES_REM" $INSTALLER/common/$AMLID/$MODID-service.sh
+sed -i '/<PATCHES>/d' $INSTALLER/common/$AMLID/$MODID-service.sh
 
 magisk_install() {
   MAGISK=true
