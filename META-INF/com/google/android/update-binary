@@ -673,6 +673,9 @@ unity_mod_patch() {
   #### PATCHING FILES ####
   ui_print "   Patching necessary cfg files"
 
+  # INSERT UNITY PATCHES INTO SERVICE MODID.SH
+  sed -i '/<PATCHES>/ r $INPUT_PATCHES' $MOUNTPATH/.core/service.d/$MODID.sh
+  sed -i '/<PATCHES>/d' $MOUNTPATH/.core/service.d/$MODID.sh
 
   # REMOVE LIBRARIES & EFFECTS
   ui_print "    Removing library & effect lines..."
