@@ -673,7 +673,7 @@ unity_mod_patch() {
   #### PATCHING FILES ####
   ui_print "   Patching necessary cfg files"
 
-  # INSERT UNITY PATCHES INTO MOD SCRIPT
+  # INSERT UNITY REMOVE PATCHES INTO MOD SCRIPT
   sed -i '/<PATCHES>/ r $INPUT_PATCHES_REM' $MOUNTPATH/.core/service.d/$MODID.sh
   sed -i '/<PATCHES>/d' $MOUNTPATH/.core/service.d/$MODID.sh
 
