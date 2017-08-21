@@ -301,7 +301,7 @@ NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
   NUM=$((NUM+1))
 done
 
-# RENAME MODID SCRIPT
+# RENAME MODID-SERVICE SCRIPT
 mv -f $INSTALLER/common/$AMLID/modid-service.sh $INSTALLER/common/$AMLID/$MODID-service.sh
 
 # INSERT MODID INTO MOD SCRIPT
@@ -617,6 +617,20 @@ unity_mod_copy() {
     # INSTALL ROM BACKUP SCRIPT
     if [ -d $SYS/addon.d ]; then
       ui_print "   Installing addon.d backup script..."
+	  
+	  # RENAME ADDON.D SCRIPT
+      mv -f $INSTALLER/system/addon.d/modid.sh $INSTALLER/system/addon.d/$MODID.sh
+	  
+	  # INSERT MODID INTO ADDON.D SCRIPT
+      sed -i "s/<MODID>/$MODID/" $INSTALLER/system/addon.d/$MODID.sh
+
+      # INSERT UNITY REMOVE AND REGULAR PATCHES INTO ADDON.D SCRIPT
+      sed -i 's/^/    /' $INPUT_PATCHES
+	  sed -i 's/^/  /' $INPUT_PATCHES_REM
+	  sed -i "/<PATCHES>/ r $INPUT_PATCHES_REM" $INSTALLER/system/addon.d/$MODID.sh
+      sed -i "/<PATCHES>/ r $INPUT_PATCHES" $INSTALLER/system/addon.d/$MODID.sh
+      sed -i '/<PATCHES>/d' $INSTALLER/system/addon.d/$MODID.sh
+	  
       sys_cp_ch $INSTALLER/system/addon.d/$MODID.sh $SYS/addon.d/$MODID.sh 0644
     else
       ui_print "   ! Addon.d not detected. Backup script not installed..."
