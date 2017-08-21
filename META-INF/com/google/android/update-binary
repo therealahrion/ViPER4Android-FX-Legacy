@@ -301,6 +301,9 @@ NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
   NUM=$((NUM+1))
 done
 
+# RENAME MODID SCRIPT
+mv -f $INSTALLER/common/$AMLID/modid-service.sh $INSTALLER/common/$AMLID/$MODID-service.sh
+
 # INSERT MODID INTO MOD SCRIPT
 sed -i "s/<MODID>/$MODID/" $INSTALLER/common/$AMLID/$MODID-service.sh
 
@@ -319,7 +322,6 @@ magisk_install() {
   UNITY="$MODPATH"
   MK_SFFX=""
   CP_SFFX=""
-  SOURCEDIR="$SOURCEDIR"
   if $BOOTMODE; then
     MOD_VER="/magisk/$MODID/module.prop"
   else
@@ -337,7 +339,6 @@ system_install() {
   UNITY=""
   MK_SFFX=" 0755"
   CP_SFFX=" 0644"
-  SOURCEDIR=""
   AMLPATH=""
   MOD_VER="$SYS/etc/$MODID-module.prop"
 }

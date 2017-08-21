@@ -3,7 +3,7 @@
 # More info in the main Magisk thread
 
 #### v INSERT YOUR CONFIG.SH MODID v ####
-MODID=<MODID>
+MODID=udbr
 #### ^ INSERT YOUR CONFIG.SH MODID ^ ####
 
 ########## v DO NOT REMOVE v ##########
