@@ -286,6 +286,11 @@ NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
   NUM=$((NUM+1))
 done
 
+# INSERT UNITY REMOVE PATCHES INTO MOD SERVICE SCRIPT
+sed 's/^/  /' /dev/tmp/install/common/unity-patches-remove.sh > /dev/tmp/install/common/unity-patches-remove-insert.sh
+sed -i '/<PATCHES>/ r /dev/tmp/install/common/unity-patches-remove-insert.sh' $INSTALLER/common/audmodlib/$MODID-service.sh
+sed -i '/<PATCHES>/d' $INSTALLER/common/audmodlib/$MODID-service.sh
+
 magisk_install() {
   MAGISK=true
   MK_PRFX="mkdir -p"
@@ -672,10 +677,6 @@ unity_mod_patch() {
   ########################################################################################
   #### PATCHING FILES ####
   ui_print "   Patching necessary cfg files"
-
-  # INSERT UNITY REMOVE PATCHES INTO MOD SCRIPT
-  sed -i '/<PATCHES>/ r $INPUT_PATCHES_REM' $MOUNTPATH/.core/service.d/$MODID.sh
-  sed -i '/<PATCHES>/d' $MOUNTPATH/.core/service.d/$MODID.sh
 
   # REMOVE LIBRARIES & EFFECTS
   ui_print "    Removing library & effect lines..."
