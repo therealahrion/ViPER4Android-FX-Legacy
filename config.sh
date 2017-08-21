@@ -50,11 +50,11 @@ LATESTARTSERVICE=false
 print_modname() {
   ui_print " "
   ui_print "      ****************************************"
-  ui_print "      *          ViPER4Android FX            *"
+  ui_print "      *<name>*"
   ui_print "      ****************************************"
   ui_print "      *           Universal - Mod            *"
-  ui_print "      *             Version 1.5              *"
-  ui_print "      *         by ahrion, zackptg5          *"
+  ui_print "      *<version>*"
+  ui_print "      *         by <author>*"
   ui_print "      ****************************************"
   ui_print " "
 }
