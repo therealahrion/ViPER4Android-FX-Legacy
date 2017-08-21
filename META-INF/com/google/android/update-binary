@@ -259,6 +259,8 @@ INPUT_PROPS_REM=$INSTALLER/common/unity-props-remove.prop
 INPUT_VAR=$INSTALLER/common/unity-uservariables.sh
 INPUT_RULES=$INSTALLER/common/unity-customrules
 
+sed -i "/<PATCHES>/ r $INSTALLER/common/audmodlib/$MODID-service.sh" unity-patches.sh
+
 # REMOVE COMMENTS FROM USER INPUT FILES AND ADD PROPER VARIABLES
 for FIL in $INPUT_FILE $INPUT_FILE_REMOVE $INPUT_PATCHES $INPUT_PATCHES_REM $INPUT_PROPS $INPUT_PROPS_REM $INPUT_VAR; do
   if [ -f $FIL ]; then
