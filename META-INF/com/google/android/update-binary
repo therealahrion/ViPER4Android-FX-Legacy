@@ -313,16 +313,18 @@ else
   INFO=$SYS/etc/$MODID-files
 fi
 
-# RENAME MODID-SERVICE SCRIPT
-mv -f $INSTALLER/common/$AMLID/modid-service.sh $INSTALLER/common/$AMLID/$MODID-service.sh
+if [ "$MODID" != "$AMLID" ]; then
+  # RENAME MODID-SERVICE SCRIPT
+  mv -f $INSTALLER/common/$AMLID/modid-service.sh $INSTALLER/common/$AMLID/$MODID-service.sh
 
-# INSERT MODID INTO MOD SCRIPT
-sed -i "s/<MODID>/$MODID/" $INSTALLER/common/$AMLID/$MODID-service.sh
+  # INSERT MODID INTO MOD SCRIPT
+  sed -i "s/<MODID>/$MODID/" $INSTALLER/common/$AMLID/$MODID-service.sh
 
-# INSERT UNITY REMOVE PATCHES INTO MOD SCRIPT
-sed -i 's/^/  /' $INPUT_PATCHES_REM
-sed -i "/<PATCHES>/ r $INPUT_PATCHES_REM" $INSTALLER/common/$AMLID/$MODID-service.sh
-sed -i '/<PATCHES>/d' $INSTALLER/common/$AMLID/$MODID-service.sh
+  # INSERT UNITY REMOVE PATCHES INTO MOD SCRIPT
+  sed -i 's/^/  /' $INPUT_PATCHES_REM
+  sed -i "/<PATCHES>/ r $INPUT_PATCHES_REM" $INSTALLER/common/$AMLID/$MODID-service.sh
+  sed -i '/<PATCHES>/d' $INSTALLER/common/$AMLID/$MODID-service.sh
+fi
 
 magisk_install() {
   MAGISK=true
@@ -607,14 +609,14 @@ unity_mod_copy() {
 
     if [ "$SYSOVER" == false ]; then
       sys_cp_ch $INSTALLER/common/$AMLID/$AMLID-service.sh $SH/$AMLID$EXT 0700
-	  sys_cp_ch $INSTALLER/common/$AMLID/$MODID-service.sh $SH/$MODID$EXT 0700
+	  test "$MODID" != "$AMLID" && sys_cp_ch $INSTALLER/common/$AMLID/$MODID-service.sh $SH/$MODID$EXT 0700
       test ! "$(cat $INFO | grep "$SH/$AMLID$EXT")" && echo "$SH/$AMLID$EXT" >> $INFO
 	  test ! "$(cat $INFO | grep "$SH/$MODID$EXT")" && echo "$SH/$MODID$EXT" >> $INFO
       test ! "$(cat $INFO | grep "$SH/unity-props$EXT")" && echo "$SH/unity-props$EXT" >> $INFO
     else
       mkdir -p $MOUNTPATH/.core/service.d
       sys_cp_ch $INSTALLER/common/$AMLID/$AMLID-service.sh $MOUNTPATH/.core/service.d/$AMLID.sh 0755
-      sys_cp_ch $INSTALLER/common/$AMLID/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh 0755
+      test "$MODID" != "$AMLID" && sys_cp_ch $INSTALLER/common/$AMLID/$MODID-service.sh $MOUNTPATH/.core/service.d/$MODID.sh 0755
 	fi
 
     # INSTALL ROM BACKUP SCRIPT
