@@ -7,7 +7,7 @@
 # Do not remove last 3 lines (the if statement). Add any files added in custom rules before the sed statement and uncomment the whole thing (ex: echo "$UNITY$SYS/lib/soundfx/libv4a_fx_ics.so" >> $INFO)
 # ^ DO NOT MODIFY ^
 TIMEOFEXEC=3
-unzip -pq $INSTALLER/system/app/$APP1/$APP1.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNITY$SYS/lib/soundfx/libv4a_fx_ics.so
+unzip -pq $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk assets/libv4a_fx_jb_$DRVARCH.so > $UNITY$SYS/lib/soundfx/libv4a_fx_ics.so
 if [ "$MAGISK" == false ]; then
 	echo "$UNITY$SYS/lib/soundfx/libv4a_fx_ics.so" >> $INFO
     sed -i 's/\/system\///g' $INFO
