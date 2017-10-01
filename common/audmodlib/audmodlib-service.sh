@@ -5,26 +5,6 @@ SH=${0%/*}
 LOG_FILE=/cache/audmodlib-service.log
 MODIDS=""
 
-# DETERMINE IF PIXEL (A/B OTA) DEVICE
-ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
-if [ "$ABDeviceCheck" -gt 0 ]; then
-  isABDevice=true
-  if [ -d "/system_root" ]; then
-	SYS=/system_root/system
-  else
-	SYS=/system/system
-  fi
-else
-  isABDevice=false
-  SYS=/system
-fi
-
-if [ $isABDevice == true ] || [ ! -d "$SYS/vendor" ]; then
-  VEN=/vendor
-else
-  VEN=$SYS/vendor
-fi
-
 supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
 
 supersu_is_mounted() {
@@ -45,6 +25,41 @@ if [ "$supersuimg" ]; then
 	  losetup $loop $supersuimg
 	  mount -t ext4 -o loop $loop /su; 2>/dev/null
     done
+  fi
+fi
+
+# DETERMINE ROOT BOOT SCRIPT TYPE
+EXT=".sh"
+AMLPATH=""
+MAGISK=false
+test -L /system/vendor && VEN=/vendor || VEN=/system/vendor
+if [ -f /data/magisk.img ] || [ -f /cache/magisk.img ] || [ -d /magisk ]; then
+  SYS=/system
+  MAGISK=true
+  SEINJECT=magiskpolicy
+  test -d /magisk/audmodlib$SYS && { MAGISK=true; AMLPATH=/magisk/audmodlib; }
+else
+  # DETERMINE IF PIXEL (A/B OTA) DEVICE
+  if [ $(cat /proc/cmdline | grep slot_suffix | wc -l) -gt 0 ]; then
+    test -d "/system_root" && SYS=/system_root/system || SYS=/system/system
+  else
+    SYS=/system
+  fi
+  
+  if [ "$supersuimg" ] || [ -d /su ]; then
+    SEINJECT=/su/bin/supolicy
+  elif [ -d $SYS/su ] || [ -f $SYS/xbin/daemonsu ] || [ -f $SYS/xbin/sugote ]; then
+    SEINJECT=$SYS/xbin/supolicy
+  elif [ -f $SYS/xbin/su ]; then
+    if [ "$(cat $SYS/xbin/su | grep SuperSU)" ]; then
+      SEINJECT=$SYS/xbin/supolicy
+    else
+      SEINJECT=/sepolicy
+      EXT=""
+    fi
+  else
+    SEINJECT=/sepolicy
+    EXT=""
   fi
 fi
 
@@ -71,30 +86,6 @@ MIX_PATH_TASH=$SYS/etc/mixer_paths_tasha.xml
 STRIGG_MIX_PATH=$SYS/sound_trigger_mixer_paths.xml
 STRIGG_MIX_PATH_9330=$SYS/sound_trigger_mixer_paths_wcd9330.xml
 V_MIX_PATH=$VEN/etc/mixer_paths.xml
-
-# DETERMINE ROOT BOOT SCRIPT TYPE
-EXT=".sh"
-AMLPATH=""
-MAGISK=false
-if [ -f /data/magisk.img ] || [ -f /cache/magisk.img ] || [ -d /magisk ]; then
-  MAGISK=true
-  SEINJECT=magiskpolicy
-  test -d /magisk/audmodlib$SYS && { MAGISK=true; AMLPATH=/magisk/audmodlib; }
-elif [ "$supersuimg" ] || [ -d /su ]; then
-  SEINJECT=/su/bin/supolicy
-elif [ -d $SYS/su ] || [ -f $SYS/xbin/daemonsu ] || [ -f $SYS/xbin/sugote ]; then
-  SEINJECT=$SYS/xbin/supolicy
-elif [ -f $SYS/xbin/su ]; then
-  if [ "$(cat $SYS/xbin/su | grep SuperSU)" ]; then
-    SEINJECT=$SYS/xbin/supolicy
-  else
-    SEINJECT=/sepolicy
-    EXT=""
-  fi
-else
-  SEINJECT=/sepolicy
-  EXT=""
-fi
 
 test -d $SYS/priv-app && SOURCE=priv_app || SOURCE=system_app
 

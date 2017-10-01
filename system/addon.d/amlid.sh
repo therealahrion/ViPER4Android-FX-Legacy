@@ -19,12 +19,7 @@ else
   ROOT=""
   SYS=$ROOT/system
 fi
-
-if [ $isABDevice == true ] || [ ! -d $SYS/vendor ]; then
-  VEN=/vendor
-else
-  VEN=$SYS/vendor
-fi
+test -L /system/vendor && VEN=/vendor || VEN=/system/vendor
 
 ### FILE LOCATIONS ###
 # AUDIO EFFECTS

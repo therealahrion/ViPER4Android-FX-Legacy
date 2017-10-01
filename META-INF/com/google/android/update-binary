@@ -20,20 +20,6 @@ umask 022
 OUTFD=$2
 ZIP=$3
 
-# DETERMINE IF PIXEL (A/B OTA) DEVICE
-ABDeviceCheck=$(cat /proc/cmdline | grep slot_suffix | wc -l)
-if [ "$ABDeviceCheck" -gt 0 ]; then
-  isABDevice=true
-  if [ -d "/system_root" ]; then
-    SYS=/system_root/system
-  else
-    SYS=/system/system
-  fi
-else
-  isABDevice=false
-  SYS=/system
-fi
-
 # GET INSTALL/UNINSTALL ACTION FROM ZIP NAME
 case $(basename $ZIP) in
   *uninstall*|*Uninstall*|*UNINSTALL*) ACTION=Uninstall;;
@@ -56,11 +42,11 @@ is_mounted() {
 
 patch_util_functions() {
   cp -f $MAGISKBIN/util_functions.sh $INSTALLER/common/audmodlib/util_functions.sh
-  sed -i -e 's|/system/vendor|$VEN|g' -e 's|/system|$SYS|g' -e "s|'\$SYS/build.prop'|\"\$SYS/build.prop\"|g" $INSTALLER/common/audmodlib/util_functions.sh
+  sed -i '/MAGISKBIN=\/data\/magisk/d' $INSTALLER/common/audmodlib/util_functions.sh
   sed -i -e "/ABILONG=/ a\  MIUIVER=\`grep_prop ro.miui.ui.version.name\`" -e "/^ *ARCH=/ a\  DRVARCH=NEON" $INSTALLER/common/audmodlib/util_functions.sh
   sed -ri "s|ARCH=x(.*);(.*);|ARCH=x\1; DRVARCH=X86;\2;|g" $INSTALLER/common/audmodlib/util_functions.sh
-  sed -i -e 's/- Unmounting partitions/   Unmounting partitions.../' -e 's|umount -l $SYS|umount -l /system|' $INSTALLER/common/audmodlib/util_functions.sh
-  echo "newer version detected"
+  sed -i -e '/# Check A/B slot/ a\  SYS=\/system' -e '/# Seperate \/vendor partition/ a\    VEN=\/vendor' -e 'is_mounted \/vendor \|\| abort "! Cannot mount \/vendor"/ a\  else\n    VEN=\/system\/vendor' $INSTALLER/common/audmodlib/util_functions.sh
+  sed -i -e 's|- Mounting /system, /vendor|   Mounting /system, /vendor...|' -e '/   Mounting \/system, \/vendor.../ i\ui_print "- Mounting Filesystems -"' -e 's/- Unmounting partitions/   Unmounting partitions.../' -e 's/- Device skip_initramfs detected/   ! Device skip_initramfs detected' $INSTALLER/common/audmodlib/util_functions.sh
 }
 
 # Mount /data and /cache to access MAGISKBIN
@@ -70,28 +56,49 @@ mount /cache 2>/dev/null
 # This path should work in any cases
 TMPDIR=/dev/tmp
 INSTALLER=$TMPDIR/install
-MOUNTPATH=/magisk
+MOUNTPATH=$TMPDIR/magisk_img
+$BOOTMODE && IMG=/data/magisk_merge.img || IMG=/data/magisk.img
 
 rm -rf $TMPDIR 2>/dev/null
 mkdir -p $INSTALLER
 unzip -o "$ZIP" -d $INSTALLER 2>/dev/null
 
 if is_mounted /data; then
-  IMG=/data/magisk.img
   MAGISKBIN=/data/magisk
-  if $BOOTMODE; then
-    MOUNTPATH=/dev/magisk_merge
-    IMG=/data/magisk_merge.img
-  fi
+  $BOOTMODE && IMG=/data/magisk_merge.img || IMG=/data/magisk.img
 else
   IMG=/cache/magisk.img
   MAGISKBIN=/cache/data_bin
 fi
 
-# Load utility fuctions
+# Load utility functions
 test -f $MAGISKBIN/util_functions.sh -a $(grep "MAGISK_VER_CODE=" $MAGISKBIN/util_functions.sh | sed 's/^.*=//') -gt $(grep "MAGISK_VER_CODE=" $INSTALLER/common/audmodlib/util_functions.sh | sed 's/^.*=//') && patch_util_functions
 . $INSTALLER/common/audmodlib/util_functions.sh
 get_outfd
+
+[ ! -f $INSTALLER/config.sh ] && abort "! Unable to extract zip file!"
+
+# INSERT MODULE INFO INTO CONFIG.SH
+for VAR in version name author; do
+  NEW=$(grep "$VAR=" $INSTALLER/module.prop | sed 's/^.*=//')
+  test "$VAR" == "author" && NEW="by ${NEW}"
+  SPECCHARS=$(echo "$NEW" | tr -cd "©®" | wc -m)
+  CHARS=$((${#NEW}-$SPECCHARS))
+  SPACES=""
+  TOTSPACE=$(((41-$CHARS) / 2))
+  for i in $(seq $TOTSPACE); do
+	SPACES="${SPACES} "
+  done
+  test $(((41-$CHARS) % 2)) == 1 && SPACES2="${SPACES} " || SPACES2=$SPACES
+  sed -i "s/<$VAR>/$SPACES$NEW$SPACES2/" $INSTALLER/config.sh
+done
+
+. $INSTALLER/config.sh
+
+# Print mod name
+print_modname
+
+#### MOUNT FILESYS ####
 
 # DETECT IF SYSLESS SUPERSU
 supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
@@ -103,6 +110,31 @@ supersu_is_mounted() {
     *) echo 0;;
   esac;
 }
+
+if [ "$supersuimg" ]; then
+  if [ "$(supersu_is_mounted /su)" == 0 ]; then
+    ui_print "   Mounting /su...";
+    test ! -e /su && mkdir /su;
+    mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
+    for i in 0 1 2 3 4 5 6 7; do
+      test "$(supersu_is_mounted /su)" == 1 && break;
+      loop=/dev/block/loop$i;
+      mknod $loop b 7 $i;
+      losetup $loop $supersuimg;
+      mount -t ext4 -o loop $loop /su; 2>/dev/null
+    done;
+  fi;
+fi;
+
+test "$SYSOVER" == true && ui_print "! Warning: Forcing a system $ACTION!"
+
+mount_partitions
+
+# Detect version and architecture
+api_level_arch_detect
+
+# You can get the Android API version from $API, the CPU architecture from $ARCH
+# Useful if you are creating Android version / platform dependent mods
 
 require_new_magisk() {
   ui_print "***********************************"
@@ -198,85 +230,8 @@ action_complete() {
   ui_print " "
   test "$ACTION" == "Install" && ui_print "    --------- INSTALLATION SUCCESSFUL ---------" || ui_print "    --------- RESTORATION SUCCESSFUL ---------"
   ui_print " "
-  ui_print "    Unity Installer by ahrion & zackptg5 @ XDA"
+  test "$ACTION" == "Install" && ui_print "Unity Installer by ahrion & zackptg5 @ XDA" || ui_print "Unity Uninstaller by ahrion & zackptg5 @ XDA"
 }
-
-##########################################################################################
-# Prepare
-##########################################################################################
-
-[ ! -f $INSTALLER/config.sh ] && abort "! Unable to extract zip file!"
-
-# INSERT MODULE INFO INTO CONFIG.SH
-for VAR in version name author; do
-  NEW=$(grep "$VAR=" $INSTALLER/module.prop | sed 's/^.*=//')
-  test "$VAR" == "author" && NEW="by ${NEW}"
-  SPECCHARS=$(echo "$NEW" | tr -cd "©®" | wc -m)
-  CHARS=$((${#NEW}-$SPECCHARS))
-  SPACES=""
-  TOTSPACE=$(((41-$CHARS) / 2))
-  for i in $(seq $TOTSPACE); do
-	SPACES="${SPACES} "
-  done
-  test $(((41-$CHARS) % 2)) == 1 && SPACES2="${SPACES} " || SPACES2=$SPACES
-  sed -i "s/<$VAR>/$SPACES$NEW$SPACES2/" $INSTALLER/config.sh
-done
-
-. $INSTALLER/config.sh
-
-# Print mod name
-print_modname
-
-#### MOUNT FILESYS ####
-ui_print "- Mounting filesystems -"
-
-if [ "$supersuimg" ]; then
-  if [ "$(supersu_is_mounted /su)" == 0 ]; then
-    ui_print "   Mounting /su...";
-    test ! -e /su && mkdir /su;
-    mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
-    for i in 0 1 2 3 4 5 6 7; do
-      test "$(supersu_is_mounted /su)" == 1 && break;
-      loop=/dev/block/loop$i;
-      mknod $loop b 7 $i;
-      losetup $loop $supersuimg;
-      mount -t ext4 -o loop $loop /su; 2>/dev/null
-    done;
-  fi;
-fi;
-
-SPACE=" "
-if [ $isABDevice == true ]; then
-  ui_print "   ! A/B OTA device detected!"
-  WRITE=rw
-  SPACE="  "
-elif [ "$SYSOVER" == true ]; then
-  WRITE=rw
-  ui_print "   ! Warning: Forcing a system $ACTION!"
-elif [ -f /data/magisk.img ] || [ -f /cache/magisk.img ] || [ -d /magisk ]; then
-  WRITE=ro
-else
-  WRITE=rw
-fi
-
-ui_print "$SPACE  Mounting /system($WRITE)..."
-mount -o $WRITE /system 2>/dev/null
-ui_print "$SPACE  Mounting /vendor($WRITE)..."
-mount -o $WRITE /vendor 2>/dev/null
-
-if [ $isABDevice == true ] || [ ! -d $SYS/vendor ]; then
-  VEN=/vendor
-else
-  VEN=$SYS/vendor
-fi
-
-[ ! -f $SYS/build.prop ] && abort "   ! /system could not be mounted!"
-
-# Detect version and architecture
-api_level_arch_detect
-
-# You can get the Android API version from $API, the CPU architecture from $ARCH
-# Useful if you are creating Android version / platform dependent mods
 
 ##########################################################################################
 # UNITY (UN)INSTALLER
@@ -1063,13 +1018,6 @@ fi
 
 $BOOTMODE || recovery_cleanup
 rm -rf $TMPDIR
-
-if [ $isABDevice == true ]; then
-  mount -o ro /system 2>/dev/null
-  mount -o ro /vendor 2>/dev/null
-  mount -o ro,remount /system 2>/dev/null
-  mount -o ro,remount /vendor 2>/dev/null
-fi
 
 action_complete
 
