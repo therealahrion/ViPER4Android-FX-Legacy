@@ -20,6 +20,8 @@ v2.1
 	- Unity/AML v2.1: Further A/B OTA (Pixel family) improvements
 	- Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
 	- Unity/AML v2.1: Various script fixes and improvements
+	- Unity/AML v2.1: Fix cache system installs
+	- Unity/AML v2.1: Added support for supersu bindsbin mode
 
 v2.0
 	- Unity/AML v2.0: Massive installer and script overhaul
