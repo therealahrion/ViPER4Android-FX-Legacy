@@ -17,6 +17,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 v2.1
 	- Unity/AML v2.1: Updated for Magisk v14.2
 	- Unity/AML v2.1: Updated to Magisk module template 1410
+    - Unity/AML v2.1: Further A/B OTA (Pixel family) improvements
 	- Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
 	- Unity/AML v2.1: Various script fixes and improvements
 
