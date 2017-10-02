@@ -40,15 +40,16 @@ ui_print() {
 
 mount_partitions() {
   # Check A/B slot
+  test -f /data/magisk.img -o -f /cache/magisk.img -o -d /magisk -o "$SYSOVER" == true && WRITE=ro || WRITE=rw
   SYS=/system
   SLOT=`getprop ro.boot.slot_suffix`
   [ -z $SLOT ] || ui_print "- A/B partition detected, current slot: $SLOT"
   ui_print "- Mounting filesystems -"
   ui_print "   Mounting /system, /vendor"
-  is_mounted /system || [ -f /system/build.prop ] || mount -o ro /system 2>/dev/null
+  is_mounted /system || [ -f /system/build.prop ] || mount -o $WRITE /system 2>/dev/null
   if ! is_mounted /system && ! [ -f /system/build.prop ]; then
     SYSTEMBLOCK=`find /dev/block -iname system$SLOT | head -n 1`
-    mount -t ext4 -o ro $SYSTEMBLOCK /system
+    mount -t ext4 -o $WRITE $SYSTEMBLOCK /system
   fi
   is_mounted /system || [ -f /system/build.prop ] || abort "! Cannot mount /system"
   cat /proc/mounts | grep -E '/dev/root|/system_root' >/dev/null && SKIP_INITRAMFS=true || SKIP_INITRAMFS=false
@@ -62,10 +63,10 @@ mount_partitions() {
   if [ -L /system/vendor ]; then
     # Seperate /vendor partition
 	VEN=/vendor
-    is_mounted /vendor || mount -o ro /vendor 2>/dev/null
+    is_mounted /vendor || mount -o $WRITE /vendor 2>/dev/null
     if ! is_mounted /vendor; then
       VENDORBLOCK=`find /dev/block -iname vendor$SLOT | head -n 1`
-      mount -t ext4 -o ro $VENDORBLOCK /vendor
+      mount -t ext4 -o $WRITE $VENDORBLOCK /vendor
     fi
     is_mounted /vendor || abort "! Cannot mount /vendor"
   else

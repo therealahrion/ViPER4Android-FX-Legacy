@@ -42,10 +42,11 @@ is_mounted() {
 
 patch_util_functions() {
   cp -f $MAGISKBIN/util_functions.sh $INSTALLER/common/audmodlib/util_functions.sh
-  sed -i '/MAGISKBIN=\/data\/magisk/d' $INSTALLER/common/audmodlib/util_functions.sh
+  sed -i -e '/MAGISKBIN=\/data\/magisk/d' -e 's/-o ro/-o $WRITE/g' $INSTALLER/common/audmodlib/util_functions.sh
   sed -i -e "/ABILONG=/ a\  MIUIVER=\`grep_prop ro.miui.ui.version.name\`" -e "/^ *ARCH=/ a\  DRVARCH=NEON" $INSTALLER/common/audmodlib/util_functions.sh
   sed -ri "s|ARCH=x(.*);(.*);|ARCH=x\1; DRVARCH=X86;\2;|g" $INSTALLER/common/audmodlib/util_functions.sh
-  sed -i -e '/# Check A/B slot/ a\  SYS=\/system' -e '/# Seperate \/vendor partition/ a\    VEN=\/vendor' -e 'is_mounted \/vendor \|\| abort "! Cannot mount \/vendor"/ a\  else\n    VEN=\/system\/vendor' $INSTALLER/common/audmodlib/util_functions.sh
+  sed -i -e '/# Check A/B slot/ a\  SYS=\/system' -e '/# Check A/B slot/ a\  test -f \/data\/magisk.img -o -f \/cache\/magisk.img -o -d \/magisk -o \"$SYSOVER\" == true && WRITE=ro || WRITE=rw' $INSTALLER/common/audmodlib/util_functions.sh
+  sed -i -e '/# Seperate \/vendor partition/ a\    VEN=\/vendor' -e 'is_mounted \/vendor \|\| abort "! Cannot mount \/vendor"/ a\  else\n    VEN=\/system\/vendor' $INSTALLER/common/audmodlib/util_functions.sh
   sed -i -e 's|- Mounting /system, /vendor|   Mounting /system, /vendor...|' -e '/   Mounting \/system, \/vendor.../ i\ui_print "- Mounting Filesystems -"' -e 's/- Unmounting partitions/   Unmounting partitions.../' -e 's/- Device skip_initramfs detected/   ! Device skip_initramfs detected' $INSTALLER/common/audmodlib/util_functions.sh
 }
 
@@ -72,7 +73,7 @@ else
 fi
 
 # Load utility functions
-test -f $MAGISKBIN/util_functions.sh -a $(grep "MAGISK_VER_CODE=" $MAGISKBIN/util_functions.sh | sed 's/^.*=//') -gt $(grep "MAGISK_VER_CODE=" $INSTALLER/common/audmodlib/util_functions.sh | sed 's/^.*=//') && patch_util_functions
+test -f $MAGISKBIN/util_functions.sh && { test $(grep "MAGISK_VER_CODE=" $MAGISKBIN/util_functions.sh | sed 's/^.*=//') -gt $(grep "MAGISK_VER_CODE=" $INSTALLER/common/audmodlib/util_functions.sh | sed 's/^.*=//') && patch_util_functions; }
 . $INSTALLER/common/audmodlib/util_functions.sh
 get_outfd
 
@@ -157,7 +158,7 @@ require_new_api() {
 # DETECT IF SAME VERSION OF MOD IS ALREADY INSTALLED
 mod_exist() {
   if [ -f "$MOD_VER" ]; then
-    if [ "$(cat $MOD_VER)" == "$(cat $INSTALLER/module.prop)" ]; then
+    if [ $(grep_prop versionCode $MOD_VER) -ge $(grep_prop versionCode $INSTALLER/module.prop) ]; then
       ui_print " "
       ui_print "   ! Current version detected. Uninstalling!"
       ACTION=Uninstall
@@ -180,11 +181,12 @@ sys_cp_ch() {
 
 # COPY SYS FILE (BUT BACKUP OLD ONES FIRST)
 sys_cpbak_ch() {
+  TPATH=$(echo $2 | sed 's|/system/||')
   if [ -f "$2" ] && [ ! -f "$2.bak" ]; then
     mv -f "$2" "$2.bak"
-    echo "$2.bak" >> $INFO
+    echo "$TPATH.bak" >> $INFO
   fi
-  test ! "$(grep "$2" $INFO)" && echo "$2" >> $INFO
+  test ! "$(grep "$TPATH" $INFO)" && echo "$TPATH" >> $INFO
   sys_cp_ch $1 $2 $3
 }
 
@@ -202,14 +204,15 @@ sys_rm_ch() {
 
 # BACKUP/REMOVE FILE
 sys_wipe_ch() {
+  TPATH=$(echo $1 | sed 's|/system/||')
   test ! -f $INFO && touch $INFO
   TPARTMOD=false
   cat $INFO | while read LINE; do
-    test "$1" == "$(eval echo $LINE)" && { TPARTMOD=true; sed -i "/$1/d" $INFO; }
+    test "$TPATH" == "$(eval echo $LINE)" && { TPARTMOD=true; sed -i "/$TPATH/d" $INFO; }
   done
   if [ -f "$1" ] && [ ! -f "$1.bak" ] && [ "$TPARTMOD" != true ]; then
 	mv -f "$1" "$1.bak"
-	echo "$1.bak" >> $INFO
+	echo "$TPATH.bak" >> $INFO
   else
     rm -f "$1"
   fi
@@ -217,9 +220,10 @@ sys_wipe_ch() {
 
 # BACKUP/REMOVE FOLDER
 sys_wipefol_ch() {
+  TPATH=$(echo $1 | sed 's|/system/||')
   if [ -d "$1" ] && [ ! -f "$1.tar" ]; then
     tar -cf "$1.tar" "$1"
-	test ! -f $INFO && { touch $INFO; echo "$1.tar" >> $INFO; } || { test ! "$(grep "$1.tar" $INFO)" && echo "$1.tar" >> $INFO; }
+	test ! -f $INFO && { touch $INFO; echo "$TPATH.tar" >> $INFO; } || { test ! "$(grep "$TPATH.tar" $INFO)" && echo "$TPATH.tar" >> $INFO; }
   else
     rm -rf "$1"
   fi
@@ -374,6 +378,11 @@ custom_app_install() {
 
 custom_app_wipe() {
   $OLDAPP && { test -f "$SYS/app/$1.apk" && $RM_PRFX $UNITY$SYS/app/$1.apk; } || { test -f "SYS/priv-app/$1/$1.apk" && $RM_PRFX $UNITY$SYS/priv-app/$1/$1.apk; }
+}
+
+add_to_info() {
+  TPATH=$(echo $1 | sed 's|/system/||')
+  test ! "$(grep "$TPATH" $2)" && echo "$TPATH" >> $2
 }
 
 app_install_logic() {
@@ -583,15 +592,15 @@ unity_mod_copy() {
     # COPY MODULE.PROP FILE FOR VERSION CHECKING
     sys_cp_ch $INSTALLER/module.prop $MOD_VER 0644
 	test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && sys_cp_ch $INSTALLER/common/$AMLID/audmodlibmodule.prop $SYS/etc/$AMLID-module.prop
-	test ! "$(grep "$MOD_VER" $INFO)" && echo "$MOD_VER" >> $INFO
-	test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" -a ! "$(grep "$MOD_VER" $AMLINFO)" && echo "$SYS/etc/$AMLID-module.prop" >> $AMLINFO
+	add_to_info $MOD_VER $INFO
+	test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && add_to_info $SYS/etc/$AMLID-module.prop $AMLINFO
 
     if [ "$SYSOVER" == false ]; then
       test "$AUDMODLIB" != "$MODID" -a ! -f $SH/$AMLID-service$EXT && sys_cp_ch $INSTALLER/common/$AMLID/$AMLID-service.sh $SH/$AMLID-service$EXT 0700
 	  test "$MODID" != "$AMLID" && sys_cp_ch $INSTALLER/common/$AMLID/$MODID-service.sh $SH/$MODID-service$EXT 0700
-      test "$AUDMODLIB" != "$MODID" -a ! "$(grep "$SH/$AMLID-service$EXT" $AMLINFO)" && echo "$SH/$AMLID-service$EXT" >> $AMLINFO
-	  test ! "$(grep "$SH/$MODID-service$EXT" $INFO)" && echo "$SH/$MODID-service$EXT" >> $INFO
-      test -f "$SH/$AUDMODLIB-props$EXT" -a ! "$(grep "$SH/$AUDMODLIB-props$EXT" $AMLINFO)" && echo "$SH/$AUDMODLIB-props$EXT" >> $AMLINFO
+      test "$AUDMODLIB" != "$MODID" && add_to_info $SH/$AMLID-service$EXT $AMLINFO
+	  add_to_info $SH/$MODID-service$EXT $INFO
+      test -f "$SH/$AUDMODLIB-props$EXT" && add_to_info $SH/$AUDMODLIB-props$EXT $AMLINFO
 	fi
 	
 	# INSTALL POST-FS-DATA MODE SCRIPTS
@@ -652,10 +661,6 @@ unity_mod_copy() {
     test "$(grep "TIMEOFEXEC=3" $INPUT_RULES$NUM.sh)" && source $INPUT_RULES$NUM.sh
     NUM=$((NUM+1))
   done
-
-  if [ "$MAGISK" == false ]; then
-    sed -i 's/\/system\///g' $INFO
-  fi
 }
 
 aml_mod() {
@@ -668,7 +673,7 @@ aml_mod() {
   
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE $A2DP_AUD_POL $AUD_POL $AUD_POL_CONF $AUD_POL_VOL $SUB_AUD_POL $USB_AUD_POL $V_AUD_OUT_POL $V_AUD_POL $MIX_PATH $MIX_PATH_TASH $STRIGG_MIX_PATH $STRIGG_MIX_PATH_9330 $V_MIX_PATH; do
     if [ -f $CFG ]; then
-	  test "$MAGISK" == false && { test ! "$(grep "$CFG" $AMLINFO)" && echo "$CFG" >> $AMLINFO; test ! "$(grep "$CFG.bak" $AMLINFO)" && echo "$CFG.bak" >> $AMLINFO; }
+	  test "$MAGISK" == false && { add_to_info $CFG $AMLINFO; add_to_info $CFG.bak $AMLINFO; }
       mkdir -p $AMLPATH${CFG%/*}
       if [ ! -f $AMLPATH$CFG.bak ]; then
         test -f $CFG.bak && $CP_PRFXAML $CFG.bak $AMLPATH$CFG.bak$CP_SFFX || $CP_PRFXAML $CFG $AMLPATH$CFG.bak$CP_SFFX
@@ -683,8 +688,6 @@ aml_mod() {
 	test "$ACTION" == "Install" -a ! -f $AMLPATH/service.sh && sys_cp_ch $INSTALLER/common/$AMLID/$AMLID-service.sh $AMLPATH/service.sh 0755
     test "$BOOTMODE" == "true" -a "$ACTION" == "Uninstall" && { sys_cp_ch $INSTALLER/common/$AMLID/audmodlibmodule.prop $AMLPATH/module.prop; mktouch /magisk/$AMLID/update; mktouch /magisk/$AMLID/auto_mount; }
   fi
-  
-  test "$ACTION" == "Install" -a "$MAGISK" == false && sed -i 's/\/system\///g' $AMLINFO
   
   ui_print "   ! AML framework by ahrion & zackptg5 @ XDA !"
   ui_print " "
@@ -764,7 +767,7 @@ unity_uninstall() {
   if [ "$MAGISK" == false ]; then
     if [ -f $INFO ]; then
       ui_print "   System install detected, removing files..."
-	  test "$MODID" == "$AMLID" && sed -i "/.bak/d" $INFO
+	  test "$MODID" == "$AMLID" && sed -i "/.bak$/d" $INFO
       cat $INFO | while read LINE; do
         if [ "$(dirname $LINE)" == "/su/su.d" ]; then
           sys_rm_ch $LINE
