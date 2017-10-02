@@ -15,9 +15,11 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 
 ## Change Log
 v2.1
-	- Unity/AML v2.0: Updated for magisk 14.2
-	- Unity/AML v2.0: System backup/restore fully automated (no need to manually write files to INFO file anymore)
-	- Unity/AML v2.0: Various script fixes and improvements
+	- Unity/AML v2.1: Updated for Magisk v14.2
+	- Unity/AML v2.1: Updated to Magisk module template 1410
+	- Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
+	- Unity/AML v2.1: Various script fixes and improvements
+
 v2.0
 	- Unity/AML v2.0: Massive installer and script overhaul
 	- Unity v2.0: Added autouninstall (if mod is already installed and you flash same version zip again, it'll uninstall), thus removing the need for an uninstall zip
