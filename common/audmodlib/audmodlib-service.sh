@@ -5,28 +5,32 @@ SH=${0%/*}
 LOG_FILE=/cache/audmodlib-service.log
 MODIDS=""
 
-supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
-
+# DETECT IS SUPERSU MOUNTED
 supersu_is_mounted() {
-case `mount` in
-  *" $1 "*) echo 1;;
-  *) echo 0;;
-esac
+  case `mount` in
+    *" $1 "*) echo 1;;
+    *) echo 0;;
+  esac;
 }
 
-if [ "$supersuimg" ]; then
-  if [ "$(supersu_is_mounted /su)" == 0 ]; then
-    test ! -e /su && mkdir /su
-    mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
-    for i in 0 1 2 3 4 5 6 7; do
-	  test "$(supersu_is_mounted /su)" == 1 && break
-	  loop=/dev/block/loop$i
-	  mknod $loop b 7 $i
-	  losetup $loop $supersuimg
-	  mount -t ext4 -o loop $loop /su; 2>/dev/null
-    done
+# MOUNT SUPERSU IMG
+supersuimg_mount() {
+  supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null)
+  if [ "$supersuimg" ]; then
+    if [ "$(supersu_is_mounted /su)" == 0 ]; then
+      ui_print "   Mounting /su..."
+      test ! -e /su && mkdir /su
+      mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
+      for i in 0 1 2 3 4 5 6 7; do
+	    test "$(supersu_is_mounted /su)" == 1 && break
+	    loop=/dev/block/loop$i
+	    mknod $loop b 7 $i
+	    losetup $loop $supersuimg
+	    mount -t ext4 -o loop $loop /su 2>/dev/null
+      done
+	fi
   fi
-fi
+}
 
 # DETERMINE ROOT BOOT SCRIPT TYPE
 EXT=".sh"
@@ -45,8 +49,14 @@ else
   else
     SYS=/system
   fi
-  
-  if [ "$supersuimg" ] || [ -d /su ]; then
+  supersuimg_mount
+  if [ -d "/data/adb/su/bin" ]; then
+    SEINJECT=/data/adb/su/bin/supolicy
+  elif [ -d "/data/supersu_install/bin" ]; then
+    SEINJECT=/data/supersu_install/bin/supolicy
+  elif [ -d "/cache/supersu_install/bin" ]; then
+    SEINJECT=/cache/supersu_install/bin/supolicy
+  elif [ "$supersuimg" ] || [ -d /su ]; then
     SEINJECT=/su/bin/supolicy
   elif [ -d $SYS/su ] || [ -f $SYS/xbin/daemonsu ] || [ -f $SYS/xbin/sugote ]; then
     SEINJECT=$SYS/xbin/supolicy

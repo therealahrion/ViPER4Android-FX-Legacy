@@ -101,9 +101,6 @@ print_modname
 
 #### MOUNT FILESYS ####
 
-# DETECT IF SYSLESS SUPERSU
-supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null);
-
 # DETECT IS SUPERSU MOUNTED
 supersu_is_mounted() {
   case `mount` in
@@ -112,20 +109,24 @@ supersu_is_mounted() {
   esac;
 }
 
-if [ "$supersuimg" ]; then
-  if [ "$(supersu_is_mounted /su)" == 0 ]; then
-    ui_print "   Mounting /su...";
-    test ! -e /su && mkdir /su;
-    mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
-    for i in 0 1 2 3 4 5 6 7; do
-      test "$(supersu_is_mounted /su)" == 1 && break;
-      loop=/dev/block/loop$i;
-      mknod $loop b 7 $i;
-      losetup $loop $supersuimg;
-      mount -t ext4 -o loop $loop /su; 2>/dev/null
-    done;
-  fi;
-fi;
+# MOUNT SUPERSU IMG
+supersuimg_mount() {
+  supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null)
+  if [ "$supersuimg" ]; then
+    if [ "$(supersu_is_mounted /su)" == 0 ]; then
+      ui_print "   Mounting /su..."
+      test ! -e /su && mkdir /su
+      mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
+      for i in 0 1 2 3 4 5 6 7; do
+	    test "$(supersu_is_mounted /su)" == 1 && break
+	    loop=/dev/block/loop$i
+	    mknod $loop b 7 $i
+	    losetup $loop $supersuimg
+	    mount -t ext4 -o loop $loop /su 2>/dev/null
+      done
+    fi
+  fi
+}
 
 test "$SYSOVER" == true && ui_print "! Warning: Forcing a system $ACTION!"
 
@@ -400,8 +401,15 @@ script_install_logic() {
   # Logic for correct system script installation
   ########################################################################################
   # DETERMINE ROOT BOOT SCRIPT TYPE
+  supersuimg_mount
   EXT=".sh"
-  if [ "$supersuimg" ] || [ -d /su ]; then
+  if [ -d "/data/adb/su/bin" ]; then
+    SH=/data/adb/su/su.d
+  elif [ -d "/data/supersu_install/bin" ]; then
+    SH=/data/supersu_install/su.d
+  elif [ -d "/cache/supersu_install/bin" ]; then
+    SH=/cache/supersu_install/su.d
+  elif [ "$supersuimg" ] || [ -d /su ]; then
     SH=/su/su.d
   elif [ -d $SYS/su ] || [ -f $SYS/xbin/daemonsu ] || [ -f $SYS/xbin/sugote ]; then
     SH=$SYS/su.d
@@ -568,7 +576,13 @@ unity_mod_copy() {
   if [ "$MAGISK" == false ]; then
     if [ "$SYSOVER" == true ]; then
       ui_print "   Installing scripts for MagiskSU..."
-    elif [ "$supersuimg" ] || [ -d /su ]; then
+    elif [ -d "/data/adb/su/bin" ]; then
+      ui_print "   Installing scripts for BINDSBIN SuperSU..."
+    elif [ -d "/data/supersu_install/bin" ]; then
+      ui_print "   Installing scripts for BINDSBIN SuperSU..."
+    elif [ -d "/cache/supersu_install/bin" ]; then
+      ui_print "   Installing scripts for BINDSBIN SuperSU..."
+	elif [ "$supersuimg" ] || [ -d /su ]; then
       ui_print "   Installing scripts for systemless SuperSU..."
     elif [ -d $SYS/su ] || [ -f $SYS/xbin/daemonsu ] || [ -f $SYS/xbin/sugote ]; then
       ui_print "   Installing scripts for system SuperSU..."
@@ -836,66 +850,102 @@ cp $TFILES $TVFILES
 sed -i -e '/\/vendor\// d' $TFILES 
 sed -i -e '/\/vendor/!d' -e "s/\/system\/vendor//g" $TVFILES
 
+magisk_procedure_extras() {
+  # Handle replace folders
+  for TARGET in $REPLACE; do
+    mktouch $MODPATH$TARGET/.replace
+    test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && mktouch $AMLPATH$TARGET/.replace
+  done
+
+  # Auto Mount
+  $AUTOMOUNT && touch $MODPATH/auto_mount
+  test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && { $AUTOMOUNT && touch $AMLPATH/auto_mount; }
+  
+  # Remove old AML files if in BOOTMODE
+  test "$BOOTMODE" == "true" -a "$AUDMODLIB" != "$MODID" && { rm -rf /magisk/$AMLID; mkdir -p /magisk/$AMLID; }
+
+  # Module info
+  cp -af $INSTALLER/module.prop $MODPATH/module.prop
+  test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && cp -af $INSTALLER/common/$AMLID/audmodlibmodule.prop $AMLPATH/module.prop
+  if $BOOTMODE; then
+    # Update info for Magisk Manager
+    mktouch /magisk/$MODID/update
+    test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && mktouch /magisk/$AMLID/update
+    cp -af $INSTALLER/module.prop /magisk/$MODID/module.prop
+    test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && cp -af $INSTALLER/common/$AMLID/audmodlibmodule.prop /magisk/$AMLID/module.prop
+  fi
+
+  # post-fs-data mode scripts
+  $POSTFSDATA && cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
+}
+
+standard_procedure() {
+  # Prepare (Un)Install
+  app_install_logic
+
+  # Determine if mod is already installed. If same version is installed, uninstall
+  mod_exist
+
+  if [ "$ACTION" == "Install" ]; then
+    test "$MAGISK" == false && { ui_print " "; ui_print "   ! Magisk is not installed!"; ui_print "    ! Installing on system!"; }
+
+    # Wipe files
+    unity_mod_wipe
+
+    # Create mod paths
+    unity_mod_directory
+	 
+    # Copy files
+    unity_mod_copy
+
+    # Patch files
+    test "$AUDMODLIB" != "$MODID" && aml_mod
+	
+	test "$MAGISK" == true && magisk_procedure_extras
+	  
+    #### COMPLETING INSTALL ####
+    ui_print " "
+    ui_print "- Completing install -"
+    ui_print "   Setting permissions..."
+    if [ "$MAGISK" == true ]; then
+	  test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && set_perm_recursive $AMLPATH 0 0 0755 0644
+      set_permissions	  
+	else
+	  set_permissions
+      action_complete
+      exit 0
+	fi
+  else
+    test "$MAGISK" == false && { ui_print " "; ui_print "   ! Magisk is not installed!"; ui_print "    ! Uninstalling on system!"; }
+
+    # Uninstall
+    unity_uninstall
+
+    #### COMPLETING UNINSTALL ####
+    test "$MAGISK" == true && { ui_print " "; ui_print "- Completing uninstall -"; } || { action_complete; exit 0; }
+  fi
+}
+
+# CHECK FOR SYSTEM INSTALL
 if is_mounted /data ; then
   if [ ! -f "/data/magisk.img" ]; then
-    # Prepare (Un)Install
     system_install
-    script_install_logic
-	app_install_logic
-
-    # Determine if mod is already installed. If same version is installed, uninstall
-    mod_exist
-
-    if [ "$ACTION" == "Install" ]; then
-      ui_print " "
-      ui_print "   ! Magisk is not installed!"
-      ui_print "    ! Installing on system!"
-
-      # Wipe files
-      unity_mod_wipe
-
-      # Create mod paths
-      unity_mod_directory
-	  
-      # Copy files
-      unity_mod_copy
-
-      # Patch files
-      test "$AUDMODLIB" != "$MODID" && aml_mod
-	  
-      #### COMPLETING INSTALL ####
-      ui_print " "
-      ui_print "- Completing install -"
-      ui_print "   Setting permissions..."
-      set_permissions
-      action_complete
-      exit 0;
-    else
-      ui_print " "
-      ui_print "   ! Magisk is not installed!"
-      ui_print "    ! Uninstalling on system!"
-
-      # Uninstall
-      unity_uninstall
-
-      #### COMPLETING UNINSTALL ####
-      action_complete
-      exit 0;
-    fi
+	script_install_logic
+	standard_procedure
+  fi
+elif is_mounted /cache; then
+  if [ ! -f "/cache/magisk.img" ]; then
+    system_install
+	script_install_logic
+	standard_procedure
   fi
 else
-  ui_print " "
-  ui_print "***********************************"
-  ui_print "*      !! Data unavailible !!     *"
-  ui_print "* Magisk detection is impossible  *"
-  ui_print "* Installation will still proceed *"
-  ui_print "*  But please make sure you have  *"
-  ui_print "*        Magisk installed!!       *"
-  ui_print "*         !!Using Cache!!         *"
-  ui_print "***********************************"
-  ui_print " "
+  ui_print "! Unable to mount /data and /cache!"
+  ui_print "! Aborting!"
+  exit 1
 fi
 
+# MAGISK INSTALL
 # Utility functions must exist
 [ -f $MAGISKBIN/util_functions.sh ] || require_new_magisk
 $BOOTMODE && ! is_mounted /magisk && abort "! Magisk is not activated!"
@@ -929,68 +979,8 @@ MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "     $IMG mount failed..."
 
 # Prepare (Un)install
-test "$SYSOVER" == true && system_install || magisk_install
-app_install_logic
-
-# Determine if mod is already installed. If same version is installed, uninstall
-mod_exist
-
-if [ "$ACTION" == "Install" ]; then
-
-  # Wipe files
-  unity_mod_wipe
-
-  # Create mod paths
-  unity_mod_directory
-
-  # Copy files
-  unity_mod_copy
-
-  # Patch files
-  test "$AUDMODLIB" != "$MODID" && aml_mod
-
-  # Handle replace folders
-  for TARGET in $REPLACE; do
-    mktouch $MODPATH$TARGET/.replace
-    test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && mktouch $AMLPATH$TARGET/.replace
-  done
-
-  # Auto Mount
-  $AUTOMOUNT && touch $MODPATH/auto_mount
-  test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && { $AUTOMOUNT && touch $AMLPATH/auto_mount; }
-  
-  # Remove old AML files if in BOOTMODE
-  test "$BOOTMODE" == "true" -a "$AUDMODLIB" != "$MODID" && { rm -rf /magisk/$AMLID; mkdir -p /magisk/$AMLID; }
-
-  # Module info
-  cp -af $INSTALLER/module.prop $MODPATH/module.prop
-  test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && cp -af $INSTALLER/common/$AMLID/audmodlibmodule.prop $AMLPATH/module.prop
-  if $BOOTMODE; then
-    # Update info for Magisk Manager
-    mktouch /magisk/$MODID/update
-    test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && mktouch /magisk/$AMLID/update
-    cp -af $INSTALLER/module.prop /magisk/$MODID/module.prop
-    test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && cp -af $INSTALLER/common/$AMLID/audmodlibmodule.prop /magisk/$AMLID/module.prop
-  fi
-
-  # post-fs-data mode scripts
-  $POSTFSDATA && cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
-
-  #### COMPLETING INSTALL ####
-  ui_print " "
-  ui_print "- Completing install -"
-  ui_print "   Setting permissions..."
-  test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && set_perm_recursive $AMLPATH 0 0 0755 0644
-  set_permissions
-else
-
-  # Uninstall
-  unity_uninstall
-  
-  #### COMPLETING UNINSTALL ####
-  ui_print " "
-  ui_print "- Completing uninstall -"
-fi
+test "$SYSOVER" == true && { system_install; script_install_logic; } || magisk_install
+standard_procedure
 
 ##########################################################################################
 # Finalizing
