@@ -181,12 +181,11 @@ sys_cp_ch() {
 
 # COPY SYS FILE (BUT BACKUP OLD ONES FIRST)
 sys_cpbak_ch() {
-  TPATH=$(echo $2 | sed 's|/system/||')
   if [ -f "$2" ] && [ ! -f "$2.bak" ]; then
     mv -f "$2" "$2.bak"
-    echo "$TPATH.bak" >> $INFO
+    echo "$2.bak" >> $INFO
   fi
-  test ! "$(grep "$TPATH" $INFO)" && echo "$TPATH" >> $INFO
+  test ! "$(grep "$2" $INFO)" && echo "$2" >> $INFO
   sys_cp_ch $1 $2 $3
 }
 
@@ -204,15 +203,14 @@ sys_rm_ch() {
 
 # BACKUP/REMOVE FILE
 sys_wipe_ch() {
-  TPATH=$(echo $1 | sed 's|/system/||')
   test ! -f $INFO && touch $INFO
   TPARTMOD=false
   cat $INFO | while read LINE; do
-    test "$TPATH" == "$(eval echo $LINE)" && { TPARTMOD=true; sed -i "/$TPATH/d" $INFO; }
+    test "$1" == "$(eval echo $LINE)" && { TPARTMOD=true; sed -i "/$1/d" $INFO; }
   done
   if [ -f "$1" ] && [ ! -f "$1.bak" ] && [ "$TPARTMOD" != true ]; then
 	mv -f "$1" "$1.bak"
-	echo "$TPATH.bak" >> $INFO
+	echo "$1.bak" >> $INFO
   else
     rm -f "$1"
   fi
@@ -220,10 +218,9 @@ sys_wipe_ch() {
 
 # BACKUP/REMOVE FOLDER
 sys_wipefol_ch() {
-  TPATH=$(echo $1 | sed 's|/system/||')
   if [ -d "$1" ] && [ ! -f "$1.tar" ]; then
     tar -cf "$1.tar" "$1"
-	test ! -f $INFO && { touch $INFO; echo "$TPATH.tar" >> $INFO; } || { test ! "$(grep "$TPATH.tar" $INFO)" && echo "$TPATH.tar" >> $INFO; }
+	test ! -f $INFO && { touch $INFO; echo "$1.tar" >> $INFO; } || { test ! "$(grep "$1.tar" $INFO)" && echo "$1.tar" >> $INFO; }
   else
     rm -rf "$1"
   fi
@@ -319,6 +316,7 @@ else
   INFO=$SYS/etc/$MODID-files
   AMLINFO=$SYS/etc/$AMLID-files
 fi
+
 # TEMPORARY VARIABLES
 TFILES=$INSTALLER/tfiles
 TVFILES=$INSTALLER/tvfiles
@@ -336,9 +334,9 @@ magisk_install() {
   MK_PRFX="mkdir -p"
   CP_PRFX="cp -af"
   CP_PRFXAML="cp -af"
-  RM_PRFX="mktouch"
-  RMFOL_PRFX="mktouch"
-  RMFOL_SFFX="/.replace"
+  WP_PRFX="mktouch"
+  WPFOL_PRFX="mktouch"
+  WPFOL_SFFX="/.replace"
   UNITY="$MODPATH"
   MK_SFFX=""
   CP_SFFX=""
@@ -354,9 +352,9 @@ system_install() {
   MK_PRFX="sys_mk_ch"
   CP_PRFX="sys_cpbak_ch"
   CP_PRFXAML="sys_cp_ch"
-  RM_PRFX="sys_wipe_ch"
-  RMFOL_PRFX="sys_wipefol_ch"
-  RMFOL_SFFX=""
+  WP_PRFX="sys_wipe_ch"
+  WPFOL_PRFX="sys_wipefol_ch"
+  WPFOL_SFFX=""
   UNITY=""
   MK_SFFX=" 0755"
   CP_SFFX=" 0644"
@@ -377,12 +375,11 @@ custom_app_install() {
 }
 
 custom_app_wipe() {
-  $OLDAPP && { test -f "$SYS/app/$1.apk" && $RM_PRFX $UNITY$SYS/app/$1.apk; } || { test -f "SYS/priv-app/$1/$1.apk" && $RM_PRFX $UNITY$SYS/priv-app/$1/$1.apk; }
+  $OLDAPP && { test -f "$SYS/app/$1.apk" && $WP_PRFX $UNITY$SYS/app/$1.apk || { test -f "$SYS/app/$1/$1.apk" && $WP_PRFX $UNITY$SYS/app/$1/$1.apk; } ; } || { test -f "SYS/priv-app/$1/$1.apk" && $WP_PRFX $UNITY$SYS/priv-app/$1/$1.apk; }
 }
 
 add_to_info() {
-  TPATH=$(echo $1 | sed 's|/system/||')
-  test ! "$(grep "$TPATH" $2)" && echo "$TPATH" >> $2
+  test ! "$(grep "$1" $2)" && echo "$1" >> $2
 }
 
 app_install_logic() {
@@ -511,11 +508,11 @@ unity_mod_wipe() {
 
   cat $INPUT_FILE_WIPE | while read LINE; do
     if [ "$(echo "$LINE" | cut -c-3)" == "FOL" ] && [ -d "$(echo "$LINE" | cut -c4-)" ]; then
-      $RMFOL_PRFX $(eval "echo $LINE" | cut -c4-)$RMFOL_SFFX
+      test "$(echo "$LINE" | cut -c 4-9)" == "/data/" && sys_wipefol_ch $(eval "echo $LINE" | cut -c4-) || $WPFOL_PRFX $(eval "echo $LINE" | cut -c4-)$WPFOL_SFFX
     elif [ "$(echo "$LINE" | cut -c-3)" == "APP" ]; then
 	  custom_app_wipe $(eval "echo $LINE" | cut -c4-)
 	else
-      test -f "$(eval "echo $LINE")" && $RM_PRFX $(eval "echo $LINE")
+      test -f "$(eval "echo $LINE")" && { test "$(echo "$LINE" | cut -c 1-6)" == "/data/" && sys_wipe_ch $(eval "echo $LINE") || $WP_PRFX $(eval "echo $LINE"); }
     fi
   done
 
@@ -544,7 +541,7 @@ unity_mod_directory() {
   
   cat $TFILES | while read LINE; do
     $OLDAPP && LINE=$(echo $LINE | sed 's|/app/.*/|/app/|') || LINE=$(echo $LINE | sed 's|/app/|/priv-app/|')
-	$MK_PRFX $(dirname "$UNITY$SYS$LINE")$MK_SFFX
+	$MK_PRFX $(dirname "$UNITY$LINE")$MK_SFFX
   done
   cat $TVFILES | while read LINE; do
     $MK_PRFX $(dirname "$UNITY$VEN$LINE")$MK_SFFX
@@ -647,7 +644,7 @@ unity_mod_copy() {
   
   cat $TFILES | while read LINE; do
     $OLDAPP && LINE2=$(echo $LINE | sed 's|/app/.*/|/app/|') || LINE2=$(echo $LINE | sed 's|/app/|/priv-app/|')
-	$CP_PRFX $INSTALLER/system$LINE $UNITY$SYS$LINE2$CP_SFFX
+	$CP_PRFX $INSTALLER$LINE $UNITY$LINE2$CP_SFFX
   done
   cat $TVFILES | while read LINE; do
     $CP_PRFX $INSTALLER/system/vendor$LINE $UNITY$VEN$LINE$CP_SFFX
@@ -769,11 +766,7 @@ unity_uninstall() {
       ui_print "   System install detected, removing files..."
 	  test "$MODID" == "$AMLID" && sed -i "/.bak$/d" $INFO
       cat $INFO | while read LINE; do
-        if [ "$(dirname $LINE)" == "/su/su.d" ]; then
-          sys_rm_ch $LINE
-        else
-          test ! "$(dirname $LINE)" == "/vendor" && sys_rm_ch $SYS/$LINE || sys_rm_ch $(echo $LINE | sed "s/\/vendor/$VEN/")
-        fi
+	    sys_rm_ch $LINE
       done
       rm -f $INFO
     else
@@ -836,11 +829,12 @@ test -z $MINAPI || { test $API -ge $MINAPI || require_new_api; }
 # PROCESS FOLDERS/FILES
 
 find $INSTALLER/system -type f -print > $TFILES
-sed -i -e '/addon.d/ d' -e 's/&/\\&/g' -e "s|$INSTALLER/system||g" $TFILES
+test $(find $INSTALLER/data -type f -print) != "$INSTALLER/data/placeholder" && find $INSTALLER/data -type f -print >> $TFILES
+sed -i -e '/addon.d/ d' -e 's/&/\\&/g' -e "s|$INSTALLER||g" $TFILES
 $IS64BIT || sed -i '/lib64/ d' $TFILES
 cp $TFILES $TVFILES
-sed -i -e '/vendor/ d' $TFILES 
-sed -i -e '/\/vendor/!d' -e "s/\/vendor//g" $TVFILES
+sed -i -e '/\/vendor\// d' $TFILES 
+sed -i -e '/\/vendor/!d' -e "s/\/system\/vendor//g" $TVFILES
 
 if is_mounted /data ; then
   if [ ! -f "/data/magisk.img" ]; then
@@ -910,7 +904,7 @@ $BOOTMODE && ! is_mounted /magisk && abort "! Magisk is not activated!"
 $BOOTMODE && boot_actions || recovery_actions
 
 # Check the min magisk version
-MIN_VER=`grep_prop template $INSTALLER/module.prop`
+MIN_VER=`grep_prop minVer $INSTALLER/module.prop`
 MAGISK_VER_CODE=`grep_prop MAGISK_VER_CODE $MAGISKBIN/util_functions.sh`
 [ ! -z $MAGISK_VER_CODE -a $MAGISK_VER_CODE -ge $MIN_VER ] || require_new_magisk
 
