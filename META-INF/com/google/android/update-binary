@@ -167,7 +167,7 @@ mod_exist() {
 # MAKE SYS DIR
 sys_mk_ch() {
   mkdir -p "$1"
-  chmod "$2" "$1"
+  test "$(echo "$1" | cut -c 1-6)" == "/data/" && chmod 0755 "$1" || chmod "$2" "$1"
 }
 
 # COPY SYS FILE
