@@ -189,6 +189,7 @@ curFreeM
 NOT USABLE FUNCTIONS - You'll have no need to use these, they're just listed for reference
 
 supersu_is_mounted
+supersuimg_mount
 mod_exist
 action_complete
 magisk_install
@@ -210,6 +211,7 @@ find_boot_image
 migrate_boot_backup
 sign_chromeos
 is_mounted
+patch_util_functions
 remove_system_su
 api_level_arch_detect
 boot_actions
@@ -224,3 +226,5 @@ sys_mk_ch
 sys_cp_ch
 sys_cpbak_ch
 sys_rm_ch
+magisk_procedure_extras
+standard_procedure

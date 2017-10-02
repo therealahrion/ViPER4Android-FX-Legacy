@@ -6,11 +6,11 @@
 #
 ##########################################################################################
 
-# Detect whether in boot mode
+# DETECT WHETHER IN BOOT MODE
 ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false
 $BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true
 
-# Default permissions
+# DEFAULT PERMISSIONS
 umask 022
 
 ##########################################################################################
@@ -50,11 +50,11 @@ patch_util_functions() {
   sed -i -e 's|- Mounting /system, /vendor|   Mounting /system, /vendor...|' -e '/   Mounting \/system, \/vendor.../ i\ui_print "- Mounting Filesystems -"' -e 's/- Unmounting partitions/   Unmounting partitions.../' -e 's/- Device skip_initramfs detected/   ! Device skip_initramfs detected' $INSTALLER/common/audmodlib/util_functions.sh
 }
 
-# Mount /data and /cache to access MAGISKBIN
+# MOUNT /DATA AND /CACHE TO ACCESS MAGISKBIN
 mount /data 2>/dev/null
 mount /cache 2>/dev/null
 
-# This path should work in any cases
+# THIS PATH SHOULD WORK IN ANY CASES
 TMPDIR=/dev/tmp
 INSTALLER=$TMPDIR/install
 MOUNTPATH=$TMPDIR/magisk_img
@@ -72,7 +72,7 @@ else
   MAGISKBIN=/cache/data_bin
 fi
 
-# Load utility functions
+# LOAD UTILITY FUNCTIONS
 test -f $MAGISKBIN/util_functions.sh && { test $(grep "MAGISK_VER_CODE=" $MAGISKBIN/util_functions.sh | sed 's/^.*=//') -gt $(grep "MAGISK_VER_CODE=" $INSTALLER/common/audmodlib/util_functions.sh | sed 's/^.*=//') && patch_util_functions; }
 . $INSTALLER/common/audmodlib/util_functions.sh
 get_outfd
@@ -96,7 +96,7 @@ done
 
 . $INSTALLER/config.sh
 
-# Print mod name
+# PRINT MOD NAME
 print_modname
 
 #### MOUNT FILESYS ####
@@ -132,11 +132,8 @@ test "$SYSOVER" == true && ui_print "! Warning: Forcing a system $ACTION!"
 
 mount_partitions
 
-# Detect version and architecture
+# DETECT VERSION AND ARCHITECTURE
 api_level_arch_detect
-
-# You can get the Android API version from $API, the CPU architecture from $ARCH
-# Useful if you are creating Android version / platform dependent mods
 
 require_new_magisk() {
   ui_print "***********************************"
@@ -279,6 +276,9 @@ done
 # IMPORT USER VARIABLES
 source $INPUT_VAR
 
+# CHECK FOR MIN API VERSION
+test -z $MINAPI || { test $API -ge $MINAPI || require_new_api; }
+
 # SET MODID, MODPATH, AMLPATH, and AML variables
 test -z $MODID && MODID=`grep_prop id $INSTALLER/module.prop`
 AMLID=audmodlib
@@ -321,6 +321,15 @@ fi
 # TEMPORARY VARIABLES
 TFILES=$INSTALLER/tfiles
 TVFILES=$INSTALLER/tvfiles
+
+# PROCESS FOLDERS AND FILES
+find $INSTALLER/system -type f -print > $TFILES
+test $(find $INSTALLER/data -type f -print) != "$INSTALLER/data/placeholder" && find $INSTALLER/data -type f -print >> $TFILES
+sed -i -e '/addon.d/ d' -e 's/&/\\&/g' -e "s|$INSTALLER||g" $TFILES
+$IS64BIT || sed -i '/lib64/ d' $TFILES
+cp $TFILES $TVFILES
+sed -i -e '/\/vendor\// d' $TFILES 
+sed -i -e '/\/vendor/!d' -e "s/\/system\/vendor//g" $TVFILES
 
 if [ "$MODID" != "$AMLID" ]; then
   # RENAME MODID-SERVICE SCRIPT
@@ -713,7 +722,7 @@ aml_mod_patch() {
   #### PATCHING FILES ####
   ui_print "- Patching necessary files -"
 
-  # Patch audmodlib-services script
+  # PATCH AUDMODLIB-SERVICES SCRIPT
   aml_script_patch
   
   # REMOVE LIBRARIES & EFFECTS
@@ -837,73 +846,60 @@ unity_uninstall() {
 # Install
 ##########################################################################################
 
-# Check for min api version
-test -z $MINAPI || { test $API -ge $MINAPI || require_new_api; }
-
-# PROCESS FOLDERS/FILES
-
-find $INSTALLER/system -type f -print > $TFILES
-test $(find $INSTALLER/data -type f -print) != "$INSTALLER/data/placeholder" && find $INSTALLER/data -type f -print >> $TFILES
-sed -i -e '/addon.d/ d' -e 's/&/\\&/g' -e "s|$INSTALLER||g" $TFILES
-$IS64BIT || sed -i '/lib64/ d' $TFILES
-cp $TFILES $TVFILES
-sed -i -e '/\/vendor\// d' $TFILES 
-sed -i -e '/\/vendor/!d' -e "s/\/system\/vendor//g" $TVFILES
-
 magisk_procedure_extras() {
-  # Handle replace folders
+  # HANDLE REPLACE FOLDERS
   for TARGET in $REPLACE; do
     mktouch $MODPATH$TARGET/.replace
     test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && mktouch $AMLPATH$TARGET/.replace
   done
 
-  # Auto Mount
+  # AUTO MOUNT
   $AUTOMOUNT && touch $MODPATH/auto_mount
   test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && { $AUTOMOUNT && touch $AMLPATH/auto_mount; }
   
-  # Remove old AML files if in BOOTMODE
+  # REMOVE OLD AML FILES IF IN BOOTMODE
   test "$BOOTMODE" == "true" -a "$AUDMODLIB" != "$MODID" && { rm -rf /magisk/$AMLID; mkdir -p /magisk/$AMLID; }
 
-  # Module info
+  # MODULE INFO
   cp -af $INSTALLER/module.prop $MODPATH/module.prop
   test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && cp -af $INSTALLER/common/$AMLID/audmodlibmodule.prop $AMLPATH/module.prop
   if $BOOTMODE; then
-    # Update info for Magisk Manager
+    # UPDATE INFO FOR MAGISK MANAGER
     mktouch /magisk/$MODID/update
     test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && mktouch /magisk/$AMLID/update
     cp -af $INSTALLER/module.prop /magisk/$MODID/module.prop
     test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && cp -af $INSTALLER/common/$AMLID/audmodlibmodule.prop /magisk/$AMLID/module.prop
   fi
 
-  # post-fs-data mode scripts
+  # POST-FS-DATA MODE SCRIPTS
   $POSTFSDATA && cp -af $INSTALLER/common/post-fs-data.sh $MODPATH/post-fs-data.sh
 }
 
 standard_procedure() {
-  # Prepare (Un)Install
+  # PREPARE (UN)INSTALL
   app_install_logic
 
-  # Determine if mod is already installed. If same version is installed, uninstall
+  # DETERMINE IF MOD IS ALREADY INSTALLED. IF SAME VERSION IS INSTALLED, UNINSTALL
   mod_exist
 
   if [ "$ACTION" == "Install" ]; then
     test "$MAGISK" == false && { ui_print " "; ui_print "   ! Magisk is not installed!"; ui_print "    ! Installing on system!"; }
 
-    # Wipe files
+    # WIPE FILES
     unity_mod_wipe
 
-    # Create mod paths
+    # CREATE MOD PATHS
     unity_mod_directory
 	 
-    # Copy files
+    # COPY FILES
     unity_mod_copy
 
-    # Patch files
+    # PATCH FILES
     test "$AUDMODLIB" != "$MODID" && aml_mod
 	
 	test "$MAGISK" == true && magisk_procedure_extras
 	  
-    #### COMPLETING INSTALL ####
+    # COMPLETING INSTALL
     ui_print " "
     ui_print "- Completing install -"
     ui_print "   Setting permissions..."
@@ -918,10 +914,10 @@ standard_procedure() {
   else
     test "$MAGISK" == false && { ui_print " "; ui_print "   ! Magisk is not installed!"; ui_print "    ! Uninstalling on system!"; }
 
-    # Uninstall
+    # UNINSTALL
     unity_uninstall
 
-    #### COMPLETING UNINSTALL ####
+    # COMPLETING UNINSTALL
     test "$MAGISK" == true && { ui_print " "; ui_print "- Completing uninstall -"; } || { action_complete; exit 0; }
   fi
 }
@@ -946,14 +942,14 @@ else
 fi
 
 # MAGISK INSTALL
-# Utility functions must exist
+# UTILITY FUNCTIONS MUST EXIST
 [ -f $MAGISKBIN/util_functions.sh ] || require_new_magisk
 $BOOTMODE && ! is_mounted /magisk && abort "! Magisk is not activated!"
 
-# We need busybox/binaries to be setup
+# WE NEED BUSYBOX/BINARIES TO BE SETUP
 $BOOTMODE && boot_actions || recovery_actions
 
-# Check the min magisk version
+# CHECK THE MIN MAGISK VERSION
 MIN_VER=`grep_prop minVer $INSTALLER/module.prop`
 MAGISK_VER_CODE=`grep_prop MAGISK_VER_CODE $MAGISKBIN/util_functions.sh`
 [ ! -z $MAGISK_VER_CODE -a $MAGISK_VER_CODE -ge $MIN_VER ] || require_new_magisk
@@ -978,7 +974,7 @@ ui_print "    Mounting $IMG to $MOUNTPATH"
 MAGISKLOOP=`$MAGISKBIN/magisk --mountimg $IMG $MOUNTPATH`
 is_mounted $MOUNTPATH || abort "     $IMG mount failed..."
 
-# Prepare (Un)install
+# PREPARE (UN)INSTALL
 test "$SYSOVER" == true && { system_install; script_install_logic; } || magisk_install
 standard_procedure
 
@@ -989,7 +985,7 @@ standard_procedure
 $MAGISKBIN/magisk --umountimg $MOUNTPATH $MAGISKLOOP
 rmdir $MOUNTPATH
 
-# Shrink the image if possible
+# SHRINK THE IMAGE IF POSSIBLE
 image_size_check $IMG
 newSizeM=$((curUsedM / 32 * 32 + 64))
 if [ $curSizeM -gt $newSizeM ]; then
@@ -1008,7 +1004,7 @@ rm -rf $TMPDIR
 
 action_complete
 
-# Please leave this message in your flashable zip for credits :)
+# PLEASE LEAVE THIS MESSAGE IN YOUR FLASHABLE ZIP FOR CREDITS :)
 ui_print " "
 ui_print "    *******************************************"
 ui_print "    *      Powered by Magisk (@topjohnwu)     *"
