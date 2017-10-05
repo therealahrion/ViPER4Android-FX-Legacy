@@ -182,7 +182,7 @@ cp_ch() {
 # COPY SYS FILE (BUT BACKUP OLD ONES FIRST)
 sys_cpbak_ch() {
   if [ -f "$2" ] && [ ! -f "$2.bak" ]; then
-    mv -f "$2" "$2.bak"
+    cp -f "$2" "$2.bak"
     echo "$2.bak" >> $INFO
   fi
   test ! "$(grep "$2" $INFO)" && echo "$2" >> $INFO
@@ -248,6 +248,11 @@ wipe_ch() {
   esac
 }
 
+xml_install() {
+  XML_PRFX=$INSTALLER/common/$AMLID/xmlstarlet/$XMLPATH/xmlstarlet
+  chmod 777 $XML_PRFX
+}
+
 # PRINT OUT COMPLETETION OF (UN)INSTALL
 action_complete() {
   ui_print " "
@@ -264,8 +269,11 @@ action_complete() {
 # USER INPUT FILES
 INPUT_FILE_WIPE=$INSTALLER/common/unity-files-wipe.sh
 INPUT_PATCHES=$INSTALLER/common/aml-patches.sh
+INPUT_XML_PATCHES=$INSTALLER/common/aml-xml-patches.sh
 INPUT_PATCHES_REM=$INSTALLER/common/aml-patches-remove.sh
+INPUT_XML_PATCHES_REM=$INSTALLER/common/aml-xml-patches-remove.sh
 INPUT_PATCHES_WIPE=$INSTALLER/common/aml-patches-wipe.sh
+INPUT_XML_PATCHES_WIPE=$INSTALLER/common/aml-xml-patches-wipe.sh
 INPUT_PROPS=$INSTALLER/common/unity-props.prop
 INPUT_PROPS_REM=$INSTALLER/common/unity-props-remove.prop
 INPUT_VAR=$INSTALLER/common/unity-uservariables.sh
@@ -273,7 +281,7 @@ INPUT_RULES=$INSTALLER/common/unity-customrules
 INPUT_SCRIPT=$INSTALLER/common/unity-script.sh
 
 # REMOVE COMMENTS FROM USER INPUT FILES AND ADD PROPER VARIABLES
-for FIL in $INPUT_FILE_WIPE $INPUT_PATCHES $INPUT_PATCHES_REM $INPUT_PATCHES_WIPE $INPUT_PROPS $INPUT_PROPS_REM $INPUT_VAR $INPUT_RULES $INPUT_SCRIPT; do
+for FIL in $INPUT_FILE_WIPE $INPUT_PATCHES $INPUT_XML_PATCHES $INPUT_PATCHES_REM $INPUT_XML_PATCHES_REM $INPUT_PATCHES_WIPE $INPUT_XML_PATCHES_WIPE $INPUT_PROPS $INPUT_PROPS_REM $INPUT_VAR $INPUT_RULES $INPUT_SCRIPT; do
   if [ "$FIL" == "$INPUT_RULES" ]; then
     NUM=1; while true; do
       if [ -f $FIL$NUM.sh ]; then
@@ -355,8 +363,25 @@ if [ "$MODID" != "$AMLID" ]; then
   sed -i -e "s/<MODID>/$MODID/" -e "/# CUSTOM USER SCRIPT/ r $INPUT_SCRIPT" -e '/# CUSTOM USER SCRIPT/d' $INSTALLER/common/$AMLID/$MODID-post-fs-data.sh
 fi
 
+# XMLSTARLET - THANKS TO @JAMES34602 @XDADEVELOPERS FOR PORTING IT
+case $ABILONG in
+  arm64*) XMLPATH="arm64"
+          xml_install
+          ;;
+  arm*) XMLPATH="arm"
+        xml_install
+        ;;
+  x86*) XMLPATH="x86"
+        xml_install
+        ;;
+  *)  ui_print "   ! Only arm, arm64, and x86 devices are compatible for xml patching"
+      ui_print "   ! XML Patching will be skipped"
+      ;;
+esac
+
 CP_NBPRFX="cp_ch"
-CP_SFFX=" 0644 0755"
+CP_SFFX=" 0755 0644"
+WP_PRFX="wipe_ch"
 
 magisk_install() {
   MAGISK=true
@@ -386,8 +411,10 @@ system_install() {
 aml_script_patch() {
   # INSERT UNITY REMOVE PATCHES INTO MOD SCRIPT
   sed -i "/magisk\/$MODID/,/fi #$MODID/d" $AMLPATH/post-fs-data.sh
-  test ! -d $SYS/addon.d && sed -i 's/^/  /' $INPUT_PATCHES_REM
-  sed -i -e "/# MOD PATCHES/ a\if [ ! -d \"/magisk/$MODID\" ]; then" -e "/# MOD PATCHES/ a\  MODIDS=\"\${MODIDS} $MODID\"" -e "/# MOD PATCHES/ r $INPUT_PATCHES_REM" -e "/# MOD PATCHES/ a\fi #$MODID" $AMLPATH/post-fs-data.sh
+  test ! -d $SYS/addon.d && { sed -i 's/^/  /' $INPUT_PATCHES_REM; { test ! -z $XML_PRFX && sed -i 's/^/  /' $INPUT_XML_PATCHES_REM; }; }
+  sed -i -e "/# MOD PATCHES/ a\if [ ! -d \"/magisk/$MODID\" ]; then" -e "/# MOD PATCHES/ a\  MODIDS=\"\${MODIDS} $MODID\"" -e "/# MOD PATCHES/ r $INPUT_PATCHES_REM" $AMLPATH/post-fs-data.sh
+  test ! -z $XML_PRFX && sed -i "/# MOD PATCHES/ r $INPUT_XML_PATCHES_REM" $AMLPATH/post-fs-data.sh
+  sed -i "/# MOD PATCHES/ a\fi #$MODID" $AMLPATH/post-fs-data.sh
 }
 
 custom_app_install() {
@@ -524,10 +551,11 @@ unity_mod_wipe() {
   ui_print "   Removing files..."
   if [ "$MAGISK" == true ] || [ "$SYSOVER" == true ]; then 
     rm -rf $MODPATH 2>/dev/null
-	test ! -f "$INFO" && mktouch $INFO
   elif [ "$MAGISK" == false ]; then
     rm -f $SYS/etc/init.d/$MODID $SYS/etc/init.d/$AMLID $SYS/addon.d/$MODID.sh /su/su.d/$MODID.sh /su/su.d/$AMLID.sh $SYS/su.d/$MODID.sh $SYS/su.d/$AMLID.sh
   fi
+  
+  test ! -f "$INFO" && mktouch $INFO
 
   cat $INPUT_FILE_WIPE | while read LINE; do
     wipe_ch $LINE
@@ -610,10 +638,12 @@ unity_mod_copy() {
         sed -i "s/<MODID>/$MODID/" $INSTALLER/system/addon.d/$MODID.sh
         if [ "$AUDMODLIB" != "$MODID" ]; then
           # INSERT AML REMOVE, WIPE, AND REGULAR PATCHES INTO ADDON.D SCRIPT
-          sed -i 's/^/  /' $INPUT_PATCHES
-          sed -i 's/^/  /' $INPUT_PATCHES_REM
-          sed -i 's/^/  /' $INPUT_PATCHES_WIPE
-          sed -i -e "/<PATCHES>/ r $INPUT_PATCHES_WIPE" -e "/<PATCHES>/ r $INPUT_PATCHES_REM" -e "/<PATCHES>/ r $INPUT_PATCHES" $INSTALLER/system/addon.d/$MODID.sh	  
+          sed -i 's/^/  /' $INPUT_PATCHES; sed -i "/<PATCHES>/ r $INPUT_PATCHES_WIPE" $INSTALLER/system/addon.d/$MODID.sh
+		  test ! -z $XML_PRFX && { sed -i 's/^/  /' $INPUT_XML_PATCHES_WIPE; sed -i "/<PATCHES>/ r $INPUT_XML_PATCHES_WIPE" $INSTALLER/system/addon.d/$MODID.sh; }
+          sed -i 's/^/  /' $INPUT_PATCHES_REM; sed -i "/<PATCHES>/ r $INPUT_PATCHES_REM" $INSTALLER/system/addon.d/$MODID.sh
+		  test ! -z $XML_PRFX && { sed -i 's/^/  /' $INPUT_XML_PATCHES_REM; sed -i "/<PATCHES>/ r $INPUT_XML_PATCHES_REM" $INSTALLER/system/addon.d/$MODID.sh; }
+          sed -i 's/^/  /' $INPUT_PATCHES_WIPE; sed -i "/<PATCHES>/ r $INPUT_PATCHES" $INSTALLER/system/addon.d/$MODID.sh
+		  test ! -z $XML_PRFX && { sed -i 's/^/  /' $INPUT_XML_PATCHES; sed -i "/<PATCHES>/ r $INPUT_XML_PATCHES" $INSTALLER/system/addon.d/$MODID.sh; }
         fi
         sed -i '/<PATCHES>/d' $INSTALLER/system/addon.d/$MODID.sh		
 
@@ -668,7 +698,11 @@ aml_mod() {
       test ! -f $AMLPATH$CFG && $CP_NBPRFX $CFG $AMLPATH$CFG$CP_SFFX
     fi
   done
-
+  
+  if [ ! -z $XML_PRFX ] && [ ! -f $AMLPATH/system/bin/xmlstarlet ]; then
+    $CP_PRFX "$XML_PRFX" $AMLPATH/system/bin/xmlstarlet 0755 0755
+  fi
+  
   if [ "$MAGISK" == true ] || [ "$SYSOVER" == true ]; then
     test "$BOOTMODE" == "true" -a -f /magisk/$AMLID/post-fs-data.sh && $CP_NBPRFX /magisk/$AMLID/post-fs-data.sh $AMLPATH/post-fs-data.sh 0755 0755
     test "$BOOTMODE" == "true" -a -f /magisk/$AMLID/system.prop && $CP_NBPRFX /magisk/$AMLID/system.prop $AMLPATH/system.prop$CP_SFFX
@@ -696,17 +730,15 @@ aml_mod_patch() {
   ui_print "   Removing library & effect lines..."
 
   source $INPUT_PATCHES_WIPE
+  test ! -z $XML_PRFX && source $INPUT_XML_PATCHES_WIPE
   source $INPUT_PATCHES_REM
+  test ! -z $XML_PRFX && source $INPUT_XML_PATCHES_REMOVE
 
   for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
     if [ -f $CFG ]; then
-      if [ "$(grep ' proxy {#' $AMLPATH$CFG)" ]; then
-        # REMOVE LIBRARIES
-        sed -i '/proxy {/,/}/d' $AMLPATH$CFG
-      fi
       if [ ! "$(grep ' proxy {' $AMLPATH$CFG)" ]; then
         # ADD LIBRARIES
-        sed -i 's/^libraries {/libraries {\n  proxy {#\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $AMLPATH$CFG
+        sed -i 's/^libraries {/libraries {\n  proxy {\n    path \/system\/lib\/soundfx\/libeffectproxy.so\n  }/g' $AMLPATH$CFG
       fi
     fi
   done
@@ -722,6 +754,7 @@ aml_mod_patch() {
   done
 
   source $INPUT_PATCHES
+  test ! -z $XML_PRFX && source $INPUT_XML_PATCHES
 
   NUM=1; while [ $NUM -le $NUMOFCUSTRULES ]; do
     test "$(grep "TIMEOFEXEC=3" $INPUT_RULES$NUM.sh)" && source $INPUT_RULES$NUM.sh
@@ -742,45 +775,29 @@ unity_uninstall() {
   unity_prop_remove $INPUT_PROPS
 
   # REMOVE FILES
-  ui_print "   Removing files..."
   if [ -f $INFO ]; then
+    ui_print "   Removing/restoring files..."
     test "$MODID" == "$AMLID" && sed -i "/.bak$/d" $INFO
     cat $INFO | while read LINE; do
       sys_rm_ch $LINE
     done
     rm -f $INFO
-  fi
-    
-  if [ "$MAGISK" == false ]; then
-    test -f $INFO && ui_print "   System install detected, removing files..." || ui_print "   ! Mod not detected. Removing scripts..."
-    rm -f $SYS/addon.d/$MODID.sh $SYS/etc/init.d/$MODID /su/su.d/$MODID.sh $SYS/su.d/$MODID.sh
-
-    if [ "$MODID" != "$AMLID" ] && [ "$AUDMODLIB" != "$MODID" ]; then
-      # RESTORE CONFIGS, LIBRARIES, & EFFECTS
-      sed -i "/magisk\/$MODID/,/fi #$MODID/d" $AMLPATH/post-fs-data.sh
-      ui_print "   Restoring necessary files"
-      source $INPUT_PATCHES_REM
-    elif [ "$MODID" == "$AMLID" ] && [ "$AUDMODLIB" == "$MODID" ]; then
-      # REMOVE PATCHES
-      for CFG in $CONFIG_FILE $HTC_CONFIG_FILE $OTHER_V_FILE $OFFLOAD_CONFIG $V_CONFIG_FILE; do
-        if [ -f $CFG ]; then
-          if [ "$(grep ' proxy {#' $AMLPATH$CFG)" ]; then
-            # REMOVE LIBRARIES
-            sed -i '/proxy {/,/}/d' $AMLPATH$CFG
-          fi
-        fi
-      done
-
-      for CFG in $CONFIG_FILE $V_CONFIG_FILE; do
-        if [ -f $CFG ] && [ "$(grep '# *output_session_processing' $AMLPATH$CFG)" ]; then
-          sed -i '/#\( *\)output_session_processing {/,/#}/ s/^#\(.*\)/\1/g' $AMLPATH$CFG
-        fi
-      done
-    fi
   else
-    ui_print "   Magisk install detected, removing files..."
+    ui_print "   ! Mod not detected. Removing scripts..."
+  fi
+  
+  if [ "$MODID" != "$AMLID" ] && [ "$AUDMODLIB" != "$MODID" ]; then
+    # RESTORE CONFIGS, LIBRARIES, & EFFECTS
+    source $INPUT_PATCHES_REM
+	test ! -z $XML_PRFX && source $INPUT_XML_PATCHES_REM
+  fi
+	
+  test "$MAGISK" == false && rm -f $SYS/addon.d/$MODID.sh $SYS/etc/init.d/$MODID /su/su.d/$MODID.sh $SYS/su.d/$MODID.sh
+  
+  if [ "$MAGISK" == true ] || [ "$SYSOVER" == true ]; then
     rm -rf $MODPATH
     rm -rf /magisk/$MODID
+	test "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && sed -i "/magisk\/$MODID/,/fi #$MODID/d" $AMLPATH/post-fs-data.sh
     # Use magisk_merge for aml during bootmode uninstall
     test "$BOOTMODE" == "true" -a "$AUDMODLIB" != "$MODID" -a "$MODID" != "$AMLID" && aml_mod
   fi
@@ -876,7 +893,7 @@ standard_procedure() {
 }
 
 # CHECK FOR SYSTEM INSTALL
-if is_mounted /data ; then
+if is_mounted /data; then
   if [ ! -f "/data/magisk.img" ]; then
     system_install
     script_install_logic
