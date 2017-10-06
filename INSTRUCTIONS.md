@@ -1,6 +1,7 @@
 To create your own unity/audmodlib mod, all of the files you need to modify are located in the common folder of this zip (other than the README.md and config.sh)
 NOTE: MAKE SURE YOU LEAVE A BLANK LINE AT THE END OF EACH FILE
 Further instructions are contained in each file
+XMLSTARLET DOCUMENTATION HERE: http://xmlstar.sourceforge.net/docs.php
 
 1. Add your mod info to module.prop
 2. Place your files in their respective directories in the system folder (where they will be installed to)
