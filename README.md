@@ -14,9 +14,10 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * Works with [AM3D Zirene Sound](https://forum.xda-developers.com/android/apps-games/mod-zirene-sound-am3d-t3396698/post71580634#post71580634}, [Dolby Atmos](https://github.com/therealahrion/Dolby-Atmos-ZTE-Axon-7), & ViPER4Android XHiFi
 
 ## Change Log
-v2.1 - 10.04.2017
+v2.1 - 10.06.2017
     * Unity/AML v2.1: Updated for Magisk v14.2
     * Unity/AML v2.1: Updated to Magisk module template 1410
+    * Unity/AML v2.1: Added XMLStartlet for arm/64 & x86 by JamesDSP developer, james3460297 @ XDA Developers (this toolkit allows the editing & patching of XML files using a simple set of shell commands in a way similar to how it is done with grep, sed, awk, diff, patch, join, etc commands)
     * Unity/AML v2.1: Silently uninstall previous version before new version upgrades (this is to keep every upgrade install clean in cases where the new version doesnt include files the previous version may have included)
     * Unity/AML v2.1: Further A/B OTA (Pixel family) improvements
     * Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
