@@ -425,10 +425,10 @@ app_install_logic() {
   # Logic for correct application installation
   ########################################################################################
   if [ -d $SYS/priv-app ]; then
-    APPTXT="   Installing apps/libs for Lollipop & above..."
+    APPTXT="   Installing files for Lollipop & above..."
     OLDAPP=false
   else
-    APPTXT="   Installing apps/libs for Lollipop & below..."
+    APPTXT="   Installing files for Lollipop & below..."
     OLDAPP=true
   fi
 }
