@@ -18,7 +18,9 @@ v2.1 - 10.06.2017
     * Unity/AML v2.1: Updated for Magisk v14.2
     * Unity/AML v2.1: Updated to Magisk module template 1410
     * Unity/AML v2.1: Added XMLStartlet for arm/arm64 & x86 by JamesDSP developer, james3460297 @ XDA Developers (this toolkit allows the editing & patching of XML files using a simple set of shell commands in a way similar to how it is done with grep, sed, awk, diff, patch, join, etc commands)
-    * Unity/AML v2.1: Silently uninstall previous version before new version upgrades (this is to keep every upgrade install clean in cases where the new version doesnt include files the previous version may have included)
+    * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with MK_PRFX so by default, the command CP_PRFX both creates the directory and copies the file (thus removing the need to have two seperate customrules.sh for cp and mk)
+    * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with CP_SFFX, so the default file placement permission is 0644 and the default folder creation permission is 0755 (you can manually define file copy permission by adding " 0755" or whatever permission you want at the end of the line that contains CP_PRFX)
+    * Unity/AML v2.1: Silently uninstall previous version before new version upgrades (this is to keep every upgrade install clean in cases where the new version doesn't include files the previous version may have included)
     * Unity/AML v2.1: Further A/B OTA (Pixel family) improvements
     * Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
     * Unity/AML v2.1: Added cabability for modifications to modify /data partition, with full backup/removal support
@@ -27,7 +29,6 @@ v2.1 - 10.06.2017
     * Unity/AML v2.1: Added support for SuperSU BINDSBIN mode
     * Unity/AML v2.1: Fix cache system installs
     * Unity/AML v2.1: Moved scripts to post-fs-data for Magisk installs (fixes some issues such as AM3D white screen on compatible devices)
-    * Unity/AML v2.1: Combined custom rule copy function and custom rule directory making function into one function (just use the Unity copy function instead of both)
     * Unity/AML v2.1: Combined multiple wipe functions into one
     * Unity/AML v2.1: Fixed System override issues some were facing
     * Unity/AML v2.1: Fixed System install partition re-mounting
