@@ -18,8 +18,8 @@ v2.1 - 10.06.2017
     * Unity/AML v2.1: Updated for Magisk v14.2
     * Unity/AML v2.1: Updated to Magisk module template 1410
     * Unity/AML v2.1: Added XMLStartlet for arm/arm64 & x86 by JamesDSP developer, james3460297 @ XDA Developers (this toolkit allows the editing & patching of XML files using a simple set of shell commands in a way similar to how it is done with grep, sed, awk, diff, patch, join, etc commands)
-    * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with MK_PRFX so by default, the command CP_PRFX both creates the directory and copies the file
-    * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with CP_SFFX while also removing the need for CP_SFFX completely, so default file placement permission is 0644 and default folder creation permission is 0755 (you can manually define file copy permission by adding " 0755" or whatever permission you want at the end of the line that contains CP_PRFX)
+    * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with MK_PRFX so by default, the command CP_PRFX both creates the directory and copies the file, thus removing the need to have two seperate customrules.sh for cp and mk
+    * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with CP_SFFX, so the default file placement permission is 0644 and the default folder creation permission is 0755 (you can manually define file copy permission by adding " 0755" or whatever permission you want at the end of the line that contains CP_PRFX)
     * Unity/AML v2.1: Silently uninstall previous version before new version upgrades (this is to keep every upgrade install clean in cases where the new version doesn't include files the previous version may have included)
     * Unity/AML v2.1: Further A/B OTA (Pixel family) improvements
     * Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
