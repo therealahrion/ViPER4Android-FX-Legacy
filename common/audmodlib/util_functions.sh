@@ -298,3 +298,158 @@ image_size_check() {
   curSizeM=`echo "$SIZE" | cut -d" " -f2`
   curFreeM=$((curSizeM - curUsedM))
 }
+
+supersu_is_mounted() {
+  case `mount` in
+    *" $1 "*) echo 1;;
+    *) echo 0;;
+  esac
+}
+
+supersuimg_mount() {
+  supersuimg=$(ls /cache/su.img /data/su.img 2>/dev/null)
+  if [ "$supersuimg" ]; then
+    if [ "$(supersu_is_mounted /su)" == 0 ]; then
+      ui_print "   Mounting /su..."
+      test ! -e /su && mkdir /su
+      mount -t ext4 -o rw,noatime $supersuimg /su 2>/dev/null
+      for i in 0 1 2 3 4 5 6 7; do
+        test "$(supersu_is_mounted /su)" == 1 && break
+        loop=/dev/block/loop$i
+        mknod $loop b 7 $i
+        losetup $loop $supersuimg
+        mount -t ext4 -o loop $loop /su 2>/dev/null
+      done
+    fi
+  fi
+}
+
+require_new_magisk() {
+  ui_print "***********************************"
+  ui_print "! $MAGISKBIN isn't setup properly!"
+  ui_print "!  Please install Magisk v14.0+!"
+  ui_print "***********************************"
+  exit 1
+}
+
+require_new_api() {
+  ui_print "***********************************"
+  ui_print "!   Your system API of $API doesn't"
+  ui_print "!    meet the $1 API of $MINAPI"
+  if [ "$1" == "minimum" ]; then
+    ui_print "! Please upgrade to a newer version"
+    ui_print "!  of android with at least API $MINAPI"
+  else
+    ui_print "! Please downgrade to an older version"
+    ui_print "!  of android with at most API $MINAPI"
+  fi
+  ui_print "***********************************"
+  exit 1
+}
+
+action_complete() {
+  ui_print " "
+  test "$ACTION" == "Install" && ui_print "    --------- INSTALLATION SUCCESSFUL ---------" || ui_print "    --------- RESTORATION SUCCESSFUL ---------"
+  ui_print " "
+  test "$ACTION" == "Install" && ui_print "    Unity Installer by ahrion & zackptg5 @ XDA" || ui_print "    Unity Uninstaller by ahrion & zackptg5 @ XDA"
+}
+
+sys_wipe_ch() {
+  TPARTMOD=false
+  cat $INFO | {
+  while read LINE; do
+    test "$1" == "$(eval echo $LINE)" && { TPARTMOD=true; sed -i "/$1/d" $INFO; }
+  done
+  if [ -f "$1" ] && [ ! -f "$1.bak" ] && [ "$TPARTMOD" != true ]; then
+    mv -f "$1" "$1.bak"
+    echo "$1.bak" >> $INFO
+  else
+    rm -f "$1"
+  fi
+  }
+}
+
+sys_wipefol_ch() {
+  if [ -d "$1" ] && [ ! -f "$1.tar" ]; then
+    tar -cf "$1.tar" "$1"
+    test ! -f $INFO && echo "$1.tar" >> $INFO || { test ! "$(grep "$1.tar" $INFO)" && echo "$1.tar" >> $INFO; }
+  else
+    rm -rf "$1"
+  fi
+}
+
+wipe_ch() {
+  case $1 in
+    FOL*) test "$(echo "$1" | cut -c 4-9)" == "/data/" && TYPE="foldata" || TYPE="fol"; FILE=$(echo "$1" | cut -c4-);;
+    /data/*) TYPE="data"; FILE=$1;;
+    APP*) TYPE="app"; FILE=$(echo "$1" | cut -c4-);;
+    *) TYPE="file"; FILE=$1;;
+  esac
+  case $TYPE in
+    "foldata") sys_wipefol_ch $FILE;;
+    "fol") test "$MAGISK" == true && mktouch $FILE/.replace || sys_wipefol_ch $FILE;;
+    "data") sys_wipe_ch $FILE;;
+    "app") if $OLDAPP; then
+             test -f "$SYS/app/$FILE.apk" && $WPAPP_PRFX $UNITY$SYS/app/$FILE.apk || { test -f "$SYS/app/$FILE/$FILE.apk" && $WPAPP_PRFX $UNITY$SYS/app/$FILE/$FILE.apk; }
+           else
+             test -f "SYS/priv-app/$FILE/$FILE.apk" && $WPAPP_PRFX $UNITY$SYS/priv-app/$FILE/$FILE.apk
+           fi;;
+    "file") test "$MAGISK" == true && mktouch $FILE || sys_wipe_ch $FILE;;
+  esac
+}
+
+cp_ch() {
+  mkdir -p "${2%/*}"
+  chmod 0755 "${2%/*}"
+  cp -af "$1" "$2"
+  test -z $3 && chmod 0644 "$2" || chmod "$3" "$2"
+  restorecon "$2"
+}
+
+sys_cpbak_ch() {
+  if [ -f "$2" ] && [ ! -f "$2.bak" ]; then
+    cp -f "$2" "$2.bak"
+    echo "$2.bak" >> $INFO
+  fi
+  test ! "$(grep "$2" $INFO)" && echo "$2" >> $INFO
+  cp_ch $1 $2 $3
+}
+
+sys_rm_ch() {
+  if [ -f "$1.bak" ]; then
+    mv -f "$1.bak" "$1"
+  elif [ -f "$1.tar" ]; then
+    tar -xf "$1.tar" -C "${1%/*}"
+  else
+    rm -f "$1"
+  fi
+  if [ ! "$(ls -A "${1%/*}")" ]; then
+    rm -rf ${1%/*}
+  fi
+}
+
+patch_script() {
+  sed -i "s|<MAGISK>|$MAGISK|" $1
+  sed -i "s|<VEN>|$VEN|" $1
+  sed -i "s|<SYS>|$REALSYS|" $1
+  if [ "$MAGISK" == false ]; then
+    sed -i "s|<EXT>|$EXT|" $1
+	sed -i "s|<SEINJECT>|$SEINJECT|" $1
+	sed -i "/<AMLPATH>/d" $1
+	sed -i "s|$MOUNTPATH||g" $1
+  else
+	sed -i "s|<EXT>|.sh|" $1
+	sed -i "s|<SEINJECT>|magiskpolicy|" $1
+	sed -i "s|<AMLPATH>|$AMLPATH|" $1
+	sed -i "s|$MOUNTPATH|/magisk|g" $1
+  fi
+  test ! -z $XML_PRFX && sed -i "s|<XML_PRFX>|$XML_PATH|" $1 || sed -i "/<XML_PRFX>/d" $1
+}
+
+add_to_info() {
+  test ! "$(grep "$1" $2)" && echo "$1" >> $2
+}
+
+custom_app_install() {
+  $OLDAPP && $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY$SYS/app/$1.apk || $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY$SYS/priv-app/$1/$1.apk
+}
