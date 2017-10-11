@@ -34,7 +34,7 @@ STRIGG_MIX_PATH=$AMLPATH$SYS/sound_trigger_mixer_paths.xml
 STRIGG_MIX_PATH_9330=$AMLPATH$SYS/sound_trigger_mixer_paths_wcd9330.xml
 V_MIX_PATH=$AMLPATH$VEN/etc/mixer_paths.xml
 
-test -d $AMLPATH$SYS/priv-app && SOURCE=priv_app || SOURCE=system_app
+test -d $SYS/priv-app && SOURCE=priv_app || SOURCE=system_app
 
 $SEINJECT --live "allow audioserver audioserver_tmpfs file { read write execute }" \
 "allow audioserver system_file file { execmod }" \
