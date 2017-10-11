@@ -1,7 +1,4 @@
-#!/system/bin/sh
-# Please don't hardcode /magisk/modname/... ; instead, please use $MODDIR/...
-# This will make your scripts compatible even if Magisk change its mount point in the future
-MODDIR=${0%/*}
-
-# This script will be executed in late_start service mode
-# More info in the main Magisk thread
+# v DO NOT MODIFY v
+# Only predefined variables for this script are: $SYS, $VEN, $MAGISK, and $AMLPATH
+# Add any script logic you want run here (late service start in magisk and normal boot time scripts otherwise)
+# ^ DO NOT MODIFY ^

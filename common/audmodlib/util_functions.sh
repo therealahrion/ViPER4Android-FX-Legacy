@@ -37,6 +37,7 @@ mount_partitions() {
   # Check A/B slot
   [ -f /data/magisk.img -o -f /cache/magisk.img -o -d /magisk ] && WRITE=ro || WRITE=rw
   SYS=/system
+  REALSYS=/system
   SLOT=`getprop ro.boot.slot_suffix`
   [ -z $SLOT ] || ui_print "- A/B partition detected, current slot: $SLOT"
   ui_print "- Mounting filesystems -"
@@ -45,6 +46,7 @@ mount_partitions() {
   if ! is_mounted /system && ! [ -f /system/build.prop ]; then
     SYSTEMBLOCK=`find /dev/block -iname system$SLOT | head -n 1`
     mount -t ext4 -o $WRITE $SYSTEMBLOCK /system
+	REALSYS=/system/system
   fi
   is_mounted /system || [ -f /system/build.prop ] || abort "! Cannot mount /system"
   cat /proc/mounts | grep -E '/dev/root|/system_root' >/dev/null && SKIP_INITRAMFS=true || SKIP_INITRAMFS=false
@@ -53,6 +55,7 @@ mount_partitions() {
     mkdir /system_root 2>/dev/null
     mount --move /system /system_root
     mount -o bind /system_root/system /system
+	REALSYS=/system_root/system
   fi
   $SKIP_INITRAMFS && ui_print "   ! Device skip_initramfs detected"
   if [ -L /system/vendor ]; then
