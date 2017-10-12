@@ -46,7 +46,7 @@ mount_partitions() {
   if ! is_mounted /system && ! [ -f /system/build.prop ]; then
     SYSTEMBLOCK=`find /dev/block -iname system$SLOT | head -n 1`
     mount -t ext4 -o $WRITE $SYSTEMBLOCK /system
-	REALSYS=/system/system
+	test "$WRITE" == "rw" && REALSYS=/system/system
   fi
   is_mounted /system || [ -f /system/build.prop ] || abort "! Cannot mount /system"
   cat /proc/mounts | grep -E '/dev/root|/system_root' >/dev/null && SKIP_INITRAMFS=true || SKIP_INITRAMFS=false
@@ -55,7 +55,7 @@ mount_partitions() {
     mkdir /system_root 2>/dev/null
     mount --move /system /system_root
     mount -o bind /system_root/system /system
-	REALSYS=/system_root/system
+	test "$WRITE" == "rw" && { ROOT=/system_root; REALSYS=/system_root/system; }
   fi
   $SKIP_INITRAMFS && ui_print "   ! Device skip_initramfs detected"
   if [ -L /system/vendor ]; then
@@ -432,6 +432,8 @@ patch_script() {
   sed -i "s|<MAGISK>|$MAGISK|" $1
   sed -i "s|<VEN>|$VEN|" $1
   sed -i "s|<SYS>|$REALSYS|" $1
+  test ! -z $ROOT && sed -i "s|<ROOT>|$ROOT|" $1 || sed -i "/<ROOT>/d" $1
+  test ! -z $XML_PRFX && sed -i "s|<XML_PRFX>|$XML_PATH|" $1 || sed -i "/<XML_PRFX>/d" $1
   if [ "$MAGISK" == false ]; then
     sed -i "s|<EXT>|$EXT|" $1
 	sed -i "s|<SEINJECT>|$SEINJECT|" $1
@@ -443,7 +445,6 @@ patch_script() {
 	sed -i "s|<AMLPATH>|$AMLPATH|" $1
 	sed -i "s|$MOUNTPATH|/magisk|g" $1
   fi
-  test ! -z $XML_PRFX && sed -i "s|<XML_PRFX>|$XML_PATH|" $1 || sed -i "/<XML_PRFX>/d" $1
 }
 
 add_to_info() {

@@ -3,6 +3,7 @@
 . /tmp/backuptool.functions
 MODID=audmodlib
 XML_PRFX=<XML_PRFX>
+ROOT=<ROOT>
 SYS=<SYS>
 VEN=<VEN>
 
