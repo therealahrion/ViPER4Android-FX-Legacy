@@ -1,5 +1,6 @@
 #!/system/bin/sh
 SH=${0%/*}
+MODID=<MODID>
 EXT=<EXT>
 SEINJECT=<SEINJECT>
 AMLPATH=<AMLPATH>
@@ -7,8 +8,6 @@ MAGISK=<MAGISK>
 XML_PRFX=<XML_PRFX>
 SYS=<SYS>
 VEN=<VEN>
-LOG_FILE=/cache/audmodlib-service.log
-MODIDS=""
 
 # AUDIO EFFECTS
 CONFIG_FILE=$AMLPATH$SYS/etc/audio_effects.conf
@@ -33,24 +32,7 @@ MIX_PATH_TASH=$AMLPATH$SYS/etc/mixer_paths_tasha.xml
 STRIGG_MIX_PATH=$AMLPATH$SYS/sound_trigger_mixer_paths.xml
 STRIGG_MIX_PATH_9330=$AMLPATH$SYS/sound_trigger_mixer_paths_wcd9330.xml
 V_MIX_PATH=$AMLPATH$VEN/etc/mixer_paths.xml
-
+ 
 test -d $SYS/priv-app && SOURCE=priv_app || SOURCE=system_app
 
-$SEINJECT --live "allow audioserver audioserver_tmpfs file { read write execute }" \
-"allow audioserver system_file file { execmod }" \
-"allow mediaserver mediaserver_tmpfs file { read write execute }" \
-"allow mediaserver system_file file { execmod }" \
-"allow $SOURCE init unix_stream_socket { connectto }" \
-"allow $SOURCE property_socket sock_file { getattr open read write execute }"
-
-$SEINJECT --live "permissive $SOURCE audio_prop"
-
-# MOD PATCHES
-
-for MOD in ${MODIDS}; do
-  sed -i "/magisk\/${MOD}/,/fi #${MOD}/d" $AMLPATH/post-fs-data.sh
-done
-
-test -f "$LOG_FILE" && rm -f $LOG_FILE
-
-echo "Audmodlib service script ($SH/service$EXT) has run successfully $(date +"%m-%d-%Y %H:%M:%S")" | tee -a $LOG_FILE
+# CUSTOM USER SCRIPT
