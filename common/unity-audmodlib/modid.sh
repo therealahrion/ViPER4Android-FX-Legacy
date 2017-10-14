@@ -38,9 +38,9 @@ V_MIX_PATH=$VEN/etc/mixer_paths.xml
 # SEPOLICY SETTING FUNCTION
 set_sepolicy() {
   if [ $(basename $SEINJECT) == "sepolicy-inject" ]; then
-	test -z $4 && $SEINJECT -s $1 -t $2 -c $3 -p $4 -l || $SEINJECT -Z $1 $2 -l
+	test -z $4 && $SEINJECT -Z $1 $2 -l || $SEINJECT -s $1 -t $2 -c $3 -p $4 -l
   elif [ ! -z $SEINJECT ]; then
-    test -z $3 && $SEINJECT --live "allow $1 $2 $3 { $(echo $4 | sed 's/,/ /g') }" || $SEINJECT --live "permissive $1 $2"
+    test -z $3 && $SEINJECT --live "permissive $1 $2" || $SEINJECT --live "allow $1 $2 $3 { $(echo $4 | sed 's/,/ /g') }" 
   fi
 }
 
