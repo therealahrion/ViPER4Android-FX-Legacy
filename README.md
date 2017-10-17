@@ -6,23 +6,26 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 
 ## Compatibility
 * Android Jellybean+
-* init.d (LineageOS SU, phh's SU, & rootless)
+* init.d (other root & rootless)
 * MagiskSU & SuperSU
 * Magisk & System install
 * Nexus/Pixel support (A/B OTA)
-* SELinix enforcing (LOS SU & rootless need permissive)
+* SELinix enforcing
 * Works with [AM3D Zirene Sound](https://forum.xda-developers.com/android/apps-games/mod-zirene-sound-am3d-t3396698/post71580634#post71580634}, [Dolby Atmos](https://github.com/therealahrion/Dolby-Atmos-ZTE-Axon-7), & ViPER4Android XHiFi
 
 ## Change Log
 v2.1 - 10.06.2017
     * Unity/AML v2.1: Updated for Magisk v14.2
     * Unity/AML v2.1: Updated to Magisk module template 1410
+    * Unity/AML v2.1: Massive script reduction & efficiency enhancements
+    * Unity/AML v2.1: Added SETools for Android, specifically sepolicy-inject by xmikos @ Github (this toolkit allows the same live sepolicy patching used in MagiskSU & SuperSU for rootless & other root methods that don't support custom live sepolicy patching, such as LineageOS SU, phh's SU, Kingroot, Kingoroot, etc)
     * Unity/AML v2.1: Added XMLStartlet for arm/arm64 & x86 by JamesDSP developer, james3460297 @ XDA Developers (this toolkit allows the editing & patching of XML files using a simple set of shell commands in a way similar to how it is done with grep, sed, awk, diff, patch, join, etc commands)
     * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with MK_PRFX so by default, the command CP_PRFX both creates the directory and copies the file (thus removing the need to have two seperate customrules.sh for cp and mk)
     * Unity/AML v2.1: Combined customrules.sh CP_PRFX command with CP_SFFX, so the default file placement permission is 0644 and the default folder creation permission is 0755 (you can manually define file copy permission by adding " 0755" or whatever permission you want at the end of the line that contains CP_PRFX)
     * Unity/AML v2.1: Silently uninstall previous version before new version upgrades (this is to keep every upgrade install clean in cases where the new version doesn't include files the previous version may have included)
     * Unity/AML v2.1: Further A/B OTA (Pixel family) improvements
     * Unity/AML v2.1: System backup/restore fully automated (no need to manually write files to INFO file anymore)
+    * Unity/AML v2.1: Added MAXAPI variable to unity-uservariables that compliments MINAPI (this allows the developer to quickly set the minimum and maximum SDK version of their modification)
     * Unity/AML v2.1: Added cabability for modifications to modify /data partition, with full backup/removal support
     * Unity/AML v2.1: Greatly improved uninstall function by concatenating script
     * Unity/AML v2.1: Added "minVer" (an internal check that should always be equal to the latest stable Magisk release in cases where the template is based off of a beta release)
