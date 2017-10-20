@@ -14,8 +14,8 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * Works with [AM3D Zirene Sound](https://forum.xda-developers.com/android/apps-games/mod-zirene-sound-am3d-t3396698/post71580634#post71580634}, [Dolby Atmos](https://github.com/therealahrion/Dolby-Atmos-ZTE-Axon-7), & ViPER4Android XHiFi
 
 ## Change Log
-v2.1 - 10.06.2017
-    * Unity/AML v2.1: Updated for Magisk v14.2
+v2.1 - 10.20.2017
+    * Unity/AML v2.1: Updated for Magisk v14.3
     * Unity/AML v2.1: Updated to Magisk module template 1410
     * Unity/AML v2.1: Massive script reduction & efficiency enhancements
     * Unity/AML v2.1: Added SETools for Android, specifically sepolicy-inject by xmikos @ Github (this toolkit allows the same live sepolicy patching used in MagiskSU & SuperSU for rootless & other root methods that don't support custom live sepolicy patching, such as LineageOS SU, phh's SU, Kingroot, Kingoroot, etc)
@@ -36,6 +36,7 @@ v2.1 - 10.06.2017
     * Unity/AML v2.1: Fixed System override issues some were facing
     * Unity/AML v2.1: Fixed System install partition re-mounting
     * Unity/AML v2.1: Updated Instructions (for developers only)
+	* Unity/AML v2.1: Addon.d script fixes/improvements
     * Unity/AML v2.1: Various miscellaneous script fixes and improvements
 
 v2.0 - 09.25.2017
