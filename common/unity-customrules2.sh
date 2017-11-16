@@ -24,7 +24,7 @@ ui_print "   Old V4A will install super quality driver"
 chooseport
 if [[ $UI -eq 21 ]]; then
   ui_print "   Old V4A will be installed"
-  cp -f $INSTALLER/custom/Old/ViPER4Android-FX.apk $INSTALLER/system/app/ViPER4Android-FX/ViPER4Android-FX.apk
+  cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_NEON.so $INSTALLER/custom/libv4a_fx_jb_NEON.so
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_X86.so $INSTALLER/custom/libv4a_fx_jb_X86.so
   sed -i 's/2.5.0.5/2.3.4.0/' $INSTALLER/module.prop
