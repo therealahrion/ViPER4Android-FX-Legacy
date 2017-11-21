@@ -4,6 +4,7 @@ TIMEOFEXEC=1
 case $(basename $ZIP) in
   *old*|*Old*|*OLD*) UI=21;;
   *new*|*New*|*NEW*) UI=42;;
+  *mat*|*Mat*|*MAT*) MAT=true;;
 esac
 
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
@@ -24,33 +25,38 @@ chooseport() {
 
 ui_print " "
 ui_print "- Select Version -"
-if [ -z $UI ]; then
+if [ -z $UI ] && [ -z $MAT ]; then
   ui_print "   Choose which V4A you want installed:"
   ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
   ui_print "   Old V4A will install super quality driver"
   chooseport
-else
+elif [ -z $MAT ]; then
   ui_print "   V4A version specified in zipname!"
 fi
-if [[ $UI -eq 21 ]]; then
+if [[ $UI -eq 21 ]] && [ -z $MAT ]; then
   ui_print "   Old V4A will be installed"
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_NEON.so $INSTALLER/custom/libv4a_fx_jb_NEON.so
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_X86.so $INSTALLER/custom/libv4a_fx_jb_X86.so
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
 else
-  ui_print "   New V4A will be installed"
-  ui_print "   Choose which V4A you want installed:"
-  ui_print "   Vol+ = original, Vol- = materialized"
-  sleep 1
-  chooseport
-  if [[ $UI -eq 21 ]]; then
+  UI=""
+  if [ -z $MAT ]; then
+    ui_print "   New V4A will be installed"
+    ui_print "   Choose which V4A you want installed:"
+    ui_print "   Vol+ = original, Vol- = materialized"
+    sleep 1
+    chooseport
+  else
+    ui_print "   Materialized V4A specified in zipname!"
+  fi
+  if [[ $UI -eq 21 ]] || [ ! -z $MAT ]; then
     ui_print "   Materialized V4A by pittvandewit will be installed"
-	sed -ri "s/version=(.*)/version=\1 (2.5.0.5 Materialized)/" $INSTALLER/module.prop
-	sed -ri "s/author=(.*)/version=\1,pittvandewit/" $INSTALLER/module.prop
-	cp -f $INSTALLER/custom/Materialized/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+    sed -ri "s/version=(.*)/version=\1 (2.5.0.5 Materialized)/" $INSTALLER/module.prop
+    sed -ri "s/author=(.*)/version=\1,pittvandewit/" $INSTALLER/module.prop
+    cp -f $INSTALLER/custom/Materialized/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   else
     ui_print "   Original V4A will be installed"
-	sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
+    sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
   fi
 fi
