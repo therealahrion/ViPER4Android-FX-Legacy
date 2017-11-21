@@ -16,7 +16,7 @@ chooseport() {
   if [[ $INPUT -eq 42 ]] || [[ $INPUT -eq 21 ]]; then
     UI=$INPUT
   else
-    ui_print "   Unrecognized key! Using new V4A!"
+    ui_print "   ! Unrecognized key!"
     UI=42
   fi
   shift
@@ -39,6 +39,19 @@ if [[ $UI -eq 21 ]]; then
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_X86.so $INSTALLER/custom/libv4a_fx_jb_X86.so
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
 else
-  sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
   ui_print "   New V4A will be installed"
+  ui_print "   Choose which V4A you want installed:"
+  ui_print "   Vol+ = original, Vol- = materialized"
+  sleep 1
+  chooseport
+  if [[ $UI -eq 21 ]]; then
+    # Materialized V4A by pittvandewit @ xda-developers
+    ui_print "   Materialized V4A will be installed"
+	sed -ri "s/version=(.*)/version=\1 (2.5.0.5 Materialized)/" $INSTALLER/module.prop
+	sed -ri "s/author=(.*)/version=\1,pittvandewit/" $INSTALLER/module.prop
+	cp -f $INSTALLER/custom/Materialized/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+  else
+    ui_print "   Original V4A will be installed"
+	sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
+  fi
 fi
