@@ -7,6 +7,8 @@
 ##########################################################################################
 
 mount_partitions() {
+  ui_print "- Mounting filesystems -"
+  ui_print "   Mounting /system, /vendor, /data, /cache"
   mount /data 2>/dev/null
   mount /cache 2>/dev/null
   # Check A/B slot
@@ -18,9 +20,7 @@ mount_partitions() {
     SLOT=_`getprop ro.boot.slot`
     [ $SLOT = "_" ] && SLOT=
   fi
-  [ -z $SLOT ] || ui_print "- A/B partition detected, current slot: $SLOT"
-  ui_print "- Mounting filesystems -"
-  ui_print "   Mounting /system, /vendor, /data, /cache"
+  [ -z $SLOT ] || ui_print "   A/B partition detected, current slot: $SLOT"
   is_mounted /system || [ -f /system/build.prop ] || mount -o $WRITE /system 2>/dev/null
   if ! is_mounted /system && ! [ -f /system/build.prop ]; then
     SYSTEMBLOCK=`find /dev/block -iname system$SLOT | head -n 1`
@@ -292,6 +292,11 @@ sys_rm_ch() {
 }
 
 patch_script() {
+  for i in ${CFGS} ${POLS} ${MIXS}; do
+    i="$(echo $i | sed -e "s|$VEN|\$VEN|" -e "s|$SYS|\$SYS|")"
+	sed -i "/<AMLFILES>/ a\\$i" $1
+  done
+  sed -i "/<AMLFILES>/d" $1
   sed -i "s|<MAGISK>|$MAGISK|" $1
   sed -i "s|<VEN>|$VEN|" $1
   sed -i "s|<SYS>|$REALSYS|" $1
