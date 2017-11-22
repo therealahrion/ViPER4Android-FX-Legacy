@@ -4,7 +4,7 @@ TIMEOFEXEC=1
 case $(basename $ZIP) in
   *old*|*Old*|*OLD*) UI=21; MAT=false;;
   *orig*|*Orig*|*ORIG*) UI=42; MAT=false;;
-  *mat*|*Mat*|*MAT*) MAT=true;;
+  *mat*|*Mat*|*MAT*) UI=42; MAT=true;;
 esac
 
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
@@ -49,8 +49,6 @@ else
     chooseport
   elif [ "$MAT" == true ]; then
 	UI=21
-  else
-    UI=42
   fi
   if [[ $UI -eq 21 ]]; then
     ui_print "   Materialized V4A by pittvandewit will be installed"
