@@ -1,0 +1,4 @@
+setprop tunnel.decode false
+setprop lpa.use-stagefright false
+setprop lpa.releaselock false
+setprop lpa.decode false
