@@ -16,6 +16,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 ## Change Log
 ### v2.3 - 11.28.2017
 * Updated to Unity/AML v2.3
+* Added old v4a (2.3.4 with super quality driver). Can choose between it and the newer one during install
 
 ### v2.2 - 11.08.2017
 * Updated to Unity/AML v2.2 - Please clean install Audio Modification Library and all modules (this will be the last version you'll have to clean install so in the future the auto clean install/upgrade script will take effect)
