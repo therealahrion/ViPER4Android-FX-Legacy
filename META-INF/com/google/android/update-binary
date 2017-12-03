@@ -265,7 +265,7 @@ wipe_ch() {
            else
              test -f "/system/priv-app/$FILE/$FILE.apk" && $WPAPP_PRFX $UNITY/system/priv-app/$FILE/$FILE.apk
            fi
-           test $API -ge 26 && $WPAPP_PRFX $UNITY$VEN/app/$FILE/$FILE.apk;;
+           test $API -ge 26 && { test -f $UNITY$VEN/app/$FILE/$FILE.apk && $WPAPP_PRFX $UNITY$VEN/app/$FILE/$FILE.apk; }
     "file") $MAGISK && mktouch $FILE || sys_wipe_ch $FILE;;
   esac
 }
