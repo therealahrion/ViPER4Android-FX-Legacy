@@ -435,6 +435,7 @@ common_install() {
 
 magisk_install() {
   VEN=/system/vendor
+  test -L /system/vendor && REALVEN=/vendor
   if [ $MAGISK_VER_CODE -lt 1450 ]; then BOOTPATH="/magisk"; else BOOTPATH="/sbin/.core/img"; fi
   # PREP FILES & VARIABLES
   pre_install
