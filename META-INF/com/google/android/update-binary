@@ -264,7 +264,8 @@ wipe_ch() {
              if [ -f "/system/app/$FILE.apk" ]; then $WPAPP_PRFX $UNITY/system/app/$FILE.apk; else test -f "/system/app/$FILE/$FILE.apk" && $WPAPP_PRFX $UNITY/system/app/$FILE/$FILE.apk; fi
            else
              test -f "/system/priv-app/$FILE/$FILE.apk" && $WPAPP_PRFX $UNITY/system/priv-app/$FILE/$FILE.apk
-           fi;;
+           fi
+           $OREONEW && { test -f $UNITY$VEN/app/$FILE/$FILE.apk && $WPAPP_PRFX $UNITY$VEN/app/$FILE/$FILE.apk; };;
     "file") $MAGISK && mktouch $FILE || sys_wipe_ch $FILE;;
   esac
 }
@@ -324,7 +325,11 @@ add_to_info() {
 }
 
 custom_app_install() {
-  if $OLDAPP; then $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY/system/app/$1.apk; else $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY/system/priv-app/$1/$1.apk; fi
+  if $OREONEW; then
+    $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY$VEN/app/$1/$1.apk
+  else
+    if $OLDAPP; then $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY/system/app/$1.apk; else $CP_PRFX $INSTALLER/custom/$1/$1.apk $UNITY/system/priv-app/$1/$1.apk; fi
+  fi
 }
 
 info_uninstall() {
@@ -426,10 +431,13 @@ common_install() {
   CFGS="${CFGS} $(find -L /system -type f -name "*audio_effects*.conf")"
   POLS="${POLS} $(find -L /system -type f -name "*audio*policy*.conf" -o -name "*audio_policy*.xml")"
   MIXS="${MIXS} $(find -L /system -type f -name "*mixer_paths*.xml")"
+  # USE VENDOR IF OREO OR NEWER
+  if [ $API -ge 26 ]; then LIBPATH="$(echo $REALVEN | sed "s|/|\\\/|g")"; OREONEW=true; else LIBPATH="\/system"; OREONEW=false; fi
 }
 
 magisk_install() {
   VEN=/system/vendor
+  test -L /system/vendor && REALVEN=/vendor
   if [ $MAGISK_VER_CODE -lt 1450 ]; then BOOTPATH="/magisk"; else BOOTPATH="/sbin/.core/img"; fi
   # PREP FILES & VARIABLES
   pre_install
@@ -458,6 +466,7 @@ system_install() {
   # MOUNT PARTITIONS
   WRITE=rw
   mount_partitions_mod
+  REALVEN=$VEN
   ui_print "- System install detected"
   # DETECT VERSION AND ARCHITECTURE
   api_level_arch_detect_mod
@@ -745,7 +754,13 @@ unity_mod_copy() {
   $IS64BIT || sed -i '/lib64/ d' $INSTALLER/tfiles
   
   cat $INSTALLER/tfiles | while read LINE; do
-    $OLDAPP && LINE2=$(echo $LINE | sed 's|/app/.*/|/app/|') || LINE2=$(echo $LINE | sed 's|/app/|/priv-app/|')
+    if $OREONEW; then
+      case $LINE in
+        /system/app/*|/system/lib*) LINE2=$(echo $LINE | sed "s|/system/|$VEN/|");;
+      esac
+    else    
+      $OLDAPP && LINE2=$(echo $LINE | sed 's|/app/.*/|/app/|') || LINE2=$(echo $LINE | sed 's|/app/|/priv-app/|')
+    fi
     if [ "$(echo "$LINE" | cut -c 1-6)" == "/data/" ]; then sys_cp_ch $INSTALLER$LINE $LINE; else $CP_PRFX $INSTALLER$LINE $UNITY$LINE2; fi
   done
 
