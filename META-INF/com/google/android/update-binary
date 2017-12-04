@@ -302,10 +302,13 @@ sys_rm_ch() {
 patch_script() {
   sed -i "s|<MAGISK>|$MAGISK|" $1
   sed -i "s|<VEN>|$VEN|" $1
+  sed -i "s|<LIBDIR>|$LIBDIR|" $1
+  sed -i "s|<LIBPATCH>|$LIBPATCH|" $1
+  if $OLDAPP; then sed -i "s|<SOURCE>|system_app|" $1; else sed -i "s|<SOURCE>|priv_app|" $1; fi
   if [ ! -z $XML_PATH ]; then sed -i "s|<XML_PRFX>|$XML_PATH|" $1; else sed -i "/<XML_PRFX>/d" $1; fi
   if $MAGISK; then
     sed -i "/<ROOT>/d" $1
-    sed -i "s|<SYS>|$SYS|" $1
+    sed -i "s|<SYS>|/system|" $1
     sed -i "s|<SHEBANG>|#!/system/bin/sh|" $1
     sed -i "s|<SEINJECT>|magiskpolicy|" $1
     if $AUDMODLIB; then sed -i "s|<AMLPATH>|$AMLPATH|" $1; else sed -i "/<AMLPATH>/d" $1; fi
@@ -432,7 +435,7 @@ common_install() {
   POLS="${POLS} $(find -L /system -type f -name "*audio*policy*.conf" -o -name "*audio_policy*.xml")"
   MIXS="${MIXS} $(find -L /system -type f -name "*mixer_paths*.xml")"
   # USE VENDOR IF OREO OR NEWER
-  if [ $API -ge 26 ]; then LIBPATH="$(echo $REALVEN | sed "s|/|\\\/|g")"; OREONEW=true; else LIBPATH="\/system"; OREONEW=false; fi
+  if [ $API -ge 26 ]; then LIBPATCH="$(echo $REALVEN | sed "s|/|\\\/|g")"; LIBDIR=$VEN ;OREONEW=true; else LIBPATCH="\/system"; LIBDIR=/system; OREONEW=false; fi
 }
 
 magisk_install() {
