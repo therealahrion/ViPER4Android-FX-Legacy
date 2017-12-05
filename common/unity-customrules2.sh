@@ -37,6 +37,8 @@ if [[ $UI -eq 21 ]]; then
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_NEON.so $INSTALLER/custom/libv4a_fx_jb_NEON.so
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_X86.so $INSTALLER/custom/libv4a_fx_jb_X86.so
+  rm -f $INSTALLER/system/etc/permissions/com.audlabs.viperfx.xml
+  cp -f $INSTALLER/custom/Old/com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/com.vipercn.viper4android_v2.xml
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
 else
   ui_print "   New V4A will be installed"
