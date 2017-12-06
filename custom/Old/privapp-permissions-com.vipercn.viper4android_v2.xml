@@ -6,5 +6,5 @@
     <permission name="android.permission.INTERNET"/>
     <permission name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <permission name="android.permission.ACCESS_SUPERUSER"/>  
-  </privapp-permissions>\
+  </privapp-permissions>
 </permissions>
