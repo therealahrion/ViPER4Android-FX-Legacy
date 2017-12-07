@@ -425,7 +425,7 @@ common_install() {
     *) ui_print "   ! Only arm, arm64, and x86 devices are compatible for xml patching"; ui_print "   ! XML Patching will be skipped";;
   esac
   # FILE LOCATIONS
-  CFGS="${CFGS} $(find -L /system -type f -name "*audio_effects*.conf")"
+  CFGS="${CFGS} $(find -L /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
   POLS="${POLS} $(find -L /system -type f -name "*audio*policy*.conf" -o -name "*audio_policy*.xml")"
   MIXS="${MIXS} $(find -L /system -type f -name "*mixer_paths*.xml")"
 }
