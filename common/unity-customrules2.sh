@@ -53,7 +53,7 @@ else
   if [[ $UI -eq 42 ]]; then
     ui_print "   Material V4A will be installed"
     cp -f $INSTALLER/custom/ViPER4AndroidFXMaterial.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-    sed -ri -e "s/version=(.*)/version=\1 (2.5.0.5)/" -e "s/author=(.*)/author=\1, pittvandewitt/" $INSTALLER/module.prop
+    sed -ri -e "s/version=(.*)/version=\1 (2.5.0.5)/" -e "s/author=(.*)/author=\1, pittvandewitt/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
   else
     ui_print "   Orignal V4A will be installed"
     sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
