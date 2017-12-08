@@ -17,6 +17,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 ### v2.5 - 
 * Updated to Unity/AML v2.5
 * Added permissions file for oreo
+* Added material v4a as an option - thanks to @pittvandewitt @xda-developers
 
 ### v2.4 - 11.30.2017
 * Updated to Unity/AML v2.4
