@@ -1,4 +1,4 @@
-"    Patching existing audio_effects files..."
+ui_print "    Patching existing audio_effects files..."
 for FILE in ${CFGS}; do
   if [ ! "$(grep "v4a_fx" $AMLPATH$FILE)" ] && [ ! "$(grep "v4a_standard_fx" $AMLPATH$FILE)" ]; then
     sed -i 's/^effects {/effects {\n  v4a_standard_fx {\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  }/g' $AMLPATH$FILE
