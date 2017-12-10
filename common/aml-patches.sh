@@ -11,6 +11,3 @@ for FILE in ${CFGSXML}; do
     sed -i "/<effects>/ a\        <effect name=\"v4a_standard_fx\" library=\"v4a_fx\" uuid=\"41d3c987-e6cf-11e3-a88a-11aba5d5c51b\"\/>" $AMLPATH$FILE
   fi
 done
-# if [ ! -z $XML_PRFX ]; then
-  # # Enter xmlstarlet logic here
-# fi
