@@ -16,6 +16,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 ## Change Log
 ### v2.6 - 
 * Updated to Unity/AML v2.6
+* Added a 2 new sepolicy patches
 
 ### v2.5 - 12.13.2017
 * Updated to Unity/AML v2.5
