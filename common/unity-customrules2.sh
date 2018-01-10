@@ -1,5 +1,12 @@
 TIMEOFEXEC=1
 
+# Device specific sepolicy patches
+if device_check "sailfish" || device_check "marlin"; then
+  sed -i '/#pixel/d' $INSTALLER/common/post-fs-data.sh
+elif || device_check "walleye" || device_check "taimen"; then
+  sed -i '/#pixel2/d' $INSTALLER/common/post-fs-data.sh
+fi
+
 # Temp fix for oos oreo devices
 if $OREONEW && [ "$(grep_prop ro.product.brand)" == "OnePlus" ]; then
   ui_print "   ! Oneplus Oreo device detected !"
