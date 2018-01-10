@@ -1,10 +1,11 @@
 TIMEOFEXEC=1
 
 # Device specific sepolicy patches
-if device_check "sailfish" || device_check "marlin"; then
-  sed -i '/#pixel/d' $INSTALLER/common/post-fs-data.sh
-elif || device_check "walleye" || device_check "taimen"; then
-  sed -i '/#pixel2/d' $INSTALLER/common/post-fs-data.sh
+if device_check "walleye" || device_check "taimen"; then
+  sed -i 's/#pixel2//g' $INSTALLER/common/post-fs-data.sh
+  sed -i 's/#pixel2//g' $INSTALLER/common/unity-customrules1.sh
+elif device_check "sailfish" || device_check "marlin"; then
+  sed -i 's/#pixel//g' $INSTALLER/common/post-fs-data.sh
 fi
 
 # Temp fix for oos oreo devices
