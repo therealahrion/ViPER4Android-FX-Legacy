@@ -17,6 +17,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 ### v2.9 - 
 * Updated to Unity/AML 2.9
 * Only use newer sepolicy patches and copy lib to vendor for devices that need it (pixels)
+* Fix old v4a on roms oreo and newer
 
 ### v2.8 - 12.29.2017
 * Updated to Unity/AML 2.8
