@@ -55,8 +55,7 @@ if [[ $UI -eq 21 ]]; then
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_$DRVARCH.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
-  LIBDIR=$SYS; OREONEW=false
-  sed -i "s|\$LIBVPATCH|\\\/system|g" $INSTALLER/common/aml-patches.sh
+  $OREONEW && { sed -i "s|/vendor|/system|g" $INSTALLER/common/aml-patches.sh; LIBDIR=$SYS; OREONEW=false; }
 else
   cp -f $INSTALLER/custom/libv4a_fx_jb_$DRVARCH.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
   if [ -z $MAT ]; then
@@ -75,6 +74,5 @@ else
     ui_print "   Orignal V4A will be installed"
     sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
   fi
-  sed -i "s|\$LIBVPATCH|$LIBPATCH|g" $INSTALLER/common/aml-patches.sh
 fi
 
