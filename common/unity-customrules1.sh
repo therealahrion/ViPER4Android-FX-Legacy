@@ -2,10 +2,10 @@ TIMEOFEXEC=1
 
 # Device specific sepolicy patches
 if device_check "walleye" || device_check "taimen"; then
-  sed -i 's/#pixel2//g' $INSTALLER/common/post-fs-data.sh
+  sed -i 's/#pixel2//g' $INSTALLER/common/unity-audmodlib/$MODID-post-fs-data.sh
   test -f $SYS/lib/libstdc++.so && $CP_PRFX $SYS/lib/libstdc++.so $VEN/lib/libstdc++.so
 elif device_check "sailfish" || device_check "marlin"; then
-  sed -i 's/#pixel//g' $INSTALLER/common/post-fs-data.sh
+  sed -i 's/#pixel//g' $INSTALLER/common/unity-audmodlib/$MODID-post-fs-data.sh
 fi
 
 # Temp fix for oos oreo devices
