@@ -1,4 +1,7 @@
-setprop tunnel.decode false
-setprop lpa.use-stagefright false
-setprop lpa.releaselock false
-setprop lpa.decode false
+# This file will be read by resetprop
+# Example: Change dpi
+# ro.sf.lcd_density=320
+tunnel.decode=false
+lpa.use-stagefright=false
+lpa.releaselock=false
+lpa.decode=false
