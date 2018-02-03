@@ -7,7 +7,6 @@ if [ "$SEINJECT" != "/sbin/sepolicy-inject" ]; then
   $SEINJECT --live "allow mediaserver system_file file execmod"
   $SEINJECT --live "allow audioserver unlabeled file { read write execute open getattr }"
   $SEINJECT --live "allow hal_audio_default hal_audio_default process execmem"
-  $SEINJECT --live "allow $SOURCE system_file dir { read write }"
   #pixel$SEINJECT --live "allow hal_audio_default hal_audio_default_tmpfs file execute"
   #pixel$SEINJECT --live "allow hal_audio_default audio_data_file dir search"
 else
@@ -17,7 +16,6 @@ else
   $SEINJECT -s mediaserver -t system_file -c file -p execmod -l
   $SEINJECT -s audioserver -t unlabeled -c file -p read,write,execute,open,getattr -l
   $SEINJECT -s hal_audio_default -t hal_audio_default -c process -p execmem -l
-  $SEINJECT -s $SOURCE -t system_file -c dir -p read,write -l
   #pixel$SEINJECT -s hal_audio_default -t hal_audio_default_tmpfs -c file -p execmem -l
   #pixel$SEINJECT -s hal_audio_default -t audio_data_file -c dir -p search -l
 fi
