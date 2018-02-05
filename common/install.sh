@@ -4,15 +4,16 @@ rm -rf /data/app/com.pittvandewitt.viperfx /data/app/com.vipercn.viper4android* 
 if device_check "walleye" || device_check "taimen"; then
   test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
 elif device_check "sailfish" || device_check "marlin"; then
-  sed -i 's/#pixel//g' $INSTALLER/common/unityfiles/post-fs-data.sh
+  sed -i 's/#pixel//g' $INSTALLER/common/post-fs-data.sh
 fi
 
 # Temp fix for op3/3t oreo devices
 if [ $API -ge 26 ] && ( device_check "OnePlus3" || device_check "OnePlus3T" ); then
   ui_print "   ! Oneplus 3/3T Oreo device detected !"
   ui_print "   Setting selinux to permissive..."
-  if $MAGISK; then echo "#!/system/bin/sh" > $INSTALLER/common/unityfiles/post-fs-data.sh; else echo "$SHEBANG" > $INSTALLER/common/unityfiles/post-fs-data.sh; fi
-  echo "setenforce 0" >> $INSTALLER/common/unityfiles/post-fs-data.sh
+  if $MAGISK; then echo "#!/system/bin/sh" > $INSTALLER/common/post-fs-data.sh; else echo "$SHEBANG" > $INSTALLER/common/post-fs-data.sh; fi
+  echo "setenforce 0" >> $INSTALLER/common/post-fs-data.sh
+  echo "" >> $INSTALLER/common/post-fs-data.sh
 fi
 
 OLD=false; NEW=false; MAT=false
@@ -58,20 +59,21 @@ if $OLD; then
   ui_print "   Old V4A will be installed"
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
-  cp -f $INSTALLER/custom/Old/libV4AJniUtils_$ABI.so $INSTALLER/system/lib/libV4AJniUtils.so
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
+  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
 else
   $NEW || $MAT || { chooseport mn && MAT=true; }
   cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
-  cp -f $INSTALLER/custom/libV4AJniUtils_$ABI.so $INSTALLER/system/lib/libV4AJniUtils.so
   if $MAT; then
     ui_print "   Material V4A will be installed"
     cp -f $INSTALLER/custom/ViPER4AndroidFXMaterial.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
     sed -ri -e "s/version=(.*)/version=\1 (2.5.0.5)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
+    $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
   else
     ui_print "   Original V4A will be installed"
     sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
+    $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
   fi
 fi
 
