@@ -8,7 +8,7 @@ elif device_check "sailfish" || device_check "marlin"; then
 fi
 
 # Temp fix for op3/3t oreo devices
-if [ $API -ge 26 ] && [ device_check "OnePlus3" ]; then
+if [ $API -ge 26 ] && ( device_check "OnePlus3" || device_check "OnePlus3T" ); then
   ui_print "   ! Oneplus 3/3T Oreo device detected !"
   ui_print "   Setting selinux to permissive..."
   if $MAGISK; then echo "#!/system/bin/sh" > $INSTALLER/common/unityfiles/post-fs-data.sh; else echo "$SHEBANG" > $INSTALLER/common/unityfiles/post-fs-data.sh; fi
