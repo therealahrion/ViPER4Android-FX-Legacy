@@ -58,11 +58,13 @@ if $OLD; then
   ui_print "   Old V4A will be installed"
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
+  cp -f $INSTALLER/custom/Old/libV4AJniUtils_$ABI.so $INSTALLER/system/lib/libV4AJniUtils.so
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
 else
   $NEW || $MAT || { chooseport mn && MAT=true; }
   cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
+  cp -f $INSTALLER/custom/libV4AJniUtils_$ABI.so $INSTALLER/system/lib/libV4AJniUtils.so
   if $MAT; then
     ui_print "   Material V4A will be installed"
     cp -f $INSTALLER/custom/ViPER4AndroidFXMaterial.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
