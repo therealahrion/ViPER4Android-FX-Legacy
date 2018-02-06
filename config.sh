@@ -41,7 +41,7 @@ LATESTARTSERVICE=true
 # Uncomment DYNAMICOREO if you want apps and libs installed to vendor for oreo and newer and system for anything older
 #MINAPI=21
 #MAXAPI=25
-#DYNAMICOREO=true
+DYNAMICOREO=true
 
 # Custom Variables - Keep everything within this function
 unity_custom() {

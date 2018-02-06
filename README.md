@@ -7,9 +7,6 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.1 - 2.6.2018
-* Don't use dynamicoreo - always install to system
-
 ### v1.0 - 2.5.2018
 * Initial rerelease
 
