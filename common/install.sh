@@ -79,8 +79,9 @@ fi
 
 ui_print "   Patching existing audio_effects files..."
 # Create vendor audio_effects.conf if missing
-if $MAGISK && [ -f $ORIGDIR/system/etc/audio_effects.conf ] && [ ! -f $ORIGDIR/system/vendor/etc/audio_effects.conf ]; then
+if $MAGISK && [ -f $ORIGDIR/system/etc/audio_effects.conf ] && [ ! -f $ORIGDIR/system/vendor/etc/audio_effects.conf ] && [ ! -f $ORIGDIR/system/vendor/etc/audio_effects.xml ]; then
   cp_ch $ORIGDIR/system/etc/audio_effects.conf $UNITY/system/vendor/etc/audio_effects.conf
+  CFGS="${CFGS} /system/vendor/etc/audio_effects.conf"
 fi
 for FILE in ${CFGS}; do
   $MAGISK && cp_ch $ORIGDIR$FILE $UNITY$FILE
@@ -90,7 +91,7 @@ for FILE in ${CFGS}; do
             sed -i "/v4a_fx {/,/}/d" $UNITY$FILE
             sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $UNITY$FILE
             sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/libv4a_fx_ics.so\n  } #$MODID/g" $UNITY$FILE;;
-    *.xml) [ ! "$(grep '^ *<\!--<stream type=\"music\">' $UNITY$FILE)" -a "$(grep '^ *<stream type=\"music\">' $UNITY$FILE)" ] && sed -i "/^ *<postprocess>$/,/<\/postprocess>/ {/<stream type=\"music\">/,/<\/stream>/ s/<stream type=\"music\">/<\!--<stream type=\"music\">/; s/<\/stream>/<\/stream>-->/}" $UNITY$FILE
+    *.xml) [ ! "$(grep '^ *<\!--<effect name=\"music_helper\"*' $UNITY$FILE)" -a "$(grep '^ *<effect name=\"music_helper\"*' $UNITY$FILE)" ] && sed -i "s/^\( *\)<effect name=\"music_helper\"\(.*\)/\1<\!--<effect name=\"music_helper\"\2-->/" $UNITY$FILE
            sed -i "/v4a_standard_fx/d" $UNITY$FILE
            sed -i "/v4a_fx/d" $UNITY$FILE
            sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"libv4a_fx_ics.so\"\/><!--$MODID-->" $UNITY$FILE
