@@ -87,11 +87,13 @@ for FILE in ${CFGS}; do
   $MAGISK && cp_ch $ORIGDIR$FILE $UNITY$FILE
   case $FILE in
     *.conf) [ ! "$(grep '^ *# *music_helper {' $UNITY$FILE)" -a "$(grep '^ *music_helper {' $UNITY$FILE)" ] && sed -i "/effects {/,/^}/ {/music_helper {/,/}/ s/^/#/g}" $UNITY$FILE
+            [ ! "$(grep '^ *# *sa3d {' $UNITY$FILE)" -a "$(grep '^ *sa3d {' $UNITY$FILE)" ] && sed -i "/effects {/,/^}/ {/sa3d {/,/}/ s/^/#/g}" $UNITY$FILE
             sed -i "/v4a_standard_fx {/,/}/d" $UNITY$FILE
             sed -i "/v4a_fx {/,/}/d" $UNITY$FILE
             sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $UNITY$FILE
             sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/libv4a_fx_ics.so\n  } #$MODID/g" $UNITY$FILE;;
     *.xml) [ ! "$(grep '^ *<\!--<effect name=\"music_helper\"*' $UNITY$FILE)" -a "$(grep '^ *<effect name=\"music_helper\"*' $UNITY$FILE)" ] && sed -i "s/^\( *\)<effect name=\"music_helper\"\(.*\)/\1<\!--<effect name=\"music_helper\"\2-->/" $UNITY$FILE
+           [ ! "$(grep '^ *<\!--<effect name=\"sa3d\"*' $UNITY$FILE)" -a "$(grep '^ *<effect name=\"sa3d\"*' $UNITY$FILE)" ] && sed -i "s/^\( *\)<effect name=\"sa3d\"\(.*\)/\1<\!--<effect name=\"sa3d\"\2-->/" $UNITY$FILE
            sed -i "/v4a_standard_fx/d" $UNITY$FILE
            sed -i "/v4a_fx/d" $UNITY$FILE
            sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"libv4a_fx_ics.so\"\/><!--$MODID-->" $UNITY$FILE
