@@ -7,7 +7,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.3.1 - 2.12.18
+### v1.3.1/1.3.2 - 2.12.18
 * No need for permissive selinux anymore for op 3/3t on oos oreo
 
 ### v1.3 - 2.12.2018
