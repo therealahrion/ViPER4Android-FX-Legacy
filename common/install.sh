@@ -7,15 +7,6 @@ elif device_check "sailfish" || device_check "marlin"; then
   sed -i 's/#pixel//g' $INSTALLER/common/post-fs-data.sh
 fi
 
-# Temp fix for op3/3t oreo devices
-if [ $API -ge 26 ] && ( device_check "OnePlus3" || device_check "OnePlus3T" ); then
-  ui_print "   ! Oneplus 3/3T Oreo device detected !"
-  ui_print "   Setting selinux to permissive..."
-  if $MAGISK; then echo "#!/system/bin/sh" > $INSTALLER/common/post-fs-data.sh; else echo "$SHEBANG" > $INSTALLER/common/post-fs-data.sh; fi
-  echo "setenforce 0" >> $INSTALLER/common/post-fs-data.sh
-  echo "" >> $INSTALLER/common/post-fs-data.sh
-fi
-
 OLD=false; NEW=false; MAT=false
 # GET OLD/NEW FROM ZIP NAME
 case $(basename $ZIP) in
@@ -80,7 +71,7 @@ fi
 ui_print "   Patching existing audio_effects files..."
 # Create vendor audio_effects.conf if missing
 if [ -f $ORIGDIR/system/etc/audio_effects.conf ] && [ ! -f $ORIGDIR/system/vendor/etc/audio_effects.conf ] && [ ! -f $ORIGDIR/system/vendor/etc/audio_effects.xml ]; then
-  cp_ch $ORIGDIR/system/etc/audio_effects.conf $UNITY/system/vendor/etc/audio_effects.conf
+  cp_ch_nb $ORIGDIR/system/etc/audio_effects.conf $UNITY/system/vendor/etc/audio_effects.conf
   CFGS="${CFGS} /system/vendor/etc/audio_effects.conf"
 fi
 for FILE in ${CFGS}; do
