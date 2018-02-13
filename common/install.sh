@@ -70,7 +70,11 @@ fi
 
 ui_print "   Patching existing audio_effects files..."
 for FILE in ${CFGS}; do
-  $MAGISK && cp_ch $ORIGDIR$FILE $UNITY$FILE
+  if $MAGISK; then
+    cp_ch $ORIGDIR$FILE $UNITY$FILE
+  else
+    [ ! -f $ORIGDIR$FILE.bak ] && cp_ch $ORIGDIR$FILE $UNITY$FILE.bak
+  fi
   case $FILE in
     *.conf) [ ! "$(grep '^ *# *music_helper {' $UNITY$FILE)" -a "$(grep '^ *music_helper {' $UNITY$FILE)" ] && sed -i "/effects {/,/^}/ {/music_helper {/,/}/ s/^/#/g}" $UNITY$FILE
             [ ! "$(grep '^ *# *sa3d {' $UNITY$FILE)" -a "$(grep '^ *sa3d {' $UNITY$FILE)" ] && sed -i "/effects {/,/^}/ {/sa3d {/,/^  }/ s/^/#/g}" $UNITY$FILE
