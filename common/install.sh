@@ -3,8 +3,6 @@ rm -rf /data/app/com.pittvandewitt.viperfx /data/app/com.vipercn.viper4android* 
 # Device specific sepolicy patches
 if device_check "walleye" || device_check "taimen"; then
   test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
-elif device_check "sailfish" || device_check "marlin" || device_check "OnePlus3" || device_check "OnePlus3T" || device_check "htc_pmewl"; then
-  sed -i 's/#pixel//g' $INSTALLER/common/service.sh
 fi
 
 OLD=false; NEW=false; MAT=false
