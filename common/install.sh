@@ -14,11 +14,11 @@ case $(basename $ZIP) in
 esac
 
 chooseport() {
-  if [ "$1" == "on" ]; then
+  if [ $1 -eq 1 ]; then
     ui_print "   Choose which V4A you want installed:"
     ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
     ui_print "   Old V4A will install super quality driver"
-  elif [ "$1" == "mn" ]; then
+  elif [ $1 -eq 2 ]; then
     ui_print "   Choose which new V4A you want installed:"
     ui_print "   Vol+ = material, Vol- = original"
   fi
@@ -40,10 +40,17 @@ mkdir -p $INSTALLER/system/lib/soundfx
 ui_print " "
 ui_print "- Select Version -"
 if ! $OLD && ! $NEW && ! $MAT; then
-  chooseport on || OLD=true
+  if ! chooseport 1; then
+    OLD=true
+  elif chooseport 2; then
+    MAT=true
+  else
+    NEW=true
+  fi
 else
   ui_print "   V4A version specified in zipname!"
 fi
+
 if $OLD; then
   ui_print "   Old V4A will be installed"
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
@@ -52,7 +59,6 @@ if $OLD; then
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
 else
-  $NEW || $MAT || { chooseport mn && MAT=true; }
   cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
   if $MAT; then
     ui_print "   Material V4A will be installed"
