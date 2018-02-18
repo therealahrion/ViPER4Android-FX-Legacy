@@ -50,7 +50,8 @@ unity_custom() {
     CFGS="$(find /system /vendor -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
   else  
     CFGS="$(find /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
-  fi}
+  fi
+}
 
 ##########################################################################################
 # Installation Message
