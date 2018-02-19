@@ -46,10 +46,10 @@ DYNAMICOREO=true
 # Custom Variables - Keep everything within this function
 unity_custom() {
   if $MAGISK && $BOOTMODE; then ORIGDIR="/sbin/.core/mirror"; else ORIGDIR=""; fi
-  if [ -L /system/vendor ]; then
-    CFGS="$(find /system /vendor -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
+  if $BOOTMODE; then
+    CFGS="$(find /system /vendor -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml" | sed "s|^/vendor|/system/vendor|g")"
   else  
-    CFGS="$(find /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
+    CFGS="$(find -L /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
   fi
 }
 
