@@ -1,7 +1,7 @@
 rm -rf /data/app/com.pittvandewitt.viperfx /data/app/com.vipercn.viper4android* /data/app/com.audlabs.viperfx*
 
 # Device specific sepolicy patches
-if device_check "walleye" || device_check "taimen"; then
+if device_check "walleye" || device_check "taimen" || device_check "mata"; then
   test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
 fi
 
