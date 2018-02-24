@@ -13,6 +13,10 @@ case $(basename $ZIP) in
   *mat*|*Mat*|*MAT*) MAT=true;;
 esac
 
+# Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
+chmod 755 $INSTALLER/common/keycheck
+FUNCTION=chooseport
+                                                                                    
 chooseport() {
   if [ $1 -eq 1 ]; then
     ui_print "   Choose which V4A you want installed:"
@@ -24,7 +28,7 @@ chooseport() {
   fi
   #note from chainfire @xda-developers: getevent behaves weird when piped, and busybox grep likes that even less than toolbox/toybox grep
   while (true); do
-    getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events
+    (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || { FUNCTION=chooseportold; chooseportold 1; break; }
     if (`cat $INSTALLER/events 2>/dev/null | /system/bin/grep VOLUME >/dev/null`); then
       break
     fi
@@ -36,13 +40,36 @@ chooseport() {
   fi
 }
 
+chooseportold() {
+  if [ $1 -eq 1 ]; then
+    ui_print "   ! Legacy device detected!"
+    ui_print "   ! Restarting selection w/ old keycheck method"
+    ui_print " "
+    ui_print "   Enter selection again:"
+  elif [ $1 -eq 2 ]; then
+    ui_print "   Choose which new V4A you want installed:"
+    ui_print "   Vol+ = material, Vol- = original"
+  fi
+  $INSTALLER/common/keycheck
+  SEL=$?
+  shift
+  if [ $SEL -eq 42 ]; then
+    return 0
+  elif [ $SEL -eq 21 ]; then
+    return 1
+  else
+    ui_print "Vol key not detected! Defaulting to Vol Up! "
+    return 0
+  fi
+}
+
 mkdir -p $INSTALLER/system/lib/soundfx
 ui_print " "
 ui_print "- Select Version -"
 if ! $OLD && ! $NEW && ! $MAT; then
-  if ! chooseport 1; then
+  if ! $FUNCTION 1; then
     OLD=true
-  elif chooseport 2; then
+  elif $FUNCTION 2; then
     MAT=true
   else
     NEW=true
