@@ -11,6 +11,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * Fix for essential phone oreo
 * Fixed vendor files in bootmode for devices with separate vendor partitions
 * Bring back old keycheck method or devices that don't like the newer chainfire method
+* Fix seg faults on system installs
 
 ### v1.4 - 2.16.2018
 * Add file backup on system installs
