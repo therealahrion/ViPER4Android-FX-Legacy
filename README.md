@@ -7,7 +7,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.5 - 2.xx.2018
+### v1.5 - 2.25.2018
 * Fix for essential phone oreo
 * Fixed vendor files in bootmode for devices with separate vendor partitions
 * Bring back old keycheck method or devices that don't like the newer chainfire method
