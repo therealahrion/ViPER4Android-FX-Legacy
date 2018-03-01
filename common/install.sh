@@ -21,8 +21,8 @@ keytest() {
   ui_print "   Press Vol Up:"
   (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || return 1
   return 0
-}   
-                                                                            
+}
+
 chooseport() {
   #note from chainfire @xda-developers: getevent behaves weird when piped, and busybox grep likes that even less than toolbox/toybox grep
   while (true); do
@@ -43,9 +43,9 @@ chooseportold() {
   $INSTALLER/common/keycheck
   $INSTALLER/common/keycheck
   SEL=$?
-  if [ $1 == "UP" ]; then
+  if [ "$1" == "UP" ]; then
     UP=$SEL
-  elif [ $1 == "DOWN" ]; then
+  elif [ "$1" == "DOWN" ]; then
     DOWN=$SEL
   elif [ $SEL -eq $UP ]; then
     return 0
