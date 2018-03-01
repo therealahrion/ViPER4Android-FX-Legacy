@@ -15,20 +15,18 @@ esac
 
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
 chmod 755 $INSTALLER/common/keycheck
-FUNCTION=chooseport
-                                                                                    
+
+keytest() {
+  ui_print "- Vol Key Test -"
+  ui_print "   Press Vol Up:"
+  (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || return 1
+  return 0
+}   
+                                                                            
 chooseport() {
-  if [ $1 -eq 1 ]; then
-    ui_print "   Choose which V4A you want installed:"
-    ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
-    ui_print "   Old V4A will install super quality driver"
-  elif [ $1 -eq 2 ]; then
-    ui_print "   Choose which new V4A you want installed:"
-    ui_print "   Vol+ = material, Vol- = original"
-  fi
   #note from chainfire @xda-developers: getevent behaves weird when piped, and busybox grep likes that even less than toolbox/toybox grep
   while (true); do
-    (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || { $BOOTMODE || { FUNCTION=chooseportold; chooseportold 1; break; }; }
+    /system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events
     if (`cat $INSTALLER/events 2>/dev/null | /system/bin/grep VOLUME >/dev/null`); then
       break
     fi
@@ -41,38 +39,54 @@ chooseport() {
 }
 
 chooseportold() {
-  if [ $1 -eq 1 ]; then
-    ui_print "   ! Legacy device detected!"
-    ui_print "   ! Restarting selection w/ old keycheck method"
-    ui_print " "
-    ui_print "   Enter selection again:"
-  elif [ $1 -eq 2 ]; then
-    ui_print "   Choose which new V4A you want installed:"
-    ui_print "   Vol+ = material, Vol- = original"
-  fi
+  # Calling it first time detects previous input. Calling it second time will do what we want
+  $INSTALLER/common/keycheck
   $INSTALLER/common/keycheck
   SEL=$?
-  shift
-  if [ $SEL -eq 42 ]; then
+  if [ $1 == "UP" ]; then
+    UP=$SEL
+  elif [ $1 == "DOWN" ]; then
+    DOWN=$SEL
+  elif [ $SEL -eq $UP ]; then
     return 0
-  elif [ $SEL -eq 21 ]; then
+  elif [ $SEL -eq $DOWN ]; then
     return 1
   else
-    ui_print "Vol key not detected! Defaulting to Vol Up! "
-    return 0
+    ui_print "   Vol key not detected!"
+    abort "   Use name change method in TWRP"
   fi
 }
 
 mkdir -p $INSTALLER/system/lib/soundfx
 ui_print " "
-ui_print "- Select Version -"
 if ! $OLD && ! $NEW && ! $MAT; then
-  if ! $FUNCTION 1; then
-    OLD=true
-  elif $FUNCTION 2; then
-    MAT=true
+  if keytest; then
+    FUNCTION=chooseport
   else
-    NEW=true
+    FUNCTION=chooseportold
+    ui_print "   ! Legacy device detected! Using old keycheck method"
+    ui_print " "
+    ui_print "- Vol Key Programming -"
+    ui_print "   Press Vol Up Again:"
+    $FUNCTION "UP"
+    ui_print "   Press Vol Down"
+    $FUNCTION "DOWN"
+  fi
+  ui_print " "
+  ui_print "- Select Version -"
+  ui_print "   Choose which V4A you want installed:"
+  ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
+  ui_print "   Old V4A will install super quality driver"
+  if $FUNCTION; then
+    ui_print "   Choose which new V4A you want installed:"
+    ui_print "   Vol+ = material, Vol- = original"
+    if $FUNCTION; then
+      MAT=true
+    else
+      NEW=true
+    fi
+  else
+    OLD=true
   fi
 else
   ui_print "   V4A version specified in zipname!"
