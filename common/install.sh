@@ -1,5 +1,10 @@
 rm -rf /data/app/com.pittvandewitt.viperfx /data/app/com.vipercn.viper4android* /data/app/com.audlabs.viperfx*
 
+# Remove dalvik-cache for any old v4a installs
+for FILE in $(find /data/dalvik-cache -type f -name "*4AndroidFX*"); do
+  rm -f $FILE
+done
+
 if device_check "walleye" || device_check "taimen" || device_check "mata"; then
   test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
 fi
