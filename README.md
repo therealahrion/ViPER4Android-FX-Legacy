@@ -7,10 +7,9 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.5.3 - 3.xx.2018
-* Remove redundant code
+### v1.5.3 - 3.18.2018
 * Remove dalvik cache for old v4a installs - should fix weird app issues
-* Install app to priv-app on oreo if no vendor/app folder exists, add permissions files
+* Unity v1.4 update
 
 ### v1.5.2 - 3.1.2018
 * Real fix for vol key logic
