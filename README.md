@@ -9,6 +9,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 ## Change Log
 ### v1.5.4 - 3.xx.2018
 * Add soundalive and dha effect removal (needed for some samsung devices)
+* Fix permissions for prop files on system installs
 
 ### v1.5.3 - 3.18.2018
 * Remove dalvik cache for old v4a installs - should fix weird app issues
