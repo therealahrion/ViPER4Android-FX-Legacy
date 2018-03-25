@@ -128,12 +128,16 @@ for FILE in ${CFGS}; do
   case $FILE in
     *.conf) sed -i "/effects {/,/^}/ {/^ *music_helper {/,/}/ s/^/#/g}" $UNITY$FILE
             sed -i "/effects {/,/^}/ {/^ *sa3d {/,/^  }/ s/^/#/g}" $UNITY$FILE
+            sed -i "/effects {/,/^}/ {/^ *soundalive {/,/^  }/ s/^/#/g}" $UNITY$FILE
+            sed -i "/effects {/,/^}/ {/^ *dha {/,/^  }/ s/^/#/g}" $UNITY$FILE
             sed -i "/v4a_standard_fx {/,/}/d" $UNITY$FILE
             sed -i "/v4a_fx {/,/}/d" $UNITY$FILE
             sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $UNITY$FILE
             sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/libv4a_fx_ics.so\n  } #$MODID/g" $UNITY$FILE;;
     *.xml) sed -ri "/^ *<postprocess>$/,/<\/postprocess>/ {/<stream type=\"music\">/,/<\/stream>/ s/^( *)<apply effect=\"music_helper\"\/>/\1<\!--<apply effect=\"music_helper\"\/>-->/}" $UNITY$FILE
            sed -ri "/^ *<postprocess>$/,/<\/postprocess>/ {/<stream type=\"music\">/,/<\/stream>/ s/^( *)<apply effect=\"sa3d\"\/>/\1<\!--<apply effect=\"sa3d\"\/>-->/}" $UNITY$FILE
+           sed -ri "/^ *<postprocess>$/,/<\/postprocess>/ {/<stream type=\"music\">/,/<\/stream>/ s/^( *)<apply effect=\"soundalive\"\/>/\1<\!--<apply effect=\"soundalive\"\/>-->/}" $UNITY$FILE
+           sed -ri "/^ *<postprocess>$/,/<\/postprocess>/ {/<stream type=\"music\">/,/<\/stream>/ s/^( *)<apply effect=\"dha\"\/>/\1<\!--<apply effect=\"dha\"\/>-->/}" $UNITY$FILE
            sed -i "/v4a_standard_fx/d" $UNITY$FILE
            sed -i "/v4a_fx/d" $UNITY$FILE
            sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"libv4a_fx_ics.so\"\/><!--$MODID-->" $UNITY$FILE
