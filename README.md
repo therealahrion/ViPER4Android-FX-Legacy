@@ -7,9 +7,8 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.5.4 - 3.xx.2018
-* Add soundalive and dha effect removal (needed for some samsung devices)
-* Fix permissions for prop files on system installs
+### v1.5.4 - 3.29.2018
+* Unity v1.4.1 update
 
 ### v1.5.3 - 3.18.2018
 * Remove dalvik cache for old v4a installs - should fix weird app issues
