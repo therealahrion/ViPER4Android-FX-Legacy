@@ -1,7 +1,13 @@
-ospeff_rem() {
-  case $2 in
-    *.conf) [ "$(sed -n "/^output_session_processing {/,/^}/ {/$1/p}" $2)" ] && sed -i "/effects {/,/^}/ {/^ *$1 {/,/}/ s/^/#/g}" $2;;
-    *.xml) sed -ri "/^ *<postprocess>$/,/<\/postprocess>/ {/<stream type=\"music\">/,/<\/stream>/ s/^( *)<apply effect=\"$1\"\/>/\1<\!--<apply effect=\"$1\"\/>-->/}" $2;;
+osp_detect() {
+  case $1 in
+    *.conf) EFFECTS=$(sed -n "/^output_session_processing {/,/^}/ {/^    music {/,/^    }/p}" $1 | grep -E "^        [A-Za-z]+" | sed "s/ {//g")
+            for EFFECT in ${EFFECTS}; do
+              [ "$EFFECT" != "atmos" ] && sed -i "/effects {/,/^}/ {/^ *$EFFECT {/,/}/ s/^/#/g}" $1
+            done;;
+     *.xml) EFFECTS=$(sed -n "/^ *<postprocess>$/,/^ *<\/postprocess>$/ {/^ *<stream type=\"music\">$/,/^ *<\/stream>$/ {/<stream type=\"music\">\|<\/stream>/d; s/<apply effect=\"//g; s/\"\/>//g; p}}" $1)
+            for EFFECT in ${EFFECTS}; do
+              [ "$EFFECT" != "atmos" ] && sed -ri "s/^( *)<apply effect=\"$EFFECT\"\/>/\1<\!--<apply effect=\"$EFFECT\"\/>-->/" $1
+            done;;
   esac
 }
 
@@ -132,10 +138,7 @@ fi
 ui_print "   Patching existing audio_effects files..."
 for FILE in ${CFGS}; do
   cp_ch $ORIGDIR$FILE $UNITY$FILE
-  ospeff_rem "music_helper" $UNITY$FILE
-  ospeff_rem "sa3d" $UNITY$FILE
-  ospeff_rem "soundalive" $UNITY$FILE
-  ospeff_rem "dha" $UNITY$FILE
+  osp_detect $UNITY$FILE
   case $FILE in
     *.conf) sed -i "/v4a_standard_fx {/,/}/d" $UNITY$FILE
             sed -i "/v4a_fx {/,/}/d" $UNITY$FILE
