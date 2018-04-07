@@ -23,6 +23,7 @@ if device_check "walleye" || device_check "taimen" || device_check "mata"; then
 fi
 
 # GET OLD/NEW FROM ZIP NAME
+NEW=""
 case $(basename $ZIP) in
   *old*|*Old*|*OLD*) NEW=true;;
   *new*|*New*|*NEW*) NEW=false;;
