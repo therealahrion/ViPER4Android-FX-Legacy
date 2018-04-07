@@ -95,7 +95,7 @@ if [ -z $NEW ]; then
   if $FUNCTION; then
     NEW=true
   else
-    OLD=true
+    NEW=false
   fi
 else
   ui_print "   V4A version specified in zipname!"
