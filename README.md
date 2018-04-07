@@ -8,6 +8,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 
 ## Change Log
 ### v1.5.6 - 4.xx.2018
+* Remove old material v4a - it's standalone now
 * Use dynamic effect removal
 
 ### v1.5.5 - 3.30.2018

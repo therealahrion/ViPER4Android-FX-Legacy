@@ -22,12 +22,10 @@ if device_check "walleye" || device_check "taimen" || device_check "mata"; then
   test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
 fi
 
-OLD=false; NEW=false; MAT=false
 # GET OLD/NEW FROM ZIP NAME
 case $(basename $ZIP) in
-  *old*|*Old*|*OLD*) OLD=true;;
-  *new*|*New*|*NEW*) NEW=true;;
-  *mat*|*Mat*|*MAT*) MAT=true;;
+  *old*|*Old*|*OLD*) NEW=true;;
+  *new*|*New*|*NEW*) NEW=false;;
 esac
 
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
@@ -76,7 +74,7 @@ chooseportold() {
 
 mkdir -p $INSTALLER/system/lib/soundfx
 ui_print " "
-if ! $OLD && ! $NEW && ! $MAT; then
+if [ -z $NEW ]; then
   if keytest; then
     FUNCTION=chooseport
   else
@@ -95,13 +93,7 @@ if ! $OLD && ! $NEW && ! $MAT; then
   ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
   ui_print "   Old V4A will install super quality driver"
   if $FUNCTION; then
-    ui_print "   Choose which new V4A you want installed:"
-    ui_print "   Vol+ = material, Vol- = original"
-    if $FUNCTION; then
-      MAT=true
-    else
-      NEW=true
-    fi
+    NEW=true
   else
     OLD=true
   fi
@@ -109,30 +101,20 @@ else
   ui_print "   V4A version specified in zipname!"
 fi
 
-if $OLD; then
+if $NEW; then
+  cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
+  ui_print "   New V4A will be installed"
+  sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
+  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
+else
   ui_print "   Old V4A will be installed"
   rm -f $INSTALLER/system/etc/permissions/privapp-permisisons-com.audlabs.viperfx.xml
-  cp -f $INSTALLER/custom/privapp-permisisons-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permisisons-com.vipercn.viper4android_v2.xml
-  cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  cp -f $INSTALLER/custom/Old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
+  cp -f $INSTALLER/old/privapp-permisisons-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permisisons-com.vipercn.viper4android_v2.xml
+  cp -f $INSTALLER/old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+  cp -f $INSTALLER/old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
-else
-  cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
-  if $MAT; then
-    ui_print "   Material V4A will be installed"
-    rm -f $INSTALLER/system/etc/permissions/privapp-permisisons-com.audlabs.viperfx.xml
-    cp -f $INSTALLER/custom/privapp-permisisons-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permisisons-com.pittvandewitt.viperfx.xml
-    cp -f $INSTALLER/custom/ViPER4AndroidFXMaterial.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-    sed -ri -e "s/version=(.*)/version=\1 (2.5.0.5)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
-    sed -ri "s/(author=.*)/\1, Pittvandewitt/" $INSTALLER/module.prop
-    $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
-  else
-    ui_print "   Original V4A will be installed"
-    sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
-    $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
-  fi
 fi
 
 ui_print "   Patching existing audio_effects files..."
