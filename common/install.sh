@@ -79,6 +79,7 @@ chooseportold() {
   fi
 }
 
+MATVER="2.6.0.2"
 mkdir -p $INSTALLER/system/lib/soundfx
 ui_print " "
 if ! $OLD && ! $NEW && ! $MAT; then
@@ -97,7 +98,7 @@ if ! $OLD && ! $NEW && ! $MAT; then
   ui_print " "
   ui_print " - Select Version -"
   ui_print "   Choose which V4A you want installed:"
-  ui_print "   Vol+ = material (2.6.0.1), Vol- = original)"
+  ui_print "   Vol+ = material ($MATVER), Vol- = original)"
   if $FUNCTION; then
     MAT=true
   else
@@ -119,15 +120,15 @@ V4ALIB=libv4a_fx_ics.so
 mkdir -p $INSTALLER/system/lib/soundfx
 if $OLD; then
   ui_print "   Old V4A will be installed"
-  rm -f $INSTALLER/system/etc/permissions/privapp-permisisons-com.audlabs.viperfx.xml
-  cp -f $INSTALLER/custom/privapp-permisisons-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permisisons-com.vipercn.viper4android_v2.xml
+  rm -f $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
+  cp -f $INSTALLER/custom/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
   cp -f $INSTALLER/custom/Old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   cp -f $INSTALLER/custom/Old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
 elif $NEW; then
-  ui_print "   Original V4A will be installed"
+  ui_print "   New V4A will be installed"
   cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
   sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
@@ -161,12 +162,12 @@ else
     *64*) JNI=arm64; ui_print "   !Unsupported CPU architecture! App probably won't work!";;
     *) JNI=arm; ui_print "   !Unsupported CPU architecture! App probably won't work!";;
   esac
-  rm -f $INSTALLER/system/etc/permissions/privapp-permisisons-com.audlabs.viperfx.xml
+  rm -f $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
   mkdir -p $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
   cp -f $INSTALLER/custom/mat/$JNI/libV4AJniUtils.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
-  cp -f $INSTALLER/custom/mat/privapp-permisisons-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permisisons-com.pittvandewitt.viperfx.xml
+  cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
   cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  sed -ri -e "s/version=(.*)/version=\1 (2.6.0.1)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
+  sed -ri -e "s/version=(.*)/version=\1 ($MATVER)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
   sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
 fi

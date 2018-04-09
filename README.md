@@ -7,6 +7,10 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
+### v1.6.1 - 4.09.2018
+* Fixed typos in names of permission files
+* Updated material apk
+
 ### v1.6 - 4.08.2018
 * Add v4a material back
 
