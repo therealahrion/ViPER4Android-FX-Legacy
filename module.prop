@@ -1,9 +1,8 @@
 id=ViPER4AndroidFX
 name=ViPER4Android FX
-version=v1.5.8
-versionCode=32
-author=Ahrion, Zackptg5, ViPER520, ZhuHang
-description=ViPER4Android FX is an audio enhancing software to provide everyone with a better audio experience (You can choose between 2.5.0.5 and 2.3.4.0 during install)
+version=v1.6
+versionCode=33
+author=ViPER520, ZhuHang, Ahrion, Zackptg5
+description=ViPER4Android FX is an audio enhancing software to provide everyone with a better audio experience (You can choose between Material, 2.5.0.5, and 2.3.4.0 during install)
 support=https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058
-donate=https://github.com/therealahrion/ViPER4Android-FX
 minMagisk=1530

@@ -1,5 +1,5 @@
 # ViPER4Android FX
-This module enables ViPER4Android FX. [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
+This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, and 2.3.4.0 during install). [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
 
 ## Compatibility
 * Android Jellybean+
@@ -7,6 +7,9 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
+### v1.6 - 4.08.2018
+* Add v4a material back
+
 ### v1.5.8 - 4.08.2018
 * Fix dynamic effect removal
 
@@ -65,6 +68,7 @@ This module enables ViPER4Android FX. [More details in support thread](https://f
 * [ViPER's Audio](http://vipersaudio.com/blog/)
 * [ViPER520](http://vipersaudio.com/blog/) @ XDA Developers
 * [zhuhang](https://forum.xda-developers.com/showthread.php?t=2191223) @ XDA Developers
+* [Team_DeWitt](https://forum.xda-developers.com/android/apps-games/app-viper4android-fx-2-6-0-0-t3774651) @ XDA Developers
 
 ## Source Code
 * Module [GitHub](https://github.com/therealahrion/ViPER4Android-FX)
