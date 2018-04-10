@@ -13,7 +13,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * Update material apk
 * Revert back to system install for original v4as (keep new material as data)
 
-### v1.7 - 4.10.2018
+### v1.7 - 4.9.2018
 * Update material apk
 * Install v4a as a data app now - should fix issues when switching version
 
