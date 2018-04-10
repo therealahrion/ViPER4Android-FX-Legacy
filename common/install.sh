@@ -109,6 +109,7 @@ if device_check "walleye" || device_check "taimen" || device_check "mata"; then
   test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
 fi
 
+ui_print " "
 ui_print "   Removing remnants from past v4a installs..."
 # Uninstall existing v4a installs
 V4AAPPS=$(find /data/app -type d -name "*com.pittvandewitt.viperfx*" -o -name "*com.audlabs.viperfx*" -o -name "*com.vipercn.viper4android_v2*")
