@@ -13,20 +13,6 @@ osp_detect() {
   esac
 }
 
-# GET OLD/NEW FROM ZIP NAME
-OLD=false; NEW=false; MAT=false
-case $(basename $ZIP) in
-  *old*|*Old*|*OLD*) OLD=true;;
-  *new*|*New*|*NEW*) NEW=true;;
-  *mat*|*Mat*|*MAT*) MAT=true;;
-  *ndrv*|*Ndrv*|*NDRV*) NDRV=true;;
-  *odrv*|*Odrv*|*ODRV*) NDRV=false;;
-esac
-
-# Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
-KEYCHECK=$INSTALLER/common/keycheck
-chmod 755 $KEYCHECK
-
 keytest() {
   ui_print " - Vol Key Test -"
   ui_print "   Press Vol Up:"
@@ -68,46 +54,18 @@ chooseportold() {
   fi
 }
 
-MATVER="2.6.0.3"
-ui_print " "
-if ! $OLD && ! $NEW && ! $MAT; then
-  if keytest; then
-    FUNCTION=chooseport
-  else
-    FUNCTION=chooseportold
-    ui_print "   ! Legacy device detected! Using old keycheck method"
-    ui_print " "
-    ui_print "- Vol Key Programming -"
-    ui_print "   Press Vol Up Again:"
-    $FUNCTION "UP"
-    ui_print "   Press Vol Down"
-    $FUNCTION "DOWN"
-  fi
-  ui_print " "
-  ui_print " - Select Version -"
-  ui_print "   Choose which V4A you want installed:"
-  ui_print "   Vol+ = material ($MATVER), Vol- = original)"
-  if $FUNCTION; then
-    MAT=true
-  else
-    ui_print " "
-    ui_print "   Choose which original V4A you want installed:"
-    ui_print "   Old V4A will install super quality driver"
-    ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
-    if $FUNCTION; then
-      NEW=true
-    else
-      OLD=true
-    fi
-fi
-else
-  ui_print "   V4A version specified in zipname!"
-fi
+# GET OLD/NEW FROM ZIP NAME
+case $(basename $ZIP) in
+  *old*|*Old*|*OLD*) OLD=true; MAT=false;;
+  *new*|*New*|*NEW*) OLD=false; MAT=false;;
+  *omat*|*Omat*|*OMAT*) NMAT=false; MAT=true;;
+  *ndrv*|*Ndrv*|*NDRV*) NMAT=true; NDRV=true; MAT=true;;
+  *odrv*|*Odrv*|*ODRV*) NMAT=true; NDRV=false; MAT=true;;
+esac
 
-# Lib fix for pixel 2's and essential phone
-if device_check "walleye" || device_check "taimen" || device_check "mata"; then
-  test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
-fi
+# Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
+KEYCHECK=$INSTALLER/common/keycheck
+chmod 755 $KEYCHECK
 
 ui_print " "
 ui_print "   Removing remnants from past v4a installs..."
@@ -138,9 +96,100 @@ for REMNANT in $(find /data -name "*com.pittvandewitt.viperfx*" -o -name "*com.a
   fi
 done
 
+MATVER="2.6.0.3"
+ui_print " "
+if [ -z $OLD ] && [ -z $MAT ]; then
+  if keytest; then
+    FUNCTION=chooseport
+  else
+    FUNCTION=chooseportold
+    ui_print "   ! Legacy device detected! Using old keycheck method"
+    ui_print " "
+    ui_print "- Vol Key Programming -"
+    ui_print "   Press Vol Up Again:"
+    $FUNCTION "UP"
+    ui_print "   Press Vol Down"
+    $FUNCTION "DOWN"
+  fi
+  ui_print " "
+  ui_print " - Select Version -"
+  ui_print "   Choose which V4A you want installed:"
+  ui_print "   Vol+ = material, Vol- = original"
+  if $FUNCTION; then
+    MAT=true
+    ui_print " "
+    ui_print "   Choose which material V4A you want installed:"
+    ui_print "   Vol+ = new ($MATVER), Vol- = old (2.5.0.5)"
+    if $FUNCTION; then
+      NMAT=true
+    else
+      NMAT=false
+    fi
+  else
+    MAT=false
+    ui_print " "
+    ui_print "   Choose which original V4A you want installed:"
+    ui_print "   Old V4A will install super quality driver"
+    ui_print "   Vol+ = new (2.5.0.5), Vol- = old (2.3.4.0)"
+    if $FUNCTION; then
+      OLD=false
+    else
+      OLD=true
+    fi
+  fi
+else
+  ui_print "   V4A version specified in zipname!"
+fi
+
 V4ALIB=libv4a_fx_ics.so
 mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX
-if $OLD; then
+if $MAT; then
+  if $NMAT; then
+    ui_print "   New material V4A will be installed"
+    V4ALIB=libv4a_fx.so
+    rm -rf $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX
+    if [ -z $NDRV ]; then
+      ui_print " "
+      ui_print "   Choose which driver you want installed:"
+      ui_print "   Vol+ = 2.5.0.4, Vol- = 2.3.4.0"
+      if $FUNCTION; then
+        NDRV=true
+      else
+        NDRV=false
+      fi
+    fi
+    if $NDRV; then
+      ui_print "   2.5.0.5 driver will be installed"
+      cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
+    else
+      ui_print "   2.3.4.0 driver will be installed"
+      cp -f $INSTALLER/custom/old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
+    fi
+    if $BOOTMODE; then
+      ui_print "   Copying apk to internal storage (sdcard)"
+      ui_print "   Install the apk yourself manually if"
+      ui_print "   data install doesn't work"
+      cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
+      ui_print "   Installing V4A as data app..."
+      pm install $INSTALLER/custom/mat/ViPER4AndroidFX.apk >/dev/null 2>&1
+    else
+      ui_print " "
+      ui_print "   Copying apk to internal storage (sdcard)"
+      ui_print "   Install the apk yourself manually once booted"
+      sleep 2
+      cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
+    fi
+  else
+    MATVER="2.5.0.5"
+    ui_print "   Old material V4A will be installed"
+    cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
+    cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
+    cp -f $INSTALLER/custom/mat/ViPER4AndroidFXOld.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+  fi
+  sed -ri -e "s/version=(.*)/version=\1 ($MATVER)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
+  sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
+  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
+elif $OLD; then
   ui_print "   Old V4A will be installed"
   cp -f $INSTALLER/custom/old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
   cp -f $INSTALLER/custom/old/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
@@ -148,52 +197,18 @@ if $OLD; then
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
-elif $NEW; then
+else
   ui_print "   New V4A will be installed"
   cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
   cp -f $INSTALLER/custom/new/privapp-permissions-com.audlabs.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
   cp -f $INSTALLER/custom/new/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
-else
-  ui_print "   Material V4A will be installed"
-  ui_print " "
-  ui_print "   Choose which driver you want installed:"
-  ui_print "   Vol+ = 2.5.0.4, Vol- = 2.3.4.0"
-  V4ALIB=libv4a_fx.so
-  if [ -z $NDRV ]; then
-    if $FUNCTION; then
-      NDRV=true
-    else
-      NDRV=false
-    fi
-  else
-    ui_print "   Driver version specified in zipname!"
-  fi
-  if $NDRV; then
-    ui_print "   2.5.0.5 driver will be installed"
-    cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
-  else
-    ui_print "   2.3.4.0 driver will be installed"
-    cp -f $INSTALLER/custom/old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
-  fi
-  if $BOOTMODE; then
-    ui_print "   Copying apk to internal storage (sdcard)"
-    ui_print "   Install the apk yourself manually if"
-    ui_print "   data install doesn't work"
-    cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
-    ui_print "   Installing V4A as data app..."
-    pm install $INSTALLER/custom/mat/ViPER4AndroidFX.apk >/dev/null 2>&1
-  else
-    ui_print " "
-    ui_print "   Copying apk to internal storage (sdcard)"
-    ui_print "   Install the apk yourself manually once booted"
-    sleep 2
-    cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
-  fi
-  sed -ri -e "s/version=(.*)/version=\1 ($MATVER)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
-  sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
-  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
+fi
+
+# Lib fix for pixel 2's and essential phone
+if device_check "walleye" || device_check "taimen" || device_check "mata"; then
+  test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
 fi
 
 ui_print " "
