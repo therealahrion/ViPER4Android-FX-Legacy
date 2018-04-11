@@ -11,6 +11,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 ## Change Log
 ### v1.7.3 - 4.xx.2018
 * Add jni for all v4as
+* Use priv-app only for v4a
 * Various bug fixes and improvements
 * Unity v1.5 update
 

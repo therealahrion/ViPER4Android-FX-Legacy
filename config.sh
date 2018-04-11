@@ -44,7 +44,7 @@ LATESTARTSERVICE=true
 #MINAPI=21
 #MAXAPI=25
 DYNAMICOREO=true
-DYNAMICAPP=true
+#DYNAMICAPP=true
 #SYSOVERRIDE=true
 
 # Custom Variables - Keep everything within this function
