@@ -39,9 +39,13 @@ LATESTARTSERVICE=true
 # Unity Variables
 # Uncomment and change 'MINAPI' and 'MAXAPI' to the minimum and maxium android version for your mod (note that magisk has it's own minimum api: 21 (lollipop))
 # Uncomment DYNAMICOREO if you want apps and libs installed to vendor for oreo and newer and system for anything older
+# Uncomment DYNAMICAPP if you want anything in $INSTALLER/system/app to be installed to the optimal app directory (/vendor/app if oreo+ and DYNAMICOREO is selected, /system/priv-app if it exists otherwise, /system/app as last resort)
+# Uncomment SYSOVERRIDE if you want the mod to always be installed to system (even on magisk)
 #MINAPI=21
 #MAXAPI=25
 DYNAMICOREO=true
+DYNAMICAPP=true
+#SYSOVERRIDE=true
 
 # Custom Variables - Keep everything within this function
 unity_custom() {
@@ -103,7 +107,7 @@ REPLACE="
 set_permissions() {
   # DEFAULT PERMISSIONS, DON'T REMOVE THEM 
   $MAGISK && set_perm_recursive $MODPATH 0 0 0755 0644 
- 
+  
   # CUSTOM PERMISSIONS
   
   # Some templates if you have no idea what to do:

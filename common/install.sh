@@ -87,7 +87,7 @@ if [ "$V4AAPPS" ]; then
   fi
 fi
 # Remove remnants of any old v4a installs
-for REMNANT in $(find /data -name "*com.pittvandewitt.viperfx*" -o -name "*com.audlabs.viperfx*" -o -name "*com.vipercn.viper4android_v2*"); do
+for REMNANT in $(find /data -name "*ViPER4AndroidFX*" -o "*com.pittvandewitt.viperfx*" -o -name "*com.audlabs.viperfx*" -o -name "*com.vipercn.viper4android_v2*"); do
   [ "$(echo $REMNANT | cut -d '/' -f-4)" == "/data/media/0" ] && continue
   if [ -d "$REMNANT" ]; then
     rm -rf $REMNANT
@@ -96,6 +96,14 @@ for REMNANT in $(find /data -name "*com.pittvandewitt.viperfx*" -o -name "*com.a
   fi
 done
 
+case $ABILONG in
+  arm64*) JNID=arm64; JNI=arm;;
+  arm*) JNID=arm; JNI=arm;;
+  x86_64*) JNID=x86_64; JNI=x86;;
+  x86*) JNID=x86;  JNI=x86;;
+  *64*) JNID=arm64; JNI=arm;;
+  *) JNID=arm; JNI=arm;;
+esac
 MATVER="2.6.0.3"
 ui_print " "
 if [ -z $OLD ] && [ -z $MAT ]; then
@@ -142,12 +150,11 @@ else
 fi
 
 V4ALIB=libv4a_fx_ics.so
-mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX
+mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
 if $MAT; then
   if $NMAT; then
     ui_print "   New material V4A will be installed"
     V4ALIB=libv4a_fx.so
-    rm -rf $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX
     if [ -z $NDRV ]; then
       ui_print " "
       ui_print "   Choose which driver you want installed:"
@@ -160,32 +167,38 @@ if $MAT; then
     fi
     if $NDRV; then
       ui_print "   2.5.0.5 driver will be installed"
-      cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
+      cp -f $INSTALLER/custom/new/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
     else
       ui_print "   2.3.4.0 driver will be installed"
       cp -f $INSTALLER/custom/old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
     fi
-    if $BOOTMODE; then
-      ui_print "   Copying apk to internal storage (sdcard)"
-      ui_print "   Install the apk yourself manually if"
-      ui_print "   data install doesn't work"
-      cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
-      ui_print "   Installing V4A as data app..."
-      pm install $INSTALLER/custom/mat/ViPER4AndroidFX.apk >/dev/null 2>&1
-    else
-      ui_print " "
-      ui_print "   Copying apk to internal storage (sdcard)"
-      ui_print "   Install the apk yourself manually once booted"
-      sleep 2
-      cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
-    fi
+    rm -rf $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
+    JNI=$JNID
+    mkdir -p $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
+    cp -f $INSTALLER/custom/mat/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
+    cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+    # if $BOOTMODE; then
+      # ui_print "   Copying apk to internal storage (sdcard)"
+      # ui_print "   Install the apk yourself manually if"
+      # ui_print "   data install doesn't work"
+      # cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
+      # ui_print "   Installing V4A as data app..."
+      # pm install $INSTALLER/custom/mat/ViPER4AndroidFX.apk >/dev/null 2>&1
+    # else
+      # ui_print " "
+      # ui_print "   Copying apk to internal storage (sdcard)"
+      # ui_print "   Install the apk yourself manually once booted"
+      # sleep 2
+      # cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
+    # fi
   else
     MATVER="2.5.0.5"
     ui_print "   Old material V4A will be installed"
-    cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
-    cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
+    cp -f $INSTALLER/custom/new/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
+    cp -f $INSTALLER/custom/new/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
     cp -f $INSTALLER/custom/mat/ViPER4AndroidFXOld.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   fi
+  cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
   sed -ri -e "s/version=(.*)/version=\1 ($MATVER)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
   sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
@@ -193,14 +206,16 @@ elif $OLD; then
   ui_print "   Old V4A will be installed"
   cp -f $INSTALLER/custom/old/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
   cp -f $INSTALLER/custom/old/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
+  cp -f $INSTALLER/custom/old/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
   cp -f $INSTALLER/custom/old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
 else
   ui_print "   New V4A will be installed"
-  cp -f $INSTALLER/custom/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
+  cp -f $INSTALLER/custom/new/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
   cp -f $INSTALLER/custom/new/privapp-permissions-com.audlabs.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
+  cp -f $INSTALLER/custom/new/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
   cp -f $INSTALLER/custom/new/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
