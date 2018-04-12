@@ -6,7 +6,7 @@ osp_detect() {
               SPACES=$(sed -n "/^effects {/,/^}/ {/^ *$EFFECT {/p}" $1 | sed -r "s/( *).*/\1/")
               [ "$EFFECT" != "atmos" ] && sed -i "/^effects {/,/^}/ {/^$SPACES$EFFECT {/,/^$SPACES}/ s/^/#/g}" $1
             done;;
-     *.xml) EFFECTS=$(sed -n "/^ *<postprocess>$/,/^ *<\/postprocess>$/ {/^ *<stream type=\"music\">$/,/^ *<\/stream>$/ {/<stream type=\"music\">\|<\/stream>/d; s/<apply effect=\"//g; s/\"\/>//g; p}}" $1)
+     *.xml) EFFECTS=$(sed -n "/^ *<postprocess>$/,/^ *<\/postprocess>$/ {/^ *<stream type=\"music\">$/,/^ *<\/stream>$/ {/<stream type=\"music\">/d; /<\/stream>/d; s/<apply effect=\"//g; s/\"\/>//g; p}}" $1)
             for EFFECT in ${EFFECTS}; do
               [ "$EFFECT" != "atmos" ] && sed -ri "s/^( *)<apply effect=\"$EFFECT\"\/>/\1<\!--<apply effect=\"$EFFECT\"\/>-->/" $1
             done;;
@@ -196,7 +196,7 @@ elif $OLD; then
   cp -f $INSTALLER/custom/old/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
   sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
-  LIBPATCH="\/system"; LIBDIR=$SYS; DYNAMICOREO=false
+  LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 else
   ui_print "   New V4A will be installed"
   cp -f $INSTALLER/custom/new/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/$V4ALIB
@@ -209,7 +209,11 @@ fi
 
 # Lib fix for pixel 2's and essential phone
 if device_check "walleye" || device_check "taimen" || device_check "mata"; then
-  test -f $SYS/lib/libstdc++.so && cp_ch $SYS/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
+  if [ -f /system/lib/libstdc++.so ] && [ ! $VEN/lib/libstdc++.so ]; then
+    cp_ch /system/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
+  elif [ -f $VEN/lib/libstdc++.so ] && [ ! /system/lib/libstdc++.so ]; then
+    cp_ch $VEN/lib/libstdc++.so $UNITY/system/lib/libstdc++.so
+  fi
 fi
 
 ui_print " "
