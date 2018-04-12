@@ -9,39 +9,13 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.7.3 - 4.xx.2018
+### v1.6 - 4.12.2018
+* Backtracked version numbers - removed buggy/broken builds
 * Add jni for all v4as
 * Use priv-app only for v4a
 * Various bug fixes and improvements
 * Unity v1.5 update
-
-### v1.7.2 - 4.10.2018
-* Added back old material apk as an option
-
-### v1.7.1 - 4.9.2018
-* Update material apk
-* Revert back to system install for original v4as (keep new material as data)
-
-### v1.7 - 4.9.2018
-* Update material apk
-* Install v4a as a data app now - should fix issues when switching version
-
-### v1.6.1 - 4.09.2018
-* Fixed typos in names of permission files
-* Updated material apk
-
-### v1.6 - 4.08.2018
-* Add v4a material back
-
-### v1.5.8 - 4.08.2018
-* Fix dynamic effect removal
-
-### v1.5.7 - 4.07.2018
-* Fix stupid stuff
-
-### v1.5.6 - 4.07.2018
-* Remove old material v4a - it's standalone now
-* Use dynamic effect removal
+* Updated new material apk
 
 ### v1.5.5 - 3.30.2018
 * Fix effect removals
