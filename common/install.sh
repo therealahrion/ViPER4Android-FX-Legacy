@@ -61,6 +61,7 @@ case $(basename $ZIP) in
   *omat*|*Omat*|*OMAT*) NMAT=false; MAT=true;;
   *ndrv*|*Ndrv*|*NDRV*) NMAT=true; NDRV=true; MAT=true;;
   *odrv*|*Odrv*|*ODRV*) NMAT=true; NDRV=false; MAT=true;;
+  *work*|*Work*|*WORK*) WORK=true;;
 esac
 
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
@@ -147,16 +148,12 @@ if [ -z $OLD ] && [ -z $MAT ]; then
         ui_print "   To install as system app"
         sleep 3
       else
+        WORK=true
         ui_print " "
-        ui_print "   Installing workaround!"
+        ui_print "   Workaround will be installed!"
         ui_print "   When you first boot after flashing this,"
         ui_print "   your device will reboot itself once"
         sleep 3
-        $BOOTMODE && mount -o rw,remount /system
-        cp_ch_nb $INSTALLER/common/v4a.rc /system/etc/init/v4a.rc
-        $BOOTMODE && mount -o ro,remount /system
-        cp_ch_nb $INSTALLER/common/v4a.sh /data/v4a.sh
-        chmod 0755 /data/v4a.sh
       fi
     fi
   fi
@@ -190,6 +187,17 @@ else
   ui_print "   V4A version specified in zipname!"
 fi
 
+if [ ! -z $WORK ]; then
+  if [ "$MODPATH" == "/system/etc/init.d" ]; then
+    DATA=true
+  else
+    ui_print "   Installing workaround!"
+    $BOOTMODE && mount -o rw,remount /system
+    cp_ch_nb $INSTALLER/common/v4a.rc /system/etc/init/v4a.rc
+    $BOOTMODE && mount -o ro,remount /system
+    cp_ch_nb $INSTALLER/common/v4a.sh /data/v4a.sh 0755
+  fi
+fi
 V4ALIB=libv4a_fx_ics.so
 mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/priv-app/ViPER4AndroidFX/lib/$JNI
 if $MAT; then

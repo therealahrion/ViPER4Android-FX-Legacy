@@ -44,10 +44,10 @@ LATESTARTSERVICE=true
 # Uncomment ALWAYSRW if you always want system & vendor mounted as rw - only useful when part of the mod is always in system or vendor and the rest can be placed in magisk img - you likely won't need this
 #MINAPI=21
 #MAXAPI=25
+ALWAYSRW=true
+#SYSOVERRIDE=true
 DYNAMICOREO=true
 #DYNAMICAPP=true
-#SYSOVERRIDE=true
-ALWAYSRW=true
 
 # Custom Variables - Keep everything within this function
 unity_custom() {
