@@ -1,0 +1,8 @@
+service v4a /system/bin/sh /data/v4a.sh
+    seclabel u:r:su:s0
+    user root
+    oneshot
+    disabled
+
+on property:sys.boot_completed=1
+    start v4a
