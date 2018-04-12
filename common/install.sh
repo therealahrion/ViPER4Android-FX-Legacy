@@ -193,9 +193,9 @@ if [ ! -z $WORK ]; then
   else
     ui_print "   Installing workaround!"
     $BOOTMODE && mount -o rw,remount /system
-    cp_ch_nb $INSTALLER/common/v4a.rc /system/etc/init/v4a.rc
+    cp_ch_nb $INSTALLER/common/v4a.rc /system/etc/init/v4a.rc 0644 false
     $BOOTMODE && mount -o ro,remount /system
-    cp_ch_nb $INSTALLER/common/v4a.sh /data/v4a.sh 0755
+    cp_ch_nb $INSTALLER/common/v4a.sh /data/v4a.sh 0755 false
   fi
 fi
 V4ALIB=libv4a_fx_ics.so
