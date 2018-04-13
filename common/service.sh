@@ -1,7 +1,7 @@
 if [ -d /system/priv-app ]; then SOURCE=priv_app; else SOURCE=system_app; fi
 
 if [ "$SEINJECT" != "/sbin/sepolicy-inject" ]; then
-  $SEINJECT --live "allow audioserver audioserver_tmpfs file { read write execute }" "allow audioserver system_file file execmod" "allow mediaserver mediaserver_tmpfs file { read write execute }" "allow mediaserver system_file file execmod" "allow audioserver unlabeled file { read write execute open getattr }" "allow hal_audio_default hal_audio_default process execmem" "allow hal_audio_default hal_audio_default_tmpfs file execute" "allow hal_audio_default audio_data_file dir search" "allow system_server audioserver file write"
+  $SEINJECT --live "allow audioserver audioserver_tmpfs file { read write execute }" "allow audioserver system_file file execmod" "allow mediaserver mediaserver_tmpfs file { read write execute }" "allow mediaserver system_file file execmod" "allow audioserver unlabeled file { read write execute open getattr }" "allow hal_audio_default hal_audio_default process execmem" "allow hal_audio_default hal_audio_default_tmpfs file execute" "allow hal_audio_default audio_data_file dir search"
 else
   $SEINJECT -s audioserver -t audioserver_tmpfs -c file -p read,write,execute -l
   $SEINJECT -s audioserver -t system_file -c file -p execmod -l
@@ -11,7 +11,6 @@ else
   $SEINJECT -s hal_audio_default -t hal_audio_default -c process -p execmem -l
   $SEINJECT -s hal_audio_default -t hal_audio_default_tmpfs -c file -p execmem -l
   $SEINJECT -s hal_audio_default -t audio_data_file -c dir -p search -l
-  $SEINJECT -s system_server -t audioserver -c file -p write -p
 fi
 am start -a android.intent.action.MAIN -n <ACTIVITY>/.main.StartActivity
 killall <ACTIVITY>
