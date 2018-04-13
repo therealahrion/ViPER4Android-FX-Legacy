@@ -9,6 +9,9 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
+### v1.6.3 - 4.13.2018
+* Fix typo for pixel2/eph1 lib copy
+
 ### v1.6.2 - 4.12.2018
 * Reworking/fixing of audio file patching
 

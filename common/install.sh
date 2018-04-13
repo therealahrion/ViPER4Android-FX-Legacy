@@ -209,9 +209,9 @@ fi
 
 # Lib fix for pixel 2's and essential phone
 if device_check "walleye" || device_check "taimen" || device_check "mata"; then
-  if [ -f /system/lib/libstdc++.so ] && [ ! $VEN/lib/libstdc++.so ]; then
+  if [ -f /system/lib/libstdc++.so ] && [ ! -f $VEN/lib/libstdc++.so ]; then
     cp_ch /system/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
-  elif [ -f $VEN/lib/libstdc++.so ] && [ ! /system/lib/libstdc++.so ]; then
+  elif [ -f $VEN/lib/libstdc++.so ] && [ ! -f /system/lib/libstdc++.so ]; then
     cp_ch $VEN/lib/libstdc++.so $UNITY/system/lib/libstdc++.so
   fi
 fi
