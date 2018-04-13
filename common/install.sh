@@ -218,17 +218,18 @@ fi
 
 ui_print " "
 ui_print "   Patching existing audio_effects files..."
-for FILE in ${CFGS}; do
-  cp_ch $ORIGDIR$FILE $UNITY$FILE
-  osp_detect $UNITY$FILE
+for OFILE in ${CFGS}; do
+  FILE="$UNITY$(echo $OFILE | sed "s|^/vendor|/system/vendor|g")"
+  cp_ch $ORIGDIR$OFILE $FILE
+  osp_detect $FILE
   case $FILE in
-    *.conf) sed -i "/v4a_standard_fx {/,/}/d" $UNITY$FILE
-            sed -i "/v4a_fx {/,/}/d" $UNITY$FILE
-            sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $UNITY$FILE
-            sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/$V4ALIB\n  } #$MODID/g" $UNITY$FILE;;
-    *.xml) sed -i "/v4a_standard_fx/d" $UNITY$FILE
-           sed -i "/v4a_fx/d" $UNITY$FILE
-           sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"$V4ALIB\"\/><!--$MODID-->" $UNITY$FILE
-           sed -i "/<effects>/ a\        <effect name=\"v4a_standard_fx\" library=\"v4a_fx\" uuid=\"41d3c987-e6cf-11e3-a88a-11aba5d5c51b\"\/><!--$MODID-->" $UNITY$FILE;;
+    *.conf) sed -i "/v4a_standard_fx {/,/}/d" $FILE
+            sed -i "/v4a_fx {/,/}/d" $FILE
+            sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $FILE
+            sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/$V4ALIB\n  } #$MODID/g" $FILE;;
+    *.xml) sed -i "/v4a_standard_fx/d" $FILE
+           sed -i "/v4a_fx/d" $FILE
+           sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"$V4ALIB\"\/><!--$MODID-->" $FILE
+           sed -i "/<effects>/ a\        <effect name=\"v4a_standard_fx\" library=\"v4a_fx\" uuid=\"41d3c987-e6cf-11e3-a88a-11aba5d5c51b\"\/><!--$MODID-->" $FILE;;
   esac
 done
