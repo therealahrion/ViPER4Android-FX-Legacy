@@ -1,3 +1,5 @@
+MATVER="2.6.0.4"
+
 osp_detect() {
   case $1 in
     *.conf) SPACES=$(sed -n "/^output_session_processing {/,/^}/ {/^ *music {/p}" $1 | sed -r "s/( *).*/\1/")
@@ -117,7 +119,7 @@ case $ABILONG in
   *64*) JNID=arm64; JNI=arm;;
   *) JNID=arm; JNI=arm;;
 esac
-MATVER="2.6.0.3"
+
 ui_print " "
 if [ -z $OLD ] && [ -z $MAT ]; then
   if keytest; then
