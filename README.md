@@ -1,14 +1,15 @@
 # ViPER4Android FX
 This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, and 2.3.4.0 during install). [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
 
-##Best to flash this in magisk manager for automatic apk install and uninstall - if in recovery, apk will be copied to sdcard for you to install
-
 ## Compatibility
 * Android Jellybean+
 * Selinux enforcing
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
+### v1.6.7 - 4.xx.2018
+* Added 2.4 v4a cause why not
+
 ### v1.6.6 - 4.23.2018
 * Updated new material apk
 
