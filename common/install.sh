@@ -295,7 +295,7 @@ if $PATCH; then
   ui_print "   Patching existing audio_effects files..."
   for OFILE in ${CFGS}; do
     FILE="$UNITY$(echo $OFILE | sed "s|^/vendor|/system/vendor|g")"
-    cp_ch $ORIGDIR$OFILE $FILE
+    cp_ch_nb $ORIGDIR$OFILE $FILE
     osp_detect $FILE
     case $FILE in
       *.conf) sed -i "/v4a_standard_fx {/,/}/d" $FILE

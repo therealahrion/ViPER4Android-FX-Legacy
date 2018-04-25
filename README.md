@@ -10,6 +10,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 ### v1.6.7 - 4.xx.2018
 * Added compatibility to match what apks are compatible with (back to ics for all but 2.3 which goes back to gb) cause why not
 * Added 2.4 v4a for completeness
+* Unity v1.5.3 update
 
 ### v1.6.6 - 4.23.2018
 * Updated new material apk
