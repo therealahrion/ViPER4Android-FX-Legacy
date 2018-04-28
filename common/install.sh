@@ -1,5 +1,3 @@
-MATVER="2.6.0.4"
-
 osp_detect() {
   case $1 in
     *.conf) SPACES=$(sed -n "/^output_session_processing {/,/^}/ {/^ *music {/p}" $1 | sed -r "s/( *).*/\1/")
@@ -70,13 +68,12 @@ if $MAGISK && ! $SYSOVERRIDE; then
 fi
 
 # GET OLD/NEW FROM ZIP NAME
+MID=false; NEW=false
 case $(basename $ZIP) in
-  *old*|*Old*|*OLD*) MID=false; NEW=false; MAT=false;;
-  *mid*|*Mid*|*MID*) MID=true; NEW=false; MAT=false;;
-  *new*|*New*|*NEW*) MID=false; NEW=true; MAT=false;;
-  *omat*|*Omat*|*OMAT*) NMAT=false; MAT=true;;
-  *ndrv*|*Ndrv*|*NDRV*) NMAT=true; NDRV=true; MAT=true;;
-  *odrv*|*Odrv*|*ODRV*) NMAT=true; NDRV=false; MAT=true;;
+  *old*|*Old*|*OLD*) MAT=false;;
+  *mid*|*Mid*|*MID*) MAT=false; MID=true;;
+  *new*|*New*|*NEW*) MAT=false; NEW=true;;
+  *mat*|*mat*|*MAT*) MAT=true;;
 esac
 
 # Check API compatibility
@@ -109,11 +106,11 @@ if [ $API -le 10 ]; then
     ui_print "   Non-Neon, Non-VFP Device detected!"
     DRV=NOVFP
   fi
-elif [ $API -le 24 ]; then
+elif [ $API -le 13 ]; then
   ui_print " "
-  ui_print "   Only v2.5.0.5 and newer is compatible!"
-  NEWONLY=true
-  $NEW || [ -z $MID ] || { ui_print "   Incompatible zipname option detected!"; ui_print "   You will need to choose a compatible one!"; MAT=""; }
+  ui_print "   Honeycomb rom detected!"
+  ui_print "   Only v2.3.4.0 is compatible!"
+  MID=false; NEW=false; MAT=false
 fi
 
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
@@ -149,15 +146,6 @@ for REMNANT in $(find /data -name "*ViPER4AndroidFX*" -o -name "*com.pittvandewi
   fi
 done
 
-case $ABILONG in
-  arm64*) JNID=arm64; JNI=arm;;
-  arm*) JNID=arm; JNI=arm;;
-  x86_64*) JNID=x86_64; JNI=x86;;
-  x86*) JNID=x86;  JNI=x86;;
-  *64*) JNID=arm64; JNI=arm;;
-  *) JNID=arm; JNI=arm;;
-esac
-
 ui_print " "
 if [ -z $MAT ]; then
   if keytest; then
@@ -175,111 +163,59 @@ if [ -z $MAT ]; then
   ui_print " "
   ui_print " - Select Version -"
   ui_print "   Choose which V4A you want installed:"
-  ui_print "   Vol+ = material, Vol- = original"
+  ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
+  MAT=false
   if $FUNCTION; then
-    MAT=true
     ui_print " "
-    ui_print "   Choose which material V4A you want installed:"
-    ui_print "   Vol+ = new ($MATVER), Vol- = old (2.5.0.5)"
+    ui_print "   Choose which new V4A you want installed"
+    ui_print "   Vol+ = material, Vol- = original"
     if $FUNCTION; then
-      NMAT=true
+      MAT=true
     else
-      NMAT=false
+      NEW=true
     fi
   else
-    MAT=false
-    if $NEWONLY; then
-      NEW=true
-    else
-      ui_print " "
-      ui_print "   Choose which original V4A you want installed:"
-      ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
-      if $FUNCTION; then
-        NEW=true
-      else
-        NEW=false
-        ui_print " "
-        ui_print "   Choose which older V4A you want installed:"
-        ui_print "   2.3.4.0 V4A will install super quality driver"
-        ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
-        if $FUNCTION; then
-          MID=true
-        else
-          MID=false
-        fi
-      fi
-    fi
+    ui_print " "
+    ui_print "   Choose which older V4A you want installed:"
+    ui_print "   2.3.4.0 V4A will install super quality driver"
+    ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
+    $FUNCTION && MID=true
   fi
 else
   ui_print "   V4A version specified in zipname!"
 fi
 
-V4ALIB=libv4a_fx_ics.so
-mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
+VER="2.5.0.5"
+mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI
 if $MAT; then
-  if $NMAT; then
-    ui_print "   New material V4A will be installed"
-    V4ALIB=libv4a_fx.so
-    if [ -z $NDRV ]; then
-      ui_print " "
-      ui_print "   Choose which driver you want installed:"
-      ui_print "   Vol+ = 2.5.0.4, Vol- = 2.3.4.0"
-      if $FUNCTION; then
-        NDRV=true
-      else
-        NDRV=false
-      fi
-    fi
-    if $NDRV; then
-      ui_print "   2.5.0.5 driver will be installed"
-      cp -f $INSTALLER/custom/2.5/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/$V4ALIB
-    else
-      ui_print "   2.3.4.0 driver will be installed"
-      cp -f $INSTALLER/custom/2.3/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/$V4ALIB
-    fi
-    rm -rf $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
-    JNI=$JNID
-    mkdir -p $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI
-    cp -f $INSTALLER/custom/mat/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
-    cp -f $INSTALLER/custom/mat/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  else
-    MATVER="2.5.0.5"
-    ui_print "   Old material V4A will be installed"
-    cp -f $INSTALLER/custom/2.5/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/$V4ALIB
-    cp -f $INSTALLER/custom/2.5/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
-    cp -f $INSTALLER/custom/mat/ViPER4AndroidFXOld.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  fi
+  ui_print "   Material V4A will be installed"
   cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
-  sed -ri -e "s/version=(.*)/version=\1 ($MATVER)/" -e "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
+  sed -ri "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
   sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
 elif $NEW; then
-  ui_print "   V4A 2.5.0.5 will be installed"
-  cp -f $INSTALLER/custom/2.5/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/$V4ALIB
-  cp -f $INSTALLER/custom/2.5/privapp-permissions-com.audlabs.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
-  cp -f $INSTALLER/custom/2.5/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
-  cp -f $INSTALLER/custom/2.5/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  sed -ri "s/version=(.*)/version=\1 (2.5.0.5)/" $INSTALLER/module.prop
+  ui_print "   V4A $VER will be installed"
+  cp -f $INSTALLER/custom/$VER/privapp-permissions-com.audlabs.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
 elif $MID; then
-  ui_print "   V4A 2.4.0.1 will be installed"
-  cp -f $INSTALLER/custom/2.4/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/$V4ALIB
-  cp -f $INSTALLER/custom/2.4/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
-  cp -f $INSTALLER/custom/2.4/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
-  cp -f $INSTALLER/custom/2.4/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  sed -ri "s/version=(.*)/version=\1 (2.4.0.1)/" $INSTALLER/module.prop
+  VER="2.4.0.1"
+  ui_print "   V4A $VER will be installed"
+  cp -f $INSTALLER/custom/$VER/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 else
-  ui_print "   V4A 2.3.4.0 will be installed"
-  cp -f $INSTALLER/custom/2.3/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/$V4ALIB
-  cp -f $INSTALLER/custom/2.3/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
-  cp -f $INSTALLER/custom/2.3/libV4AJniUtils_$JNI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$JNI/libV4AJniUtils.so
-  cp -f $INSTALLER/custom/2.3/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
-  sed -ri "s/version=(.*)/version=\1 (2.3.4.0)/" $INSTALLER/module.prop
+  VER="2.3.4.0"
+  ui_print "   V4A $VER will be installed"
+  cp -f $INSTALLER/custom/$VER/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
   $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 fi
+
+sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
+cp -f $INSTALLER/custom/$VER/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
+cp -f $INSTALLER/custom/$VER/libV4AJniUtils_$ABI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI/libV4AJniUtils.so
+$MAT && VER="mat"
+cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
 
 # Lib fix for pixel 2's and essential phone
 if device_check "walleye" || device_check "taimen" || device_check "mata"; then
@@ -301,10 +237,10 @@ if $PATCH; then
       *.conf) sed -i "/v4a_standard_fx {/,/}/d" $FILE
               sed -i "/v4a_fx {/,/}/d" $FILE
               sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $FILE
-              sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/$V4ALIB\n  } #$MODID/g" $FILE;;
+              sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/libv4a_fx_ics.so\n  } #$MODID/g" $FILE;;
       *.xml) sed -i "/v4a_standard_fx/d" $FILE
              sed -i "/v4a_fx/d" $FILE
-             sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"$V4ALIB\"\/><!--$MODID-->" $FILE
+             sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"libv4a_fx_ics.so\"\/><!--$MODID-->" $FILE
              sed -i "/<effects>/ a\        <effect name=\"v4a_standard_fx\" library=\"v4a_fx\" uuid=\"41d3c987-e6cf-11e3-a88a-11aba5d5c51b\"\/><!--$MODID-->" $FILE;;
     esac
   done
