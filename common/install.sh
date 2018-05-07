@@ -77,7 +77,7 @@ case $(basename $ZIP) in
 esac
 
 # Check API compatibility
-NEWONLY=false; PATCH=true
+PATCH=true
 if [ $API -le 15 ]; then
   DRV=ics_$ABI
 else
