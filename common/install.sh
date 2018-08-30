@@ -54,6 +54,9 @@ chooseportold() {
   fi
 }
 
+ui_print "   Decompressing files..."
+tar -xf $INSTALLER/custom.tar.xz -C $INSTALLER 2>/dev/null
+
 # Tell user aml is needed if applicable
 if $MAGISK && ! $SYSOVERRIDE; then
   if $BOOTMODE; then LOC="/sbin/.core/img/*/system $MOUNTPATH/*/system"; else LOC="$MOUNTPATH/*/system"; fi
