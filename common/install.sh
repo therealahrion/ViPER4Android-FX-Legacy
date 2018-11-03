@@ -78,6 +78,11 @@ case $(basename $ZIP) in
   *new*|*New*|*NEW*) MAT=false; NEW=true;;
   *mat*|*mat*|*MAT*) MAT=true;;
 esac
+# GET USERAPP FROM ZIP NAME
+case $(basename $ZIP) in
+  *UAPP*|*Uapp*|*uapp*) UA=true;;
+  *SAPP*|*Sapp*|*sapp*) UA=false;;
+esac
 
 # Check API compatibility
 PATCH=true
@@ -150,7 +155,7 @@ for REMNANT in $(find /data -name "*ViPER4AndroidFX*" -o -name "*com.pittvandewi
 done
 
 ui_print " "
-if [ -z $MAT ]; then
+if [ -z $MAT ] || [ -z $UA ]; then
   if keytest; then
     FUNCTION=chooseport
   else
@@ -163,31 +168,51 @@ if [ -z $MAT ]; then
     ui_print "   Press Vol Down"
     $FUNCTION "DOWN"
   fi
-  ui_print " "
-  ui_print " - Select Version -"
-  ui_print "   Choose which V4A you want installed:"
-  ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
-  MAT=false
-  if $FUNCTION; then
+  if [ -z $MAT ]; then
     ui_print " "
-    ui_print "   Choose which new V4A you want installed"
-    ui_print "   Vol+ = material, Vol- = original"
+    ui_print " - Select Version -"
+    ui_print "   Choose which V4A you want installed:"
+    ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
+    MAT=false
     if $FUNCTION; then
-      MAT=true
+      ui_print " "
+      ui_print "   Choose which new V4A you want installed"
+      ui_print "   Vol+ = material, Vol- = original"
+      if $FUNCTION; then
+        MAT=true
+      else
+        NEW=true
+      fi
     else
-      NEW=true
+      ui_print " "
+      ui_print "   Choose which older V4A you want installed:"
+      ui_print "   2.3.4.0 V4A will install super quality driver"
+      ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
+      $FUNCTION && MID=true
     fi
   else
+    ui_print "   V4A version specified in zipname!"
+  fi
+  if [ -z $UA ]; then
     ui_print " "
-    ui_print "   Choose which older V4A you want installed:"
-    ui_print "   2.3.4.0 V4A will install super quality driver"
-    ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
-    $FUNCTION && MID=true
+    ui_print " - Select App Location -"
+    ui_print "   Choose how V4A you want installed"
+    ui_print "   Note that it can get killed off by system"
+    ui_print "    if installed as a user app:"
+    ui_print "   Vol+ = system app (recommended), Vol- = user app"
+    if $FUNCTION; then
+      UA=false
+    else
+      UA=true
+    fi
+  else
+    ui_print "   V4A install method specified in zipname!"
   fi
 else
-  ui_print "   V4A version specified in zipname!"
+  ui_print "   Options specified in zipname!"
 fi
 
+ui_print " "
 VER="2.5.0.5"
 mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI
 if $MAT; then
@@ -195,30 +220,48 @@ if $MAT; then
   cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
   sed -ri "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
   sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
-  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.pittvandewitt.viperfx/g' $INSTALLER/common/service.sh
+  ACTIVITY="com.pittvandewitt.viperfx"
 elif $NEW; then
   ui_print "   V4A $VER will be installed"
   cp -f $INSTALLER/custom/$VER/privapp-permissions-com.audlabs.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
-  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.audlabs.viperfx/g' $INSTALLER/common/service.sh
+  ACTIVITY="com.audlabs.viperfx"
 elif $MID; then
   VER="2.4.0.1"
   ui_print "   V4A $VER will be installed"
   cp -f $INSTALLER/custom/$VER/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
-  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
+  ACTIVITY="com.vipercn.viper4android_v2"
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 else
   VER="2.3.4.0"
   ui_print "   V4A $VER will be installed"
   cp -f $INSTALLER/custom/$VER/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
-  $LATESTARTSERVICE && sed -i 's/<ACTIVITY>/com.vipercn.viper4android_v2/g' $INSTALLER/common/service.sh
+  ACTIVITY="com.vipercn.viper4android_v2"
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 fi
 
+$LATESTARTSERVICE && { sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/service.sh; sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh; }
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
+echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $INSTALLER/module.prop
 cp -f $INSTALLER/custom/$VER/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
 cp -f $INSTALLER/custom/$VER/libV4AJniUtils_$ABI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI/libV4AJniUtils.so
 $MAT && VER="mat"
-cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+if $UA; then
+  if $MAGISK; then
+    ui_print "   V4A will be installed as user app"
+    install_script -l $INSTALLER/common/v4afx.sh
+    cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $UNITY/ViPER4AndroidFX.apk
+  else
+    cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
+    ui_print " "
+    ui_print "   ViPER4AndroidFX.apk copied to root of internal storage (sdcard)"
+    ui_print "   Install manually after booting"
+    sleep 2
+  fi
+  rm -rf $INSTALLER/system/app
+else
+  ui_print "   V4A will be installed as system app"
+  cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+fi
 
 # Lib fix for pixel 2's and essential phone
 if device_check "walleye" || device_check "taimen" || device_check "mata"; then
