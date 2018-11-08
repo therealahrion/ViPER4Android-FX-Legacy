@@ -263,8 +263,8 @@ else
   cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
 fi
 
-# Lib fix for pixel 2's and essential phone
-if device_check "walleye" || device_check "taimen" || device_check "mata"; then
+# Lib fix for pixel 2's, 3's, and essential phone
+if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata"; then
   if [ -f /system/lib/libstdc++.so ] && [ ! -f $VEN/lib/libstdc++.so ]; then
     cp_ch /system/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
   elif [ -f $VEN/lib/libstdc++.so ] && [ ! -f /system/lib/libstdc++.so ]; then
