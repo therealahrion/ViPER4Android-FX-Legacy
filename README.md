@@ -8,7 +8,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 
 ## Change Log
 ### v1.8.2 - 12.6.2018
-* Add usb audio fix
+* Add usb audio fix - donjoe0 @xda-developers
 
 ### v1.8.1 - 11.8.2018
 * Add libstdc++ workaround for pixel 3 and 3xl
