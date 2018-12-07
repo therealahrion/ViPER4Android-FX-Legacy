@@ -106,7 +106,7 @@ if $MAGISK && ! $SYSOVERRIDE; then
 fi
 
 # GET OLD/NEW FROM ZIP NAME
-MID=false; NEW=false
+OIFS=$IFS; IFS=\|; MID=false; NEW=false
 case $(basename $ZIP) in
   *old*|*Old*|*OLD*) MAT=false;;
   *mid*|*Mid*|*MID*) MAT=false; MID=true;;
@@ -118,6 +118,7 @@ case $(basename $ZIP) in
   *UAPP*|*Uapp*|*uapp*) UA=true;;
   *SAPP*|*Sapp*|*sapp*) UA=false;;
 esac
+IFS=$OIFS
 
 # Check API compatibility
 PATCH=true
