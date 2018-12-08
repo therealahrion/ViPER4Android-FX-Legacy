@@ -107,16 +107,16 @@ fi
 
 # GET OLD/NEW FROM ZIP NAME
 OIFS=$IFS; IFS=\|; MID=false; NEW=false
-case $(basename $ZIP) in
-  *old*|*Old*|*OLD*) MAT=false;;
-  *mid*|*Mid*|*MID*) MAT=false; MID=true;;
-  *new*|*New*|*NEW*) MAT=false; NEW=true;;
-  *mat*|*mat*|*MAT*) MAT=true;;
+case $(echo $(basename $ZIP) | tr '[:upper:]' '[:lower:]') in
+  *old*) MAT=false;;
+  *mid*) MAT=false; MID=true;;
+  *new*) MAT=false; NEW=true;;
+  *mat*) MAT=true;;
 esac
 # GET USERAPP FROM ZIP NAME
-case $(basename $ZIP) in
-  *UAPP*|*Uapp*|*uapp*) UA=true;;
-  *SAPP*|*Sapp*|*sapp*) UA=false;;
+case $(echo $(basename $ZIP) | tr '[:upper:]' '[:lower:]') in
+  *UAPP*) UA=true;;
+  *SAPP*) UA=false;;
 esac
 IFS=$OIFS
 
@@ -275,6 +275,7 @@ else
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 fi
 
+sed -i "s/<SOURCE>/$SOURCE/g" $INSTALLER/common/sepolicy.sh
 $LATESTARTSERVICE && { sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/service.sh; sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh; }
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
 echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $INSTALLER/module.prop
