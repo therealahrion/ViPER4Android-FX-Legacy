@@ -301,7 +301,7 @@ else
 fi
 
 # Lib fix for pixel 2's, 3's, and essential phone
-if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata"; then
+if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine"; then
   if [ -f /system/lib/libstdc++.so ] && [ ! -f $VEN/lib/libstdc++.so ]; then
     cp_ch /system/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
   elif [ -f $VEN/lib/libstdc++.so ] && [ ! -f /system/lib/libstdc++.so ]; then
