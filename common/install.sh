@@ -256,27 +256,31 @@ if $MAT; then
   cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
   sed -ri "s/name=(.*)/name=\1 Materialized/" $INSTALLER/module.prop
   sed -i "s/author=.*/author=ViPER520, ZhuHang, Team_Dewitt, Ahrion, Zackptg5/" $INSTALLER/module.prop
-  ACTIVITY="com.pittvandewitt.viperfx"
+  FACTIVITY="com.pittvandewitt.viperfx"
+  ACTIVITY="com.pittvandewitt.viperfx/com.audlabs.viperfx.main.MainActivity"
 elif $NEW; then
   ui_print "   V4A $VER will be installed"
   cp -f $INSTALLER/custom/$VER/privapp-permissions-com.audlabs.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.audlabs.viperfx.xml
-  ACTIVITY="com.audlabs.viperfx"
+  FACTIVITY="com.audlabs.viperfx"
+  ACTIVITY="com.audlabs.viperfx/.main.StartActivity"
 elif $MID; then
   VER="2.4.0.1"
   ui_print "   V4A $VER will be installed"
   cp -f $INSTALLER/custom/$VER/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
-  ACTIVITY="com.vipercn.viper4android_v2"
+  FACTIVITY="com.vipercn.viper4android_v2"
+  ACTIVITY="com.vipercn.viper4android_v2/.activity.ViPER4Android"
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 else
   VER="2.3.4.0"
   ui_print "   V4A $VER will be installed"
   cp -f $INSTALLER/custom/$VER/privapp-permissions-com.vipercn.viper4android_v2.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.vipercn.viper4android_v2.xml
-  ACTIVITY="com.vipercn.viper4android_v2"
+  FACTIVITY="com.vipercn.viper4android_v2"
+  ACTIVITY="com.vipercn.viper4android_v2/.activity.ViPER4Android"
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICOREO=false
 fi
 
 sed -i "s/<SOURCE>/$SOURCE/g" $INSTALLER/common/sepolicy.sh
-$LATESTARTSERVICE && { sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/service.sh; sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh; }
+$LATESTARTSERVICE && { sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s/<FACTIVITY>/$FACTIVITY/g" $INSTALLER/common/service.sh; sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh; }
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
 echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $INSTALLER/module.prop
 cp -f $INSTALLER/custom/$VER/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
