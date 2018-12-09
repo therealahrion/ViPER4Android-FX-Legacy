@@ -122,7 +122,7 @@ unity_install() {
     sed -i '/^#.*/d' $INSTALLER/common/sepolicy.sh
     while read LINE; do
       if [ "$MODPATH" != "/system/etc/init.d" ] || $INITD; then
-        echo -n " \"$LINE\"" >> $INSTALLER/common/service.sh        
+        echo -n " \"$LINE\"" >> $INSTALLER/common/service.sh
       else
         magiskpolicy --load $RD/sepolicy --save $RD/sepolicy "$LINE"
       fi

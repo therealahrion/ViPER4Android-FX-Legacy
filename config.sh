@@ -45,7 +45,7 @@ LATESTARTSERVICE=true
 # Uncomment DEBUG if you want full debug logs (saved to SDCARD if in twrp, part of regular log if in magisk manager (user will need to save log after flashing)
 MINAPI=9
 #MAXAPI=25
-#SEPOLICY=true
+SEPOLICY=true
 #SYSOVERRIDE=true
 DYNAMICOREO=true
 DYNAMICAPP=true
