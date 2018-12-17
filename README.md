@@ -7,10 +7,12 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v1.8.3 - 12.9.2018
-* Unity v1.8.2 update
+### v1.9 - 12.xx.2018
+* Unity v2.0 update
 * Fixed limitation in zipname triggers - you can use spaces in the zipname now and trigger is case insensitive
 * Fixed old boot script bug - may fix issues for some users
+* Improved boot script for user app install - should fix bootloop issues
+* Removed really old stuff
 
 ### v1.8.2 - 12.6.2018
 * Add usb audio fix - donjoe0 @xda-developers

@@ -120,43 +120,6 @@ case $(echo $(basename $ZIP) | tr '[:upper:]' '[:lower:]') in
 esac
 IFS=$OIFS
 
-# Check API compatibility
-PATCH=true
-if [ $API -le 15 ]; then
-  DRV=ics_$ABI
-else
-  DRV=jb_$ABI
-fi
-if [ $API -le 10 ]; then
-  ui_print " "
-  ui_print "   Gingerbread rom detected!"
-  ui_print "   Only v2.3.4.0 is compatible!"
-  MID=false; NEW=false; MAT=false; PATCH=false
-  # Detect driver compatibility
-  ui_print " "
-  ABIVER=$(echo $ABILONG | sed -r 's/.*-v([0-9]*).*/\1/')
-  [ -z $ABIVER ] && ABIVER=0
-  CPUFEAT=$(cat /proc/cpuinfo | grep 'Features')
-  if [ $ABIVER -ge 7 ] || [ "$(echo $CPUFEAT | grep 'neon')" ]; then
-    ui_print "   Neon Device detected!"
-    DRV=arm
-  elif [ "$ABI" == "x86" ]; then
-    ui_print "   x86 Device detected!"
-    DRV=x86
-  elif [ "$(echo $CPUFEAT | grep 'vfp')" ]; then
-    ui_print "   Non-neon VFP Device detected!"
-    DRV=VFP
-  else
-    ui_print "   Non-Neon, Non-VFP Device detected!"
-    DRV=NOVFP
-  fi
-elif [ $API -le 13 ]; then
-  ui_print " "
-  ui_print "   Honeycomb rom detected!"
-  ui_print "   Only v2.3.4.0 is compatible!"
-  MID=false; NEW=false; MAT=false
-fi
-
 # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
 KEYCHECK=$INSTALLER/common/keycheck
 chmod 755 $KEYCHECK
@@ -283,7 +246,7 @@ sed -i "s/<SOURCE>/$SOURCE/g" $INSTALLER/common/sepolicy.sh
 $LATESTARTSERVICE && { sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s|<FACTIVITY>|$FACTIVITY|g" $INSTALLER/common/service.sh; sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh; }
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
 echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $INSTALLER/module.prop
-cp -f $INSTALLER/custom/$VER/libv4a_fx_$DRV.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
+cp -f $INSTALLER/custom/$VER/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
 cp -f $INSTALLER/custom/$VER/libV4AJniUtils_$ABI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI/libV4AJniUtils.so
 $MAT && VER="mat"
 if $UA; then
@@ -337,21 +300,19 @@ else
   done
 fi
 
-if $PATCH; then
-  ui_print "   Patching existing audio_effects files..."
-  for OFILE in ${CFGS}; do
-    FILE="$UNITY$(echo $OFILE | sed "s|^/vendor|/system/vendor|g")"
-    cp_ch -nn $ORIGDIR$OFILE $FILE
-    osp_detect $FILE
-    case $FILE in
-      *.conf) sed -i "/v4a_standard_fx {/,/}/d" $FILE
-              sed -i "/v4a_fx {/,/}/d" $FILE
-              sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $FILE
-              sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/libv4a_fx_ics.so\n  } #$MODID/g" $FILE;;
-      *.xml) sed -i "/v4a_standard_fx/d" $FILE
-             sed -i "/v4a_fx/d" $FILE
-             sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"libv4a_fx_ics.so\"\/><!--$MODID-->" $FILE
-             sed -i "/<effects>/ a\        <effect name=\"v4a_standard_fx\" library=\"v4a_fx\" uuid=\"41d3c987-e6cf-11e3-a88a-11aba5d5c51b\"\/><!--$MODID-->" $FILE;;
-    esac
-  done
-fi
+ui_print "   Patching existing audio_effects files..."
+for OFILE in ${CFGS}; do
+  FILE="$UNITY$(echo $OFILE | sed "s|^/vendor|/system/vendor|g")"
+  cp_ch -nn $ORIGDIR$OFILE $FILE
+  osp_detect $FILE
+  case $FILE in
+    *.conf) sed -i "/v4a_standard_fx {/,/}/d" $FILE
+            sed -i "/v4a_fx {/,/}/d" $FILE
+            sed -i "s/^effects {/effects {\n  v4a_standard_fx { #$MODID\n    library v4a_fx\n    uuid 41d3c987-e6cf-11e3-a88a-11aba5d5c51b\n  } #$MODID/g" $FILE
+            sed -i "s/^libraries {/libraries {\n  v4a_fx { #$MODID\n    path $LIBPATCH\/lib\/soundfx\/libv4a_fx_ics.so\n  } #$MODID/g" $FILE;;
+    *.xml) sed -i "/v4a_standard_fx/d" $FILE
+           sed -i "/v4a_fx/d" $FILE
+           sed -i "/<libraries>/ a\        <library name=\"v4a_fx\" path=\"libv4a_fx_ics.so\"\/><!--$MODID-->" $FILE
+           sed -i "/<effects>/ a\        <effect name=\"v4a_standard_fx\" library=\"v4a_fx\" uuid=\"41d3c987-e6cf-11e3-a88a-11aba5d5c51b\"\/><!--$MODID-->" $FILE;;
+  esac
+done
