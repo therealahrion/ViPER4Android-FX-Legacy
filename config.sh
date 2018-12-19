@@ -58,13 +58,9 @@ unity_custom() {
   if $BOOTMODE; then
     SDCARD=/storage/emulated/0
     CFGS="$(find /system /vendor -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
-    UPCS="$(find /system /vendor -type f -name "usb_audio_policy_configuration.xml")"
-    APS="$(find /system /vendor -type f -name "*audio_*policy*.conf")"
   else
     SDCARD=/data/media/0
     CFGS="$(find -L /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
-    UPCS="$(find -L /system -type f -name "usb_audio_policy_configuration.xml")"
-    APS="$(find -L /system -type f -name "*audio_*policy*.conf")"    
   fi
   [ -f $MOD_VER ] && { UAE="$(grep_prop UA $MOD_VER)"; ACTIVITYE="$(grep_prop ACTIVITY $MOD_VER)"; }
 }
