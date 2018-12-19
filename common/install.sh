@@ -60,7 +60,7 @@ tar -xf $INSTALLER/custom.tar.xz -C $INSTALLER 2>/dev/null
 # Tell user aml is needed if applicable
 if $MAGISK && ! $SYSOVERRIDE; then
   if $BOOTMODE; then LOC="/sbin/.core/img/*/system $MOUNTPATH/*/system"; else LOC="$MOUNTPATH/*/system"; fi
-  FILES=$(find $LOC -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml" -o -name "usb_audio_policy_configuration.xml" -o -name "*audio_*policy*.conf" 2>/dev/null)
+  FILES=$(find $LOC -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml" 2>/dev/null)
   if [ ! -z "$FILES" ] && [ ! "$(echo $FILES | grep '/aml/')" ]; then
     ui_print " "
     ui_print "   ! Conflicting audio mod found!"
@@ -119,7 +119,7 @@ for REMNANT in $(find /data -name "*ViPER4AndroidFX*" -o -name "*com.pittvandewi
 done
 
 ui_print " "
-if [ -z $MAT ] || [ -z $UA ] || [ -z $USB ]; then
+if [ -z $MAT ] || [ -z $UA ]; then
   if keytest; then
     FUNCTION=chooseport
   else

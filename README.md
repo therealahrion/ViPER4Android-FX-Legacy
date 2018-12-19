@@ -7,8 +7,8 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v2.1 -12.xx.2018
-* Remove usb policy patching - make separate module for it
+### v2.1 - 12.19.2018
+* Remove usb policy patching - it's in a separate module now
 
 ### v2.0 - 12.18.2018
 * Unity v2.0 update
