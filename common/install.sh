@@ -15,7 +15,7 @@ osp_detect() {
 
 keytest() {
   ui_print " - Vol Key Test -"
-  ui_print "   Press Vol Up:"
+  ui_print "   Press a Vol Key:"
   (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || return 1
   return 0
 }
@@ -36,9 +36,10 @@ chooseport() {
 }
 
 chooseportold() {
+  # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
   # Calling it first time detects previous input. Calling it second time will do what we want
-  $KEYCHECK
-  $KEYCHECK
+  keycheck
+  keycheck
   SEL=$?
   if [ "$1" == "UP" ]; then
     UP=$SEL
@@ -85,10 +86,6 @@ case $(echo $(basename $ZIP) | tr '[:upper:]' '[:lower:]') in
 esac
 IFS=$OIFS
 
-# Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
-KEYCHECK=$INSTALLER/common/keycheck
-chmod 755 $KEYCHECK
-
 ui_print " "
 ui_print "   Removing remnants from past v4a installs..."
 # Uninstall existing v4a installs
@@ -126,6 +123,7 @@ if [ -z $MAT ] || [ -z $UA ]; then
     FUNCTION=chooseportold
     ui_print "   ! Legacy device detected! Using old keycheck method"
     ui_print " "
+    [ "$ARCH32" == "arm" ] || { ui_print "   ! Non-arm device detected!"; ui_print "   ! Keycheck binary only compatible with arm/arm64 devices!"; abort "!   Aborting!"; }
     ui_print "- Vol Key Programming -"
     ui_print "   Press Vol Up Again:"
     $FUNCTION "UP"
@@ -161,9 +159,11 @@ if [ -z $MAT ] || [ -z $UA ]; then
     ui_print " "
     ui_print " - Select App Location -"
     ui_print "   Choose how V4A you want installed"
-    ui_print "   Note that it can get killed off by system"
-    ui_print "    if installed as a user app:"
-    ui_print "   Vol+ = system app (recommended), Vol- = user app"
+    ui_print " "
+    ui_print "   Note that: user app can get killed by android,"
+    ui_print "   system app doesn't work with some convolvers:"
+    sleep 2
+    ui_print "   Vol+ = system app, Vol- = user app"
     if $FUNCTION; then
       UA=false
     else
