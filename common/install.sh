@@ -73,14 +73,14 @@ fi
 
 # GET OLD/NEW FROM ZIP NAME
 OIFS=$IFS; IFS=\|; MID=false; NEW=false
-case $(echo $(basename $ZIP) | tr '[:upper:]' '[:lower:]') in
+case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
   *old*) MAT=false;;
   *mid*) MAT=false; MID=true;;
   *new*) MAT=false; NEW=true;;
   *mat*) MAT=true;;
 esac
 # GET USERAPP FROM ZIP NAME
-case $(echo $(basename $ZIP) | tr '[:upper:]' '[:lower:]') in
+case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
   *uapp*) UA=true;;
   *sapp*) UA=false;;
 esac
