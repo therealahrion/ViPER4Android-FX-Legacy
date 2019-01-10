@@ -60,7 +60,7 @@ tar -xf $INSTALLER/custom.tar.xz -C $INSTALLER 2>/dev/null
 
 # Tell user aml is needed if applicable
 if $MAGISK && ! $SYSOVERRIDE; then
-  if $BOOTMODE; then LOC="/sbin/.core/img/*/system $MOUNTPATH/*/system"; else LOC="$MOUNTPATH/*/system"; fi
+  if $BOOTMODE; then LOC="$MAGISKTMP/img/*/system $MOUNTPATH/*/system"; else LOC="$MOUNTPATH/*/system"; fi
   FILES=$(find $LOC -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml" 2>/dev/null)
   if [ ! -z "$FILES" ] && [ ! "$(echo $FILES | grep '/aml/')" ]; then
     ui_print " "
@@ -71,21 +71,35 @@ if $MAGISK && ! $SYSOVERRIDE; then
   fi
 fi
 
-# GET OLD/NEW FROM ZIP NAME
-OIFS=$IFS; IFS=\|; MID=false; NEW=false
-case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
-  *old*) MAT=false;;
-  *mid*) MAT=false; MID=true;;
-  *new*) MAT=false; NEW=true;;
-  *mat*) MAT=true;;
-esac
-# GET USERAPP FROM ZIP NAME
-case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
-  *uapp*) UA=true;;
-  *sapp*) UA=false;;
-esac
-IFS=$OIFS
-
+if $AROMA; then
+  # Get aroma selection
+  OLD=false; MID=false; NEW=false; MAT=false
+  case $(grep_prop "selected.0" $UNITY/system/etc/$MODID/v4a.prop) in
+    1) MAT=true;;
+    2) NEW=true;;
+    3) MID=true;;
+    4) OLD=true;;
+  esac
+  case $(grep_prop "selected.0" $UNITY/system/etc/$MODID/ua.prop) in
+    1) UA=false;;
+    2) UA=true;;
+  esac
+else
+  # Get old/new from zip name
+  OIFS=$IFS; IFS=\|; MID=false; NEW=false
+  case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+    *old*) MAT=false;;
+    *mid*) MAT=false; MID=true;;
+    *new*) MAT=false; NEW=true;;
+    *mat*) MAT=true;;
+  esac
+  # Get userapp from zip name
+  case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+    *uapp*) UA=true;;
+    *sapp*) UA=false;;
+  esac
+  IFS=$OIFS
+fi
 ui_print " "
 ui_print "   Removing remnants from past v4a installs..."
 # Uninstall existing v4a installs
@@ -245,7 +259,7 @@ ui_print " "
 ui_print "   Patching existing audio_effects files..."
 for OFILE in ${CFGS}; do
   FILE="$UNITY$(echo $OFILE | sed "s|^/vendor|/system/vendor|g")"
-  cp_ch -nn $ORIGDIR$OFILE $FILE
+  cp_ch -i $ORIGDIR$OFILE $FILE
   osp_detect $FILE
   case $FILE in
     *.conf) sed -i "/v4a_standard_fx {/,/}/d" $FILE

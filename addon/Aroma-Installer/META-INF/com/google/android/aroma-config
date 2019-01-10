@@ -1,0 +1,100 @@
+﻿### LICENSE:
+#
+# Copyright (C) 2011 Ahmad Amarullah ( http://amarullz.com/ )
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+### FILE INFO:
+#
+# AROMA Installer 2.70 - AROMA Installer Test Script Configuration
+#       (c) 2011-2012 by Ahmad Amarullah
+#           amarullz - xda-developers
+#           http://www.amarullz.com/
+#
+#       Binary Version  : 2.70B
+#       Binary Codename : Flamboyan
+#
+ini_set("rom_name",             "ViPER4AndroidFX Unity");
+ini_set("rom_version",          "<VER>");
+ini_set("rom_author",           "ViPER520, ZhuHang, Ahrion, Zackptg5");
+
+splash(
+#  #-- Duration 2000ms / 2 seconds
+    2000,
+  
+  #-- <AROMA Resource Dir>/splash.png
+    "splash"
+);
+
+fontresload("0", "ttf/Roboto-Regular.ttf", "8");
+fontresload("1", "ttf/Roboto-Regular.ttf", "9");
+theme("miui4");
+
+textbox(
+  #-- Title
+    "Changelog",
+  
+  #-- Subtitle
+    "ViPER4AndroidFX Unity Changelog",
+  
+  #-- Icon
+    "@update",
+  
+  #-- Arg 4
+    resread("changelog.txt")
+);
+
+selectbox(
+  "Saved User Options",
+  "Use prior selections?",
+  "icons/personalize",
+  "saved.prop",
+  
+  "Yes","",0,
+  "No","",1
+);
+
+if file_getprop("/tmp/aroma/saved.prop","selected.0") == "2"; then
+  selectbox(
+    "Choose ViPER4AndroidFX Version",
+    "Please Select one:",
+    "icons/personalize",
+    "v4a.prop",
+
+    "ViPER4AndroidFX Material 2.5.0.5","by Team_Dewitt",0,
+    "ViPER4AndroidFX 2.5.0.5","",1,
+    "ViPER4AndroidFX 2.4.0.1","",0,
+    "ViPER4Android 2.3.4.0","Super Quality Driver",0
+  );
+  
+  selectbox(
+    "Choose App Location",
+    "Please Select one:",
+    "icons/personalize",
+    "ua.prop",
+
+    "Install as system priv-app","So app isn't killed off by android system. Note that some convolvers won't work when v4a is system app.",1,
+    "Install as user app","Some convolvers only work when v4a is user app. Note that android system may kill app preventing it from processing audio in background.",0
+  );
+endif;
+
+# Next Button is "Finish"
+ini_set("text_next", "Finish");
+ini_set("icon_next", "@finish");
+
+install(
+  "Installing",
+  "Executing chosen parameters.\n\n" + 
+  "Please wait until finished...",
+  "icons/install"
+);

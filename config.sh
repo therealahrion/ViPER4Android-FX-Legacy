@@ -61,6 +61,8 @@ unity_custom() {
     CFGS="$(find -L /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
   fi
   [ -f $MOD_VER ] && { UAE="$(grep_prop UA $MOD_VER)"; ACTIVITYE="$(grep_prop ACTIVITY $MOD_VER)"; }
+  # Modify aroma-config with current mod version
+  sed -i "s/<VER>/$(grep_prop version $INSTALLER/module.prop)/" $INSTALLER/addon/Aroma-Installer/META-INF/com/google/android/aroma-config
 }
 
 # Things that ONLY run during an upgrade (occurs after unity_custom) - you probably won't need this
