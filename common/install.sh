@@ -13,48 +13,6 @@ osp_detect() {
   esac
 }
 
-keytest() {
-  ui_print " - Vol Key Test -"
-  ui_print "   Press a Vol Key:"
-  (/system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events) || return 1
-  return 0
-}
-
-chooseport() {
-  #note from chainfire @xda-developers: getevent behaves weird when piped, and busybox grep likes that even less than toolbox/toybox grep
-  while true; do
-    /system/bin/getevent -lc 1 2>&1 | /system/bin/grep VOLUME | /system/bin/grep " DOWN" > $INSTALLER/events
-    if (`cat $INSTALLER/events 2>/dev/null | /system/bin/grep VOLUME >/dev/null`); then
-      break
-    fi
-  done
-  if (`cat $INSTALLER/events 2>/dev/null | /system/bin/grep VOLUMEUP >/dev/null`); then
-    return 0
-  else
-    return 1
-  fi
-}
-
-chooseportold() {
-  # Keycheck binary by someone755 @Github, idea for code below by Zappo @xda-developers
-  # Calling it first time detects previous input. Calling it second time will do what we want
-  keycheck
-  keycheck
-  SEL=$?
-  if [ "$1" == "UP" ]; then
-    UP=$SEL
-  elif [ "$1" == "DOWN" ]; then
-    DOWN=$SEL
-  elif [ $SEL -eq $UP ]; then
-    return 0
-  elif [ $SEL -eq $DOWN ]; then
-    return 1
-  else
-    ui_print "   Vol key not detected!"
-    abort "   Use name change method in TWRP"
-  fi
-}
-
 ui_print "   Decompressing files..."
 tar -xf $INSTALLER/custom.tar.xz -C $INSTALLER 2>/dev/null
 
@@ -131,30 +89,16 @@ done
 
 ui_print " "
 if [ -z $MAT ] || [ -z $UA ]; then
-  if keytest; then
-    FUNCTION=chooseport
-  else
-    FUNCTION=chooseportold
-    ui_print "   ! Legacy device detected! Using old keycheck method"
-    ui_print " "
-    [ "$ARCH32" == "arm" ] || { ui_print "   ! Non-arm device detected!"; ui_print "   ! Keycheck binary only compatible with arm/arm64 devices!"; abort "!   Aborting!"; }
-    ui_print "- Vol Key Programming -"
-    ui_print "   Press Vol Up Again:"
-    $FUNCTION "UP"
-    ui_print "   Press Vol Down"
-    $FUNCTION "DOWN"
-  fi
   if [ -z $MAT ]; then
-    ui_print " "
     ui_print " - Select Version -"
     ui_print "   Choose which V4A you want installed:"
     ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
     MAT=false
-    if $FUNCTION; then
+    if $VKSEL; then
       ui_print " "
       ui_print "   Choose which new V4A you want installed"
       ui_print "   Vol+ = material, Vol- = original"
-      if $FUNCTION; then
+      if $VKSEL; then
         MAT=true
       else
         NEW=true
@@ -164,7 +108,7 @@ if [ -z $MAT ] || [ -z $UA ]; then
       ui_print "   Choose which older V4A you want installed:"
       ui_print "   2.3.4.0 V4A will install super quality driver"
       ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
-      $FUNCTION && MID=true
+      $VKSEL && MID=true
     fi
   else
     ui_print "   V4A version specified in zipname!"
@@ -178,7 +122,7 @@ if [ -z $MAT ] || [ -z $UA ]; then
     ui_print "   system app doesn't work with some convolvers:"
     sleep 2
     ui_print "   Vol+ = system app, Vol- = user app"
-    if $FUNCTION; then
+    if $VKSEL; then
       UA=false
     else
       UA=true
