@@ -166,7 +166,8 @@ else
 fi
 
 sed -i "s/<SOURCE>/$SOURCE/g" $INSTALLER/common/sepolicy.sh
-$LATESTARTSERVICE && { sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s|<FACTIVITY>|$FACTIVITY|g" $INSTALLER/common/service.sh; sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh; }
+sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s|<FACTIVITY>|$FACTIVITY|g" $INSTALLER/common/service.sh
+sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
 echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $INSTALLER/module.prop
 cp -f $INSTALLER/custom/$VER/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
