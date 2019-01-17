@@ -136,7 +136,7 @@ fi
 
 ui_print " "
 VER="2.5.0.5"
-mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI
+mkdir -p $INSTALLER/system/lib/soundfx $INSTALLER/system/etc/permissions $INSTALLER/system/priv-app/ViPER4AndroidFX/lib/$ABI
 if $MAT; then
   ui_print "   Material V4A will be installed"
   cp -f $INSTALLER/custom/mat/privapp-permissions-com.pittvandewitt.viperfx.xml $INSTALLER/system/etc/permissions/privapp-permissions-com.pittvandewitt.viperfx.xml
@@ -171,7 +171,7 @@ sed -i "s/<ACTIVITY>/$ACTIVITY/g" $INSTALLER/common/v4afx.sh
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $INSTALLER/module.prop
 echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $INSTALLER/module.prop
 cp -f $INSTALLER/custom/$VER/libv4a_fx_jb_$ABI.so $INSTALLER/system/lib/soundfx/libv4a_fx_ics.so
-cp -f $INSTALLER/custom/$VER/libV4AJniUtils_$ABI.so $INSTALLER/system/app/ViPER4AndroidFX/lib/$ABI/libV4AJniUtils.so
+cp -f $INSTALLER/custom/$VER/libV4AJniUtils_$ABI.so $INSTALLER/system/priv-app/ViPER4AndroidFX/lib/$ABI/libV4AJniUtils.so
 $MAT && VER="mat"
 if $UA; then
   if $MAGISK; then
@@ -185,10 +185,10 @@ if $UA; then
     ui_print "   Install manually after booting"
     sleep 2
   fi
-  rm -rf $INSTALLER/system/app
+  rm -rf $INSTALLER/system/priv-app
 else
   ui_print "   V4A will be installed as system app"
-  cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $INSTALLER/system/app/ViPER4AndroidFX/ViPER4AndroidFX.apk
+  cp -f $INSTALLER/custom/$VER/ViPER4AndroidFX.apk $INSTALLER/system/priv-app/ViPER4AndroidFX/ViPER4AndroidFX.apk
 fi
 
 # Lib fix for pixel 2's, 3's, and essential phone
