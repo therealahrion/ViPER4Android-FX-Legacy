@@ -2,11 +2,16 @@
 This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 2.4.0.1, and 2.3.4.0 during install). [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
 
 ## Compatibility
-* Android Lollipop+
+* Android Jellybean+
 * Selinux enforcing
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
+### v3.4 - 2.8.2019
+* Boot script improvement
+* Unity v3.3 update - minapi is now 17
+* Allow skip of volkeys entirely (if device isn't compatible) by adding 'novk' to zipname
+
 ### v3.3 - 1.16.2019
 * Forgot to move apk back to priv-app (needed for unity 3.2)
 
