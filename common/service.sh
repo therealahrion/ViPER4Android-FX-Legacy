@@ -1,4 +1,4 @@
-while [ ! "$(ps -A | grep -i "<ACTIVITY>")" ] || [ $(getprop sys.boot_completed) -ne 1 ] || [ "$(getprop init.svc.bootanim | tr '[:upper:]' '[:lower:]')" != "stopped" ]; do
+while [ $(getprop sys.boot_completed) -ne 1 ] || [ "$(getprop init.svc.bootanim | tr '[:upper:]' '[:lower:]')" != "stopped" ]; do
   sleep 1
 done
 sleep 3
