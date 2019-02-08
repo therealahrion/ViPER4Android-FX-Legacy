@@ -10,6 +10,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 ### v3.3 - 2.8.2019
 * Boot script improvement
 * Unity v3.3 update - minapi is now 17
+* Allow skip of volkeys entirely (if device isn't compatible) by adding 'novk' to zipname
 
 ### v3.3 - 1.16.2019
 * Forgot to move apk back to priv-app (needed for unity 3.2)

@@ -89,46 +89,53 @@ done
 
 ui_print " "
 if [ -z $MAT ] || [ -z $UA ]; then
-  if [ -z $MAT ]; then
-    ui_print " - Select Version -"
-    ui_print "   Choose which V4A you want installed:"
-    ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
-    MAT=false
-    if $VKSEL; then
-      ui_print " "
-      ui_print "   Choose which new V4A you want installed"
-      ui_print "   Vol+ = material, Vol- = original"
+  if [ -z $VKSEL ]; then
+    ui_print "  ! Some options not specified in zipname!"
+    ui_print "  Using defaults if not specified in zipname!"
+    [ -z $MAT ] && MAT=false; NEW=true
+    [ -z $UA ] && UA=false
+  else
+    if [ -z $MAT ]; then
+      ui_print " - Select Version -"
+      ui_print "   Choose which V4A you want installed:"
+      ui_print "   Vol+ = new (2.5.0.5), Vol- = older"
+      MAT=false
       if $VKSEL; then
-        MAT=true
+        ui_print " "
+        ui_print "   Choose which new V4A you want installed"
+        ui_print "   Vol+ = material, Vol- = original"
+        if $VKSEL; then
+          MAT=true
+        else
+          NEW=true
+        fi
       else
-        NEW=true
+        ui_print " "
+        ui_print "   Choose which older V4A you want installed:"
+        ui_print "   2.3.4.0 V4A will install super quality driver"
+        ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
+        $VKSEL && MID=true
       fi
     else
+      ui_print "   V4A version specified in zipname!"
+    fi
+    if [ -z $UA ]; then
       ui_print " "
-      ui_print "   Choose which older V4A you want installed:"
-      ui_print "   2.3.4.0 V4A will install super quality driver"
-      ui_print "   Vol+ = 2.4.0.1, Vol- = 2.3.4.0"
-      $VKSEL && MID=true
-    fi
-  else
-    ui_print "   V4A version specified in zipname!"
-  fi
-  if [ -z $UA ]; then
-    ui_print " "
-    ui_print " - Select App Location -"
-    ui_print "   Choose how V4A you want installed"
-    ui_print " "
-    ui_print "   Note that: user app can get killed by android,"
-    ui_print "   system app doesn't work with some convolvers:"
-    sleep 2
-    ui_print "   Vol+ = system app, Vol- = user app"
-    if $VKSEL; then
-      UA=false
+      ui_print " - Select App Location -"
+      ui_print "   Choose how V4A you want installed"
+      ui_print " "
+      ui_print "   Note that: user app can get killed by android,"
+      ui_print "   system app doesn't work with some convolvers:"
+      sleep 2
+      ui_print "   Vol+ = system app, Vol- = user app"
+      if $VKSEL; then
+        UA=false
+      else
+        UA=true
+      fi
     else
-      UA=true
+      ui_print "   V4A install method specified in zipname!"
     fi
-  else
-    ui_print "   V4A install method specified in zipname!"
   fi
 else
   ui_print "   Options specified in zipname!"
