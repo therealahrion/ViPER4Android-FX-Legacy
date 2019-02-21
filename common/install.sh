@@ -42,6 +42,10 @@ if $AROMA; then
     1) UA=false;;
     2) UA=true;;
   esac
+  case $(grep_prop "selected.0" $UNITY/system/etc/$MODID/lw.prop) in
+    1) LIBWA=true;;
+    2) LIBWA=false;;
+  esac
 else
   # Get old/new from zip name
   OIFS=$IFS; IFS=\|; MID=false; NEW=false
@@ -55,6 +59,11 @@ else
   case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
     *uapp*) UA=true;;
     *sapp*) UA=false;;
+  esac
+  # Get lib workaround from zip name
+  case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+    *lib*) LIBWA=true;;
+    *nlib*) LIBWA=false;;
   esac
   IFS=$OIFS
 fi
@@ -88,12 +97,13 @@ for REMNANT in $(find /data -name "*ViPER4AndroidFX*" -o -name "*com.pittvandewi
 done
 
 ui_print " "
-if [ -z $MAT ] || [ -z $UA ]; then
+if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ]; then
   if [ -z $VKSEL ]; then
     ui_print "  ! Some options not specified in zipname!"
     ui_print "  Using defaults if not specified in zipname!"
     [ -z $MAT ] && MAT=false; NEW=true
     [ -z $UA ] && UA=false
+    [ -z $LIBWA ] && LIBWA=false
   else
     if [ -z $MAT ]; then
       ui_print " - Select Version -"
@@ -135,6 +145,20 @@ if [ -z $MAT ] || [ -z $UA ]; then
       fi
     else
       ui_print "   V4A install method specified in zipname!"
+    fi
+    if [ -z $LIBWA ]; then
+      ui_print " "
+      ui_print " - Use lib workaround? -"
+      ui_print " "
+      ui_print "   Only choose yes if you're having issues"
+      ui_print "   Vol+ = yes, Vol- = no (recommended)"
+      if $VKSEL; then
+        LIBWA=true
+      else
+        LIBWA=false
+      fi
+    else
+      ui_print "   Lib workaround option specified in zipname!"
     fi
   fi
 else
@@ -199,7 +223,8 @@ else
 fi
 
 # Lib fix for pixel 2's, 3's, and essential phone
-if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row"; then
+if $LIBWA || device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row"; then
+  ui_print "   Applying lib workaround..."
   if [ -f $ORIGDIR/system/lib/libstdc++.so ] && [ ! -f $ORIGVEN/lib/libstdc++.so ]; then
     cp_ch $ORIGDIR/system/lib/libstdc++.so $UNITY$VEN/lib/libstdc++.so
   elif [ -f $ORIGVEN/lib/libstdc++.so ] && [ ! -f $ORIGDIR/system/lib/libstdc++.so ]; then

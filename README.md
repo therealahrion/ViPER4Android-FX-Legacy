@@ -7,8 +7,9 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
-### v3.4.2 - x.xx.2019
-* Added Samsung Galaxy S9 and Zuk Z2 Pro to lib workaround
+### v3.4.2 - 2.21.2019
+* Added Zuk Z2 Pro to lib workaround
+* Made lib workaround a choice so I don't have to keep updating this
 
 ### v3.4.1 - 2.19.2019
 * Add S9 to lib workaround
