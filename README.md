@@ -9,6 +9,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 ## Change Log
 ### vx.x.x - x.x.2019
 * Don't prompt for lib workaround if device that needs it
+* Get rid of aroma option
 
 ### v3.4.2 - 2.21.2019
 * Added Zuk Z2 Pro to lib workaround

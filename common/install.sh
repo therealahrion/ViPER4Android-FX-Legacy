@@ -29,44 +29,25 @@ if $MAGISK && ! $SYSOVERRIDE; then
   fi
 fi
 
-if $AROMA; then
-  # Get aroma selection
-  OLD=false; MID=false; NEW=false; MAT=false
-  case $(grep_prop "selected.0" $UNITY/system/etc/$MODID/v4a.prop) in
-    1) MAT=true;;
-    2) NEW=true;;
-    3) MID=true;;
-    4) OLD=true;;
-  esac
-  case $(grep_prop "selected.0" $UNITY/system/etc/$MODID/ua.prop) in
-    1) UA=false;;
-    2) UA=true;;
-  esac
-  case $(grep_prop "selected.0" $UNITY/system/etc/$MODID/lw.prop) in
-    1) LIBWA=true;;
-    2) LIBWA=false;;
-  esac
-else
-  # Get old/new from zip name
-  OIFS=$IFS; IFS=\|; MID=false; NEW=false
-  case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
-    *old*) MAT=false;;
-    *mid*) MAT=false; MID=true;;
-    *new*) MAT=false; NEW=true;;
-    *mat*) MAT=true;;
-  esac
-  # Get userapp from zip name
-  case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
-    *uapp*) UA=true;;
-    *sapp*) UA=false;;
-  esac
-  # Get lib workaround from zip name
-  case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
-    *lib*) LIBWA=true;;
-    *nlib*) LIBWA=false;;
-  esac
-  IFS=$OIFS
-fi
+# Get old/new from zip name
+OIFS=$IFS; IFS=\|; MID=false; NEW=false
+case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+  *old*) MAT=false;;
+  *mid*) MAT=false; MID=true;;
+  *new*) MAT=false; NEW=true;;
+  *mat*) MAT=true;;
+esac
+# Get userapp from zip name
+case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+  *uapp*) UA=true;;
+  *sapp*) UA=false;;
+esac
+# Get lib workaround from zip name
+case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+  *lib*) LIBWA=true;;
+  *nlib*) LIBWA=false;;
+esac
+IFS=$OIFS
 
 # Check for devices that need lib workaround
 if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row"; then

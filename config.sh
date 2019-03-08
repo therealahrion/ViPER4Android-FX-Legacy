@@ -52,8 +52,6 @@ unity_custom() {
     CFGS="$(find -L /system -type f -name "*audio_effects*.conf" -o -name "*audio_effects*.xml")"
   fi
   [ -f $MOD_VER ] && { UAE="$(grep_prop UA $MOD_VER)"; ACTIVITYE="$(grep_prop ACTIVITY $MOD_VER)"; }
-  # Modify aroma-config with current mod version
-  sed -i "s/<VER>/$(grep_prop version $INSTALLER/module.prop)/" $INSTALLER/addon/Aroma-Installer/META-INF/com/google/android/aroma-config
 }
 
 # Custom Functions for Install AND Uninstall - You can put them here
