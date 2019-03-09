@@ -8,6 +8,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 
 ## Change Log
 ### vx.x.x - x.x.2019
+* Fix boot script once and for all
 * Don't prompt for lib workaround if device that needs it
 * Get rid of aroma option
 
