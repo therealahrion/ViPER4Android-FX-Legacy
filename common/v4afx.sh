@@ -5,7 +5,7 @@ done
 
 APP=$(pm list packages -3 | grep <ACTIVITY>)
 
-if [ ! -d "$UNITY" ]; then
+if [ ! -d "$MODPATH" ]; then
   if [ "$APP" ]; then
     pm uninstall <ACTIVITY>
     rm -rf /data/data/<ACTIVITY>
@@ -14,13 +14,13 @@ if [ ! -d "$UNITY" ]; then
   exit 0
 elif [ "$APP" ]; then
   STATUS="$(pm list packages -d | grep '<ACTIVITY>')"
-  if [ -f "$UNITY/disable" ] && [ ! "$STATUS" ]; then
+  if [ -f "$MODPATH/disable" ] && [ ! "$STATUS" ]; then
     pm disable <ACTIVITY>
-  elif [ ! -f "$UNITY/disable" ] && [ "$STATUS" ]; then
+  elif [ ! -f "$MODPATH/disable" ] && [ "$STATUS" ]; then
     pm enable <ACTIVITY>
   fi
-elif [ ! -f "$UNITY/disable" ] && [ ! "$APP" ]; then
-  pm install $UNITY/ViPER4AndroidFX.apk
+elif [ ! -f "$MODPATH/disable" ] && [ ! "$APP" ]; then
+  pm install $MODPATH/ViPER4AndroidFX.apk
   pm disable <ACTIVITY>
   pm enable <ACTIVITY>
 fi
