@@ -195,7 +195,7 @@ if $UA; then
   if $MAGISK; then
     ui_print "   V4A will be installed as user app"
     install_script -l $TMPDIR/common/v4afx.sh
-    cp -f $TMPDIR/custom/$VER/ViPER4AndroidFX.apk $UNITY/ViPER4AndroidFX.apk
+    cp_ch $TMPDIR/custom/$VER/ViPER4AndroidFX.apk $UNITY/ViPER4AndroidFX.apk
   else
     cp -f $TMPDIR/custom/$VER/ViPER4AndroidFX.apk $SDCARD/ViPER4AndroidFX.apk
     ui_print " "
