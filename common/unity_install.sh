@@ -50,7 +50,7 @@ esac
 IFS=$OIFS
 
 # Check for devices that need lib workaround
-if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row"; then
+if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row" || device_check "beyond2lte"; then
   LIBWA=true
 fi
 
@@ -182,6 +182,9 @@ else
   FACTIVITY="com.vipercn.viper4android_v2/.activity.ViPER4Android"
   LIBPATCH="\/system"; LIBDIR=/system; DYNAMICLIB=false
 fi
+
+# Sanity-check to avoid rm -rf /data/data disaster in v4afx.sh.
+[ -n "ACTIVITY" ] || abort " "
 
 sed -i "s/<SOURCE>/$SOURCE/g" $TMPDIR/common/sepolicy.sh
 sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s|<FACTIVITY>|$FACTIVITY|g" $TMPDIR/common/service.sh
