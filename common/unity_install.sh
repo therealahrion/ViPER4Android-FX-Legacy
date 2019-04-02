@@ -47,6 +47,11 @@ case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
   *lib*) LIBWA=true;;
   *nlib*) LIBWA=false;;
 esac
+# Get open/close workaround from zip name
+case $(echo $(basename $ZIPFILE) | tr '[:upper:]' '[:lower:]') in
+  *ocw*) OCW=true;;
+  *nocw*) OCW=false;;
+esac
 IFS=$OIFS
 
 # Check for devices that need lib workaround
@@ -84,13 +89,14 @@ for REMNANT in $(find /data -name "*ViPER4AndroidFX*" -o -name "*com.pittvandewi
 done
 
 ui_print " "
-if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ]; then
+if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ] || [ -z $OCW ]; then
   if [ -z $VKSEL ]; then
     ui_print "  ! Some options not specified in zipname!"
     ui_print "  Using defaults if not specified in zipname!"
     [ -z $MAT ] && MAT=false; NEW=true
     [ -z $UA ] && UA=false
     [ -z $LIBWA ] && LIBWA=false
+    [ -z $OCW ] && OCW=false
   else
     if [ -z $MAT ]; then
       ui_print " - Select Version -"
@@ -147,6 +153,20 @@ if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ]; then
     else
       ui_print "   Lib workaround option specified in zipname!"
     fi
+    if [ -z $OCW ]; then
+      ui_print " "
+      ui_print " - Use app open/close/fc audioserver workaround? -"
+      ui_print "   Needed for some devices (like OP3T)"
+      ui_print " "
+      ui_print "   Vol+ = yes, Vol- = no"
+      if $VKSEL; then
+        OCW=true
+      else
+        OCW=false
+      fi
+    else
+      ui_print "   app open/close/fc workaround specified in zipname!"
+    fi
   fi
 else
   ui_print "   Options specified in zipname!"
@@ -187,7 +207,7 @@ fi
 [ -n "ACTIVITY" ] || abort " "
 
 sed -i "s/<SOURCE>/$SOURCE/g" $TMPDIR/common/sepolicy.sh
-sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s|<FACTIVITY>|$FACTIVITY|g" $TMPDIR/common/service.sh
+$OCW && sed -i -e "s/<ACTIVITY>/$ACTIVITY/g" -e "s|<FACTIVITY>|$FACTIVITY|g" $TMPDIR/common/service.sh || rm -f $TMPDIR/common/service.sh
 sed -i "s/<ACTIVITY>/$ACTIVITY/g" $TMPDIR/common/v4afx.sh
 sed -ri "s/version=(.*)/version=\1 ($VER)/" $TMPDIR/module.prop
 echo -e "UA=$UA\nACTIVITY=$ACTIVITY" >> $TMPDIR/module.prop
