@@ -96,7 +96,7 @@ if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ] || [ -z $OCW ]; then
     [ -z $MAT ] && MAT=false; NEW=true
     [ -z $UA ] && UA=false
     [ -z $LIBWA ] && LIBWA=false
-    [ -z $OCW ] && OCW=false
+    [ -z $OCW ] && OCW=true
   else
     if [ -z $MAT ]; then
       ui_print " - Select Version -"
@@ -155,8 +155,9 @@ if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ] || [ -z $OCW ]; then
     fi
     if [ -z $OCW ]; then
       ui_print " "
-      ui_print " - Use app open/close/fc audioserver workaround? -"
-      ui_print "   Needed for some devices (like OP3T)"
+      ui_print " - Use killall audioserver workaround? -"
+      ui_print "   Needed for some devices"
+      ui_print "   Choose yes if uncertain"
       ui_print " "
       ui_print "   Vol+ = yes, Vol- = no"
       if $VKSEL; then
