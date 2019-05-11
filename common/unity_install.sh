@@ -55,7 +55,7 @@ esac
 IFS=$OIFS
 
 # Check for devices that need lib workaround
-if device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row" || device_check "beyond2lte"; then
+if [ $API -ge 28 ] || device_check "walleye" || device_check "taimen" || device_check "crosshatch" || device_check "blueline" || device_check "mata" || device_check "jasmine" || device_check "star2lte" || device_check "z2_row" || device_check "beyond2lte"; then
   LIBWA=true
 fi
 
@@ -150,16 +150,12 @@ if [ -z $MAT ] || [ -z $UA ] || [ -z $LIBWA ] || [ -z $OCW ]; then
       else
         LIBWA=false
       fi
-    else
-      ui_print "   Lib workaround option specified in zipname!"
     fi
     if [ -z $OCW ]; then
       ui_print " "
       ui_print " - Use killall audioserver workaround? -"
       ui_print "   Needed for some devices"
-      ui_print "   Choose yes if uncertain"
-      ui_print " "
-      ui_print "   Vol+ = yes, Vol- = no"
+      ui_print "   Vol+ = yes (recommended), Vol- = no"
       if $VKSEL; then
         OCW=true
       else
