@@ -1,5 +1,5 @@
-# ViPER4Android FX
-This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 2.4.0.1, and 2.3.4.0 during install). [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
+# ViPER4Android FX Legacy
+This module enables ViPER4Android FX Legacy (You can choose between Material, 2.5.0.5, 2.4.0.1, and 2.3.4.0 during install). [More details in support thread](https://forum.xda-developers.com/apps/magisk/module-viper4android-fx-2-5-0-5-t3577058).
 
 ## Compatibility
 * Android Jellybean+
