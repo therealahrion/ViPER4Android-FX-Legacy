@@ -7,6 +7,7 @@ This module enables ViPER4Android FX (You can choose between Material, 2.5.0.5, 
 * All root solutions (requires init.d support if not using magisk or supersu. Try [Init.d Injector](https://forum.xda-developers.com/android/software-hacking/mod-universal-init-d-injector-wip-t3692105))
 
 ## Change Log
+
 ### v4.3 - 5.16.2019
 * Update to Unity v4.2
 * Make lib workaround apply to all pie devices
